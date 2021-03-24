@@ -3,7 +3,7 @@ import numpy as np
 import random
 import torch
 
-def plot_signature(signature, labels):
+def plot_signature(signature, labels=None):
     plt.bar(range(96), signature, tick_label=labels)
     plt.xticks(rotation=90)
     plt.show()
