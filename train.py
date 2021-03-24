@@ -12,12 +12,12 @@ from utilities import plot_signature, get_data_batches, get_entropy
 
 # Model params
 num_hidden_layers = 4
-num_neurons = 300
+num_neurons = 500
 num_classes = 4
 
 # Training params
-experiment_id = "test_9"
-iterations = 1e6
+experiment_id = "test_0"
+iterations = 1e3
 batch_size = 50
 
 if __name__ == "__main__":
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
 
-    saved_sn = SignatureNet()
-    saved_sn.load_state_dict(torch.load(os.path.join("models", experiment_id)))
-    prediction = saved_sn(signatures[0].unsqueeze(dim=0))
-    print(prediction)
+    for i in range(num_classes):
+        prediction = sn(signatures[i].unsqueeze(dim=0))
+        print(i)
+        print(prediction)
