@@ -14,7 +14,7 @@ class SignatureFinder:
         self.__bounds = [(0, 1)]*self.__weight_len
 
     def __objective(self, w, signature, lagrange_mult):
-        return np.linalg.norm(signature - np.dot(self.signatures, w), ord=2) + lagrange_mult*(1 - np.linalg.norm(w, ord=1))
+        return np.linalg.norm(signature - np.dot(self.signatures, w), ord=2) + lagrange_mult*(1 - np.sum(w))**2
 
     def get_weights(self, signature, lagrange_mult=0.1):
         w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
@@ -24,7 +24,10 @@ class SignatureFinder:
 if __name__=="__main__":
     data = pd.read_excel("data.xlsx")
     sf = SignatureFinder(data)
-    signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:, 1] + 0.1*sf.signatures[:, 2] + 0.1*sf.signatures[:, -3]
-    plot_signature(signature)
+    signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:, 3] + 0.1*sf.signatures[:, 4] + 0.1*sf.signatures[:, -3]
+    # noise = 0.01*np.random.uniform(low=-1, high=1, size=(signature.shape[0]))
+    # signature = np.abs(signature + noise)
+    # plot_signature(signature)
     sol = sf.get_weights(signature)
     print(np.round(sol, decimals=2))
+    print(np.sum(sol))
