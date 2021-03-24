@@ -19,9 +19,10 @@ learning_rate_steps = 100
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_141"
+experiment_id = "test_8"
 iterations = 1e3
 batch_size = 50
+num_samples = 10000
 
 if __name__ == "__main__":
     data = pd.read_excel("data.xlsx")
@@ -39,7 +40,8 @@ if __name__ == "__main__":
 
     for iteration in tqdm(range(int(iterations))):
         input_batch, label_batch = get_data_batches(signatures=signatures,
-                                                    batch_size=batch_size)
+                                                    batch_size=batch_size,
+                                                    n_samples=num_samples)
 
         optimizer.zero_grad()
 
