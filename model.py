@@ -12,11 +12,12 @@ class SignatureNet(nn.Module):
         self.layers.append(nn.Linear(num_units, num_classes))
         self.layers = nn.ModuleList(self.layers)
 
-        self.activation = torch.nn.ReLU()
+        self.activation = torch.nn.LeakyReLU(0.1)
 
 
     def forward(self, x):
         for layer in self.layers:
             x = self.activation(layer(x))
+            #self.drop = nn.Dropout(p=0.5)
         x = nn.Softmax(dim=1)(x)
         return x
