@@ -19,10 +19,10 @@ learning_rate_steps = 100
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_8"
+experiment_id = "test_10"
 iterations = 1e3
 batch_size = 50
-num_samples = 1000
+num_samples = 5000
 
 if __name__ == "__main__":
     data = pd.read_excel("data.xlsx")
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         l = loss(predicted_batch, label_batch)
 
         writer.add_scalar(f'loss', l.item(), iteration)
-        writer.add_scalar(f'entropy', get_entropy(predicted_batch), iteration)
+        #writer.add_scalar(f'entropy', get_entropy(predicted_batch), iteration)
 
         l.backward()
         optimizer.step()
@@ -65,7 +65,9 @@ if __name__ == "__main__":
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
     conf_mat = confusion_matrix_plot(label_list, predicted_list, range(num_classes))
 
+    sm = torch.nn.Softmax()
     for i in range(num_classes):
         prediction = sn(signatures[i].unsqueeze(dim=0))
+        probabilities = sm(prediction)
         print(i)
-        print(prediction)
+        print(probabilities)
