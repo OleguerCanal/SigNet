@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from model import SignatureNet
-from utilities import plot_signature, get_data_batches, get_entropy
+from utilities import plot_signature, get_data_batches, get_entropy, confusion_matrix_plot
 
 # Model params
 num_hidden_layers = 4
@@ -22,7 +22,7 @@ learning_rate_gamma = 0.1
 experiment_id = "test_8"
 iterations = 1e3
 batch_size = 50
-num_samples = 10000
+num_samples = 1000
 
 if __name__ == "__main__":
     data = pd.read_excel("data.xlsx")
@@ -37,17 +37,21 @@ if __name__ == "__main__":
     optimizer = optim.Adam(sn.parameters(), lr = intial_learning_rate)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=learning_rate_steps, gamma=learning_rate_gamma)
     loss = nn.CrossEntropyLoss()
+    
+    predicted_list = torch.zeros(0,dtype=torch.long)
+    label_list = torch.zeros(0,dtype=torch.long)
 
     for iteration in tqdm(range(int(iterations))):
         input_batch, label_batch = get_data_batches(signatures=signatures,
                                                     batch_size=batch_size,
                                                     n_samples=num_samples)
-
         optimizer.zero_grad()
 
         predicted_batch = sn(input_batch)
-        # print(predicted_batch)
-        # print(label_batch)
+
+        label_list = torch.cat([label_list,label_batch.view(-1)])
+        predicted_list = torch.cat([predicted_list, torch.argmax(predicted_batch,1).view(-1)])
+
         l = loss(predicted_batch, label_batch)
 
         writer.add_scalar(f'loss', l.item(), iteration)
@@ -59,6 +63,7 @@ if __name__ == "__main__":
         #print(scheduler.get_lr())
 
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
+    conf_mat = confusion_matrix_plot(label_list, predicted_list, range(num_classes))
 
     for i in range(num_classes):
         prediction = sn(signatures[i].unsqueeze(dim=0))
