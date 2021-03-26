@@ -19,20 +19,20 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
 
     def get_batch(self):
         input_batch = torch.empty(self.batch_size, 96)
-        label_batch = torch.empty(self.batch_size, 72)
+        label_batch = torch.empty(self.batch_size, self.__total_signatures)
 
         for i in range(self.batch_size):
             # Pick the number of involved signatures
             n_signatures = np.random.randint(self.min_n_signatures, self.max_n_signatures + 1)
-            
+
             # Select n_signatures
             signature_ids = torch.randperm(self.__total_signatures)[:n_signatures]
-            
+
             # Assign weights randomly
-            weights = torch.rand(size=(n_signatures,))
+            weights = torch.rand(size=(n_signatures,)) + 1e-6
             weights = weights/torch.sum(weights)
             label = torch.zeros(self.__total_signatures).scatter_(dim=0, index=signature_ids, src=weights)
-            
+
             # Compute resulting signature
             signature = torch.einsum("ij,j->i", (self.signatures, label))
             
