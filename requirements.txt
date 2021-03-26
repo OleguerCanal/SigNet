@@ -2,6 +2,7 @@ matplotlib
 pandas
 seaborn
 sklearn
+snorkel
 tensorboard
 torch
 tqdm
