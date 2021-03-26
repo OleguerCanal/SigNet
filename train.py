@@ -13,13 +13,13 @@ from utilities import plot_signature, get_data_batches, get_entropy, confusion_m
 # Model params
 num_hidden_layers = 4
 num_neurons = 500
-num_classes = 4
+num_classes = 72
 intial_learning_rate = 0.0001
-learning_rate_steps = 100
+learning_rate_steps = 500
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_10"
+experiment_id = "test_110"
 iterations = 1e3
 batch_size = 50
 num_samples = 5000
@@ -49,8 +49,9 @@ if __name__ == "__main__":
 
         predicted_batch = sn(input_batch)
 
-        label_list = torch.cat([label_list,label_batch.view(-1)])
-        predicted_list = torch.cat([predicted_list, torch.argmax(predicted_batch,1).view(-1)])
+        if iteration > iterations/2:
+            label_list = torch.cat([label_list,label_batch.view(-1)])
+            predicted_list = torch.cat([predicted_list, torch.argmax(predicted_batch,1).view(-1)])
 
         l = loss(predicted_batch, label_batch)
 
