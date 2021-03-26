@@ -15,12 +15,12 @@ num_hidden_layers = 4
 num_neurons = 500
 num_classes = 72
 intial_learning_rate = 0.0001
-learning_rate_steps = 500
+learning_rate_steps = 5000
 learning_rate_gamma = 0.1
 
 # Training params
 experiment_id = "test_110"
-iterations = 1e3
+iterations = 5e3
 batch_size = 50
 num_samples = 5000
 
