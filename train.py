@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from model import SignatureNet
 from utilities.dataloader import DataLoader
-from utilities.metrics import get_cosine_similarity, get_entropy
+from utilities.metrics import get_cosine_similarity, get_entropy, get_divergence
 from utilities.plotting import plot_signature, plot_confusion_matrix, probs_batch_to_sigs
 
 # Model params
@@ -22,8 +22,8 @@ learning_rate_steps = 20000
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_8"
-iterations = 5e3
+experiment_id = "test_12"
+iterations = 2e3
 batch_size = 50
 num_samples = 5000
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         predicted_batch = sn(input_batch)
 
         if iteration > iterations/1.5:
-            label_sigs, predicted_sigs = probs_batch_to_sigs(label_batch, predicted_batch, 0.05, num_classes)
+            label_sigs, predicted_sigs = probs_batch_to_sigs(label_batch, predicted_batch, 0.1, num_classes)
             label_list = torch.cat([label_list, label_sigs.view(-1)])
             predicted_list = torch.cat([predicted_list, predicted_sigs.view(-1)])
         
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
         writer.add_scalar(f'metrics/loss', l.item(), iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
-
+        writer.add_scalar(f'metrics/loss-entropy', l.item()-get_divergence(label_batch), iteration)
         l.backward()
         optimizer.step()
         scheduler.step()
