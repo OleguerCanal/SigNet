@@ -11,20 +11,20 @@ from tqdm import tqdm
 from model import SignatureNet
 from utilities.dataloader import DataLoader
 from utilities.metrics import get_cosine_similarity, get_entropy
-from utilities.plotting import plot_signature, plot_confusion_matrix
+from utilities.plotting import plot_signature, plot_confusion_matrix, probs_batch_to_sigs
 
 # Model params
 num_hidden_layers = 4
 num_neurons = 500
-num_classes = 72
-intial_learning_rate = 0.01
+num_classes = 10
+intial_learning_rate = 0.001
 learning_rate_steps = 20000
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_120"
-iterations = 2e4
-batch_size = 100
+experiment_id = "test_8"
+iterations = 5e3
+batch_size = 50
 num_samples = 5000
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
                              batch_size=batch_size,
                              n_samples=num_samples,
                              min_n_signatures=1,
-                             max_n_signatures=3)
+                             max_n_signatures=5)
 
     writer = SummaryWriter(log_dir=os.path.join("runs", experiment_id))
 
@@ -56,13 +56,13 @@ if __name__ == "__main__":
 
         predicted_batch = sn(input_batch)
 
-        # if iteration > iterations/2:
-        #     label_list = torch.cat([label_list, label_batch.view(-1)])
-        #     predicted_list = torch.cat(
-        #         [predicted_list, torch.argmax(predicted_batch, 1).view(-1)])
-
-        l = classification.cross_entropy_with_probs(
-            predicted_batch, label_batch)
+        if iteration > iterations/1.5:
+            label_sigs, predicted_sigs = probs_batch_to_sigs(label_batch, predicted_batch, 0.05, num_classes)
+            label_list = torch.cat([label_list, label_sigs.view(-1)])
+            predicted_list = torch.cat([predicted_list, predicted_sigs.view(-1)])
+        
+        l = classification.cross_entropy_with_probs(predicted_batch, label_batch)
+        #l = torch.nn.KLDivLoss(predicted_batch, label_batch)
 
         writer.add_scalar(f'metrics/loss', l.item(), iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         scheduler.step()
 
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
-    #conf_mat = plot_confusion_matrix(label_list, predicted_list, range(num_classes))
+    conf_mat = plot_confusion_matrix(label_list, predicted_list, range(num_classes+1))
 
     sm = torch.nn.Softmax()
     # for i in range(num_classes):
@@ -81,6 +81,6 @@ if __name__ == "__main__":
     #    print(i)
     #    print(probabilities)
 
-    prediction = sn((signatures[2]*0.3 + signatures[5]*0.7).unsqueeze(dim=0))
+    prediction = sn((signatures[1]*0.3 + signatures[2]*0.7).unsqueeze(dim=0))
     probabilities = sm(prediction)
     print(probabilities)
