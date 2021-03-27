@@ -17,13 +17,13 @@ from utilities.plotting import plot_signature, plot_confusion_matrix, probs_batc
 num_hidden_layers = 4
 num_neurons = 500
 num_classes = 10
-intial_learning_rate = 0.001
+intial_learning_rate = 0.01
 learning_rate_steps = 20000
 learning_rate_gamma = 0.1
 
 # Training params
-experiment_id = "test_12"
-iterations = 2e3
+experiment_id = "test_4"
+iterations = 1e3
 batch_size = 50
 num_samples = 5000
 
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     predicted_list = torch.zeros(0, dtype=torch.long)
     label_list = torch.zeros(0, dtype=torch.long)
 
+    kl_div = torch.nn.KLDivLoss(reduction = 'batchmean')
     for iteration in tqdm(range(int(iterations))):
         input_batch, label_batch = data_loader.get_batch()
         optimizer.zero_grad()
@@ -62,11 +63,11 @@ if __name__ == "__main__":
             predicted_list = torch.cat([predicted_list, predicted_sigs.view(-1)])
         
         l = classification.cross_entropy_with_probs(predicted_batch, label_batch)
-        #l = torch.nn.KLDivLoss(predicted_batch, label_batch)
 
         writer.add_scalar(f'metrics/loss', l.item(), iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/loss-entropy', l.item()-get_divergence(label_batch), iteration)
+        writer.add_scalar(f'metrics/KL-divergence', kl_div(label_batch.log_softmax(0), predicted_batch.log_softmax(0)), iteration)
         l.backward()
         optimizer.step()
         scheduler.step()
