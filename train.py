@@ -16,19 +16,19 @@ from utilities.plotting import plot_signature, plot_confusion_matrix
 # Model params
 num_hidden_layers = 4
 num_neurons = 500
-num_classes = 10
+num_classes = 72
 
 # Training params
-experiment_id = "test_1"
-iterations = 1e3
+experiment_id = "comb_2"
+iterations = 500
 batch_size = 50
-num_samples = 5000
-intial_learning_rate = 0.01
-learning_rate_steps = 20000
-learning_rate_gamma = 0.1
+num_samples = 1000
+intial_learning_rate = 0.001
+learning_rate_steps = 100
+learning_rate_gamma = 0.8
 
 if __name__ == "__main__":
-    data = pd.read_excel("data.xlsx")
+    data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(
         torch.float32) for i in range(2, 74)][:num_classes]
 
@@ -36,11 +36,12 @@ if __name__ == "__main__":
                              batch_size=batch_size,
                              n_samples=num_samples,
                              min_n_signatures=1,
-                             max_n_signatures=5)
+                             max_n_signatures=15)
 
     writer = SummaryWriter(log_dir=os.path.join("runs", experiment_id))
 
-    sn = SignatureNet(num_classes=num_classes,
+    sn = SignatureNet(signatures=signatures,
+                      num_classes=num_classes,
                       num_hidden_layers=num_hidden_layers, num_units=num_neurons)
     optimizer = optim.Adam(sn.parameters(), lr=intial_learning_rate)
     scheduler = optim.lr_scheduler.StepLR(
@@ -57,15 +58,16 @@ if __name__ == "__main__":
 
         predicted_batch = sn(input_batch)
 
-        l = get_cross_entropy(predicted_batch, label_batch)
+        # l = get_cross_entropy(predicted_batch, label_batch)
+        l = get_MSE(predicted_batch, label_batch)
 
         l.backward()
         optimizer.step()
         scheduler.step()
 
-        writer.add_scalar(f'metrics/cross-entropy', l.item(), iteration)
+        writer.add_scalar(f'metrics/cross-entropy', get_cross_entropy(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
-        writer.add_scalar(f'metrics/KL-divergence', l.item() - get_entropy(label_batch), iteration)
+        writer.add_scalar(f'metrics/KL-divergence', get_kl_divergence(predicted_batch, label_batch), iteration)
         # writer.add_scalar(f'metrics/js-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
 
