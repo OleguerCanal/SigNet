@@ -1,14 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import random
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
 
 class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
 
-    def __init__(self, signatures, batch_size, n_samples=1000, min_n_signatures=1, max_n_signatures=10):
+    def __init__(self, signatures, batch_size, n_samples=1000, min_n_signatures=1, max_n_signatures=10, seed=None):
+        if seed is not None:
+            torch.seed = seed
+            np.random.seed(seed)
         self.__total_signatures = len(signatures)
         self.signatures = torch.stack(signatures).t()
         self.batch_size = batch_size
