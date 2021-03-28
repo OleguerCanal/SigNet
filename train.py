@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from model import SignatureNet
 from utilities.dataloader import DataLoader
-from utilities.metrics import get_cosine_similarity, get_entropy, get_cross_entropy
+from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
@@ -19,7 +19,7 @@ num_neurons = 500
 num_classes = 10
 
 # Training params
-experiment_id = "test_0"
+experiment_id = "test_1"
 iterations = 1e3
 batch_size = 50
 num_samples = 5000
@@ -59,13 +59,15 @@ if __name__ == "__main__":
 
         l = get_cross_entropy(predicted_batch, label_batch)
 
-        writer.add_scalar(f'metrics/cross-entropy', l.item(), iteration)
-        writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
-        writer.add_scalar(f'metrics/KL-divergence', l.item() - get_entropy(label_batch), iteration)
-
         l.backward()
         optimizer.step()
         scheduler.step()
+
+        writer.add_scalar(f'metrics/cross-entropy', l.item(), iteration)
+        writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
+        writer.add_scalar(f'metrics/KL-divergence', l.item() - get_entropy(label_batch), iteration)
+        # writer.add_scalar(f'metrics/js-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
+        writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
 
     pathlib.Path("models").mkdir(parents=True, exist_ok=True)
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
