@@ -1,3 +1,4 @@
+from concurrent.futures import ProcessPoolExecutor
 import os
 import sys
 
@@ -26,9 +27,13 @@ class SignatureFinder:
         return res.x
 
     def get_weights_batch(self, input_batch):
-        guessed_labels = torch.empty((input_batch.shape[0], self.signatures.shape[1]))
-        for i in tqdm(range(input_batch.shape[0])):
-            guessed_labels[i] = torch.tensor(self.get_weights(input_batch[i, :]))
+        result = []
+        # id_array = [*range(input_batch.shape[0])]
+        input_as_list = input_batch.tolist()
+        with ProcessPoolExecutor(max_workers=12) as executor:
+            for r in executor.map(self.get_weights, input_as_list):
+                result.append(torch.tensor(r, dtype=torch.float32))
+        guessed_labels = torch.stack(result)
         return guessed_labels
 
 
