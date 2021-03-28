@@ -5,6 +5,7 @@ class SignatureNet(nn.Module):
 
     def __init__(self, num_classes=72, num_hidden_layers=2, num_units=400):
         super(SignatureNet, self).__init__()
+        self.num_classes = num_classes
         
         self.layers = [nn.Linear(96, num_units)]
         for _ in range(num_hidden_layers):
