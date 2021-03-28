@@ -39,7 +39,7 @@ class SignatureFinder:
 
 if __name__ == "__main__":
     num_classes = 5
-    data = pd.read_excel("data.xlsx")
+    data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
     sf = SignatureFinder(data)
