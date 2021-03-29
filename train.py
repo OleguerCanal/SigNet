@@ -15,19 +15,21 @@ from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
 num_hidden_layers = 4
-num_neurons = 500
+num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_2"
-iterations = 500
+experiment_id = "comb_JS_2"
+iterations = 1500
 batch_size = 50
 num_samples = 1000
 intial_learning_rate = 0.001
-learning_rate_steps = 100
-learning_rate_gamma = 0.8
+learning_rate_steps = 300
+learning_rate_gamma = 0.7
 
 if __name__ == "__main__":
+
+    pathlib.Path("models").mkdir(parents=True, exist_ok=True)
     data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(
         torch.float32) for i in range(2, 74)][:num_classes]
@@ -51,7 +53,6 @@ if __name__ == "__main__":
     predicted_list = torch.zeros(0, dtype=torch.long)
     label_list = torch.zeros(0, dtype=torch.long)
 
-    kl_div = torch.nn.KLDivLoss(reduction = 'batchmean')
     for iteration in tqdm(range(int(iterations))):
         input_batch, label_batch = data_loader.get_batch()
         optimizer.zero_grad()
@@ -59,7 +60,8 @@ if __name__ == "__main__":
         predicted_batch = sn(input_batch)
 
         # l = get_cross_entropy(predicted_batch, label_batch)
-        l = get_MSE(predicted_batch, label_batch)
+        # l = get_MSE(predicted_batch, label_batch)
+        l = -get_jensen_shannon(predicted_batch, label_batch)
 
         l.backward()
         optimizer.step()
@@ -68,8 +70,10 @@ if __name__ == "__main__":
         writer.add_scalar(f'metrics/cross-entropy', get_cross_entropy(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/KL-divergence', get_kl_divergence(predicted_batch, label_batch), iteration)
-        # writer.add_scalar(f'metrics/js-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
+        writer.add_scalar(f'metrics/js-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
 
-    pathlib.Path("models").mkdir(parents=True, exist_ok=True)
+        if iteration % 500 == 0:
+            torch.save(sn.state_dict(), os.path.join("models", experiment_id))
+
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))

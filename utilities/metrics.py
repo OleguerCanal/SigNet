@@ -30,7 +30,7 @@ def get_kl_divergence(predicted_label, true_label):
 
 
 def get_jensen_shannon(predicted_label, true_label):
-    return get_kl_divergence(predicted_label, true_label) - get_kl_divergence(true_label, predicted_label)
+    return 0.5 * (get_kl_divergence(predicted_label, (true_label + predicted_label)/2) + get_kl_divergence(true_label, (true_label + predicted_label)/2))
 
 
 def get_wasserstein_distance(predicted_label, true_label):

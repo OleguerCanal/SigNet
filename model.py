@@ -31,5 +31,5 @@ class SignatureNet(nn.Module):
             x = self.activation(layer(x))
             #self.drop = nn.Dropout(p=0.5)
         x = self.layers[-1](x)
-        # x = nn.Softmax(dim=1)(x)
+        x = nn.Softmax(dim=1)(x)
         return x
