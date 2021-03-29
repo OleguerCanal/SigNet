@@ -1,39 +1,40 @@
 import os
+import time
 
 import numpy as np
 import pandas as pd
 import torch
 import seaborn as sn
 
+from baseline import SignatureFinder
 from model import SignatureNet
 from utilities.dataloader import DataLoader
-from utilities.metrics import get_cosine_similarity, get_entropy, get_cross_entropy, get_wasserstein_distance
+from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 
 class ModelTester:
-    def __init__(self, dataloader, num_classes):
+    def __init__(self, num_classes):
         self.num_classes = num_classes
-        self.dataloader = dataloader
 
-    def test(self, model):
-        input_batch, label_batch = self.dataloader.get_batch()
-
-        guessed_labels = model(input_batch)
-
-        cross_entropy = get_cross_entropy(guessed_labels, label_batch)
-        kl_divergence = cross_entropy - get_entropy(label_batch)
-        cosine_similarity = get_cosine_similarity(guessed_labels, label_batch)
+    def test(self, guessed_labels, true_labels):
+        mse = get_MSE(guessed_labels, true_labels)
+        cross_entropy = get_cross_entropy(guessed_labels, true_labels)
+        kl_divergence = get_kl_divergence(guessed_labels, true_labels)
+        # js_divergence = get_jensen_shannon(guessed_labels, true_labels)
+        cosine_similarity = get_cosine_similarity(guessed_labels, true_labels)
         wasserstein_distance = get_wasserstein_distance(
-            guessed_labels, label_batch)
+            guessed_labels, true_labels)
 
+        print("mse:", np.round(mse.item(), decimals=5))
         print("cross_entropy:", np.round(cross_entropy.item(), decimals=3))
         print("kl_divergence:", np.round(kl_divergence.item(), decimals=3))
+        # print("js_divergence:", np.round(js_divergence.item(), decimals=3))
         print("cosine_similarity:", np.round(cosine_similarity.item(), decimals=3))
         print("wasserstein_distance:", np.round(wasserstein_distance, decimals=3))
 
         label_sigs, predicted_sigs = self.probs_batch_to_sigs(
-            label_batch, guessed_labels, cutoff=0.05, num_classes=self.num_classes)
+            true_labels, guessed_labels, cutoff=0.05, num_classes=self.num_classes)
         conf_mat = plot_confusion_matrix(
             label_sigs, predicted_sigs, range(self.num_classes+1))
 
@@ -61,28 +62,50 @@ class ModelTester:
 
 
 if __name__ == "__main__":
-    experiment_id = "test_0"
-
     # Model params
+    experiment_id = "test_3"
     num_hidden_layers = 4
     num_neurons = 500
-    num_classes = 10
+    num_classes = 72
 
-    model = SignatureNet(num_classes=num_classes,
-                         num_hidden_layers=num_hidden_layers,
-                         num_units=num_neurons)
-    model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
-    model.eval()
+    # Generate data
+    # data = pd.read_excel("data/data.xlsx")
+    # signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
+    #             for i in range(2, 74)][:num_classes]
+    # dataloader = DataLoader(signatures=signatures,
+    #                         batch_size=500,
+    #                         n_samples=5000,
+    #                         min_n_signatures=1,
+    #                         max_n_signatures=5,
+    #                         seed=0)
+    # input_batch, label_batch = dataloader.get_batch()
+    # input_batch = torch.tensor(pd.read_csv("data/test_input_2.csv").values, dtype=torch.float)
+    # input_batch = torch.nn.functional.normalize(input_batch, dim=1, p=1)
+    # print(input_batch)
+    # label_batch = torch.tensor(pd.read_csv("data/test_label.csv", header=None).values)
+    label_batch = torch.tensor(pd.read_csv("data/test_label_2.csv", header=None).values, dtype=torch.float)
+    # print(label_batch)
 
-    data = pd.read_excel("data.xlsx")
-    signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:model.num_classes]
-    dataloader = DataLoader(signatures=signatures,
-                             batch_size=500,
-                             n_samples=5000,
-                             min_n_signatures=1,
-                             max_n_signatures=5)
+    guessed_labels = torch.tensor(pd.read_csv("data/deconstructSigs_test_2.csv").values, dtype=torch.float)
+    # print(guessed_labels)
 
-    model_tester = ModelTester(dataloader=dataloader,
-                               num_classes=model.num_classes)
-    model_tester.test(model=model)
+
+    
+    # Instantiate model and do predictions
+    # model = SignatureNet(num_classes=num_classes,
+    #                      num_hidden_layers=num_hidden_layers,
+    #                      num_units=num_neurons)
+    # model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
+    # model.eval()
+    # guessed_labels = model(input_batch)
+
+    # model = SignatureFinder(signatures)
+    # t = time.time()
+    # guessed_labels = model.get_weights_batch(input_batch)
+    # elapsed_time = time.time() - t
+    # print("elapsed_time:", elapsed_time)
+
+
+    # # Get metrics
+    model_tester = ModelTester(num_classes=num_classes)
+    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)

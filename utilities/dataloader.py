@@ -1,14 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import random
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
 
 class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
 
-    def __init__(self, signatures, batch_size, n_samples=1000, min_n_signatures=1, max_n_signatures=10):
+    def __init__(self, signatures, batch_size, n_samples=1000, min_n_signatures=1, max_n_signatures=10, seed=None):
+        if seed is not None:
+            torch.seed = seed
+            np.random.seed(seed)
         self.__total_signatures = len(signatures)
         self.signatures = torch.stack(signatures).t()
         self.batch_size = batch_size
@@ -17,7 +19,7 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
         self.min_n_signatures = min_n_signatures  # Inclusive
         self.max_n_signatures = max_n_signatures  # Inclusive
 
-    def get_batch(self):
+    def get_batch(self, normalize=True):
         input_batch = torch.empty(self.batch_size, 96)
         label_batch = torch.empty(self.batch_size, self.__total_signatures)
 
@@ -39,7 +41,9 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
             # Sample
             c = torch.distributions.categorical.Categorical(probs=signature)
             samples = c.sample(sample_shape=torch.Size([self.n_samples,])).type(torch.float32)
-            sample = torch.histc(samples, bins=96, min=0, max=95)/float(self.n_samples)
+            sample = torch.histc(samples, bins=96, min=0, max=95)
+            if normalize:
+                sample = sample/float(self.n_samples)
             
             # Store
             input_batch[i, :] = sample
