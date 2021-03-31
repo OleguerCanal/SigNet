@@ -64,7 +64,7 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "comb_4"
+    experiment_id = "comb_kl_reg"
     num_hidden_layers = 4
     num_neurons = 600
     num_classes = 72
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
     model.eval()
     guessed_labels = model(input_batch)
-    guessed_labels = nn.Softmax(dim=1)(guessed_labels)
+    #guessed_labels = nn.Softmax(dim=1)(guessed_labels)
     # model = SignatureFinder(signatures)
     # t = time.time()
     # guessed_labels = model.get_weights_batch(input_batch)
