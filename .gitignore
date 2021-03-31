@@ -137,3 +137,4 @@ cluster/
 parameters.txt
 *.sh
 signatures-nets.e*
+results/
