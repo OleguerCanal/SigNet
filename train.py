@@ -19,14 +19,14 @@ num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_kl_reg2"
+experiment_id = "comb_js_reg"
 iterations = 1500
 batch_size = 50
 num_samples = 1000
 intial_learning_rate = 0.01
 learning_rate_steps = 300
 learning_rate_gamma = 0.7
-l1_lambda = 1e-4
+l1_lambda = 1e-6
 
 if __name__ == "__main__":
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(input_batch), label_batch), iteration)
         writer_validation.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(input_validation), label_validation), iteration)
         writer.add_scalar(f'metrics/KL-divergence', get_kl_divergence(predicted_batch, label_batch), iteration)
-        writer.add_scalar(f'metrics/js-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
+        writer.add_scalar(f'metrics/JS-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
         writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
 
         if iteration % 500 == 0:
