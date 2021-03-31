@@ -67,8 +67,8 @@ if __name__ == "__main__":
 
         # l = get_cross_entropy(predicted_batch, label_batch)
         # l = get_MSE(predicted_batch, label_batch)
-        l = get_kl_divergence(predicted_batch, label_batch)
-        # l = get_jensen_shannon(predicted_batch, label_batch)
+        # l = get_kl_divergence(predicted_batch, label_batch)
+        l = get_jensen_shannon(predicted_batch, label_batch)
         l1_norm = sum(p.abs().sum() for p in sn.parameters())
         l = l + l1_lambda*l1_norm
 

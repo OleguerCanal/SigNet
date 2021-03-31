@@ -34,6 +34,7 @@ def get_kl_divergence(predicted_label, true_label):
 def get_jensen_shannon(predicted_label, true_label):
     print(predicted_label)
     print(true_label)
+    true_label += 1e-6
     r = (predicted_label + true_label)/2
     term1 = torch.mean(torch.einsum("ij,ij->i",(predicted_label,torch.nan_to_num(torch.log(torch.div(predicted_label, r))))))
     term2 = torch.mean(torch.einsum("ij,ij->i",(true_label, torch.nan_to_num(torch.log(torch.div(true_label, r))))))
