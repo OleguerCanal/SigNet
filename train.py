@@ -19,7 +19,7 @@ num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_JS_2"
+experiment_id = "comb_kl_1"
 iterations = 1500
 batch_size = 50
 num_samples = 1000
@@ -61,7 +61,8 @@ if __name__ == "__main__":
 
         # l = get_cross_entropy(predicted_batch, label_batch)
         # l = get_MSE(predicted_batch, label_batch)
-        l = -get_jensen_shannon(predicted_batch, label_batch)
+        l = get_kl_divergence(predicted_batch, label_batch)
+        # l = get_jensen_shannon(predicted_batch, label_batch)
 
         l.backward()
         optimizer.step()
