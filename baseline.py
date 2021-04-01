@@ -9,22 +9,39 @@ from scipy.optimize import minimize
 import torch
 from tqdm import tqdm
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utilities.metrics import *
+
 class SignatureFinder:
     # TODO(oleguer): Use torch tensors instead of np arrays everywhere
 
-    def __init__(self, signatures, lagrange_mult=0.1):
+    def __init__(self, signatures, metric=None, lagrange_mult=0.1):
         self.signatures = torch.stack(signatures).t().cpu().detach().numpy()
         self.__weight_len = self.signatures.shape[1]
         self.__bounds = [(0, 1)]*self.__weight_len
         self.lagrange_mult = lagrange_mult
+        self.metric = metric if metric is not None else get_MSE
+        # Define sum-1 constrain
 
-    def __objective(self, w, signature):
-        return np.linalg.norm(signature - np.dot(self.signatures, w), ord=2) + self.lagrange_mult*(1 - np.sum(w))**2
+        def __constrain(w):
+            return np.sum(w) - 1
+        self.constraints = [{"type": "eq", "fun": __constrain}]
+
+    def __objective(self, w):
+        with torch.no_grad():
+            guess = np.dot(self.signatures, w)
+            guess_tensor = torch.tensor(guess, dtype=torch.float).unsqueeze(0)
+            error = self.metric(self.signature_tensor, guess_tensor).item()
+        # return error + self.lagrange_mult*(np.sum(w) - 1)**2
+        return error
 
     def get_weights(self, signature):
         w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
-        res = minimize(self.__objective, w, args=(
-            signature,), bounds=self.__bounds)
+        self.signature_tensor = torch.tensor(signature, dtype=torch.float).unsqueeze(0)
+        res = minimize(self.__objective, w,
+                       bounds=self.__bounds,
+                       constraints=self.constraints
+                       )
         return res.x
 
     def get_weights_batch(self, input_batch):
@@ -43,9 +60,9 @@ if __name__ == "__main__":
     data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
-    sf = SignatureFinder(data)
-    signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:,
-                                                            1] + 0.1*sf.signatures[:, 2] + 0.1*sf.signatures[:, 3]
+    sf = SignatureFinder(signatures, metric=get_jensen_shannon)
+    signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:, 1] +\
+        0.1*sf.signatures[:, 2] + 0.1*sf.signatures[:, 3]
     sol = sf.get_weights(signature)
-    print(np.round(sol, decimals=2))
+    print(np.round(sol, decimals=3))
     print(np.sum(sol))
