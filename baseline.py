@@ -4,6 +4,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+import scipy
 from scipy.optimize import minimize
 import torch
 from tqdm import tqdm
