@@ -1,5 +1,6 @@
 matplotlib
 pandas
+scipy
 seaborn
 sklearn
 snorkel
