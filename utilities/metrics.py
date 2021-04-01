@@ -1,6 +1,7 @@
 import torch
 from scipy.stats import wasserstein_distance
 from snorkel import classification
+import copy
 
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
@@ -33,12 +34,18 @@ def get_kl_divergence(predicted_label, true_label):
 
 
 def get_jensen_shannon(predicted_label, true_label):
+<<<<<<< HEAD
     # print(predicted_label)
     # print(true_label)
     true_label += 1e-6
     r = (predicted_label + true_label)/2
+=======
+    true_label_local = copy.deepcopy(true_label)
+    true_label_local += 1e-6
+    r = (predicted_label + true_label_local)/2
+>>>>>>> 9c59340c1dd1ed41dfb4d8c1a09de91689f23d80
     term1 = torch.mean(torch.einsum("ij,ij->i",(predicted_label,torch.nan_to_num(torch.log(torch.div(predicted_label, r))))))
-    term2 = torch.mean(torch.einsum("ij,ij->i",(true_label, torch.nan_to_num(torch.log(torch.div(true_label, r))))))
+    term2 = torch.mean(torch.einsum("ij,ij->i",(true_label_local, torch.nan_to_num(torch.log(torch.div(true_label_local, r))))))
     return 0.5 * (term1 + term2) 
 
 

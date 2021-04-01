@@ -49,3 +49,15 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
             input_batch[i, :] = sample
             label_batch[i, :] = label
         return input_batch, label_batch
+
+    def select_batch(self, training_input, training_label, training_baseline, current_ind=0):
+        if current_ind < len(training_input):
+            last_ind = current_ind + self.batch_size
+        else:
+            current_ind = 0
+            last_ind = self.batch_size  
+        input_batch = training_input[current_ind:last_ind]
+        label_batch = training_label[current_ind:last_ind]
+        baseline_batch = training_baseline[current_ind:last_ind]
+
+        return input_batch, label_batch, baseline_batch, last_ind

@@ -19,14 +19,14 @@ num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_js_reg"
-iterations = 1500
+experiment_id = "comb_kl_reg4"
+iterations = 2500
 batch_size = 50
 num_samples = 1000
 intial_learning_rate = 0.01
 learning_rate_steps = 300
 learning_rate_gamma = 0.7
-l1_lambda = 1e-6
+l1_lambda = 1e-7
 
 if __name__ == "__main__":
 
@@ -35,9 +35,12 @@ if __name__ == "__main__":
     signatures = [torch.tensor(data.iloc[:, i]).type(
         torch.float32) for i in range(2, 74)][:num_classes]
 
-    input_validation = torch.tensor(pd.read_csv("data/validation_input_2.csv").values, dtype=torch.float)
-    input_validation = torch.nn.functional.normalize(input_validation, dim=1, p=1)
-    label_validation = torch.tensor(pd.read_csv("data/validation_label_2.csv").values, dtype=torch.float)
+    validation_input = torch.tensor(pd.read_csv("data/validation_input.csv", header=None).values, dtype=torch.float)
+    validation_label = torch.tensor(pd.read_csv("data/validation_label.csv", header=None).values, dtype=torch.float)
+    validation_baseline = torch.tensor(pd.read_csv("data/validation_baseline.csv", header=None).values, dtype=torch.float)
+    training_baseline = torch.tensor(pd.read_csv("data/training_baseline.csv", header=None).values, dtype=torch.float)
+    training_input = torch.tensor(pd.read_csv("data/training_input.csv", header=None).values, dtype=torch.float)
+    training_label = torch.tensor(pd.read_csv("data/training_label.csv", header=None).values, dtype=torch.float)
     
     data_loader = DataLoader(signatures=signatures,
                              batch_size=batch_size,
@@ -59,16 +62,17 @@ if __name__ == "__main__":
     predicted_list = torch.zeros(0, dtype=torch.long)
     label_list = torch.zeros(0, dtype=torch.long)
 
+    last_ind = 0
     for iteration in tqdm(range(int(iterations))):
-        input_batch, label_batch = data_loader.get_batch()
+        input_batch, label_batch, baseline_batch, last_ind = data_loader.select_batch( training_input, training_label, training_baseline, last_ind)
         optimizer.zero_grad()
 
-        predicted_batch = sn(input_batch)
+        predicted_batch = sn(input_batch, baseline_batch)
 
         # l = get_cross_entropy(predicted_batch, label_batch)
         # l = get_MSE(predicted_batch, label_batch)
-        # l = get_kl_divergence(predicted_batch, label_batch)
-        l = get_jensen_shannon(predicted_batch, label_batch)
+        l = get_kl_divergence(predicted_batch, label_batch)
+        # l = get_jensen_shannon(predicted_batch, label_batch)
         l1_norm = sum(p.abs().sum() for p in sn.parameters())
         l = l + l1_lambda*l1_norm
 
@@ -76,13 +80,16 @@ if __name__ == "__main__":
         optimizer.step()
         scheduler.step()
 
-
         writer.add_scalar(f'metrics/cross-entropy', get_cross_entropy(predicted_batch, label_batch), iteration)
-        writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(input_batch), label_batch), iteration)
-        writer_validation.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(input_validation), label_validation), iteration)
+        writer_validation.add_scalar(f'metrics/cross-entropy', get_cross_entropy(sn(validation_input, validation_baseline), validation_label), iteration)
+        writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(input_batch, baseline_batch), label_batch), iteration)
+        writer_validation.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(sn(validation_input, validation_baseline), validation_label), iteration)
         writer.add_scalar(f'metrics/KL-divergence', get_kl_divergence(predicted_batch, label_batch), iteration)
+        writer_validation.add_scalar(f'metrics/KL-divergence', get_kl_divergence(sn(validation_input, validation_baseline), validation_label), iteration)
         writer.add_scalar(f'metrics/JS-divergence', get_jensen_shannon(predicted_batch, label_batch), iteration)
+        writer_validation.add_scalar(f'metrics/JS-divergence', get_jensen_shannon(sn(validation_input, validation_baseline), validation_label), iteration)
         writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
+        writer_validation.add_scalar(f'metrics/mse', get_MSE(sn(validation_input, validation_baseline), validation_label), iteration)
 
         if iteration % 500 == 0:
             torch.save(sn.state_dict(), os.path.join("models", experiment_id))

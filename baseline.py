@@ -48,7 +48,7 @@ class SignatureFinder:
         result = []
         # id_array = [*range(input_batch.shape[0])]
         input_as_list = input_batch.tolist()
-        with ProcessPoolExecutor(max_workers=12) as executor:
+        with ProcessPoolExecutor(max_workers=8) as executor:
             for r in executor.map(self.get_weights, input_as_list):
                 result.append(torch.tensor(r, dtype=torch.float32))
         guessed_labels = torch.stack(result)
@@ -56,13 +56,21 @@ class SignatureFinder:
 
 
 if __name__ == "__main__":
-    num_classes = 5
+    num_classes = 72
+    training_data =  torch.tensor(pd.read_csv("data/validation_input.csv", header=None).values, dtype=torch.float)
+    print(training_data)
     data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
     sf = SignatureFinder(signatures, metric=get_jensen_shannon)
-    signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:, 1] +\
-        0.1*sf.signatures[:, 2] + 0.1*sf.signatures[:, 3]
-    sol = sf.get_weights(signature)
-    print(np.round(sol, decimals=3))
-    print(np.sum(sol))
+    # signature = 0.5*sf.signatures[:, 0] + 0.3*sf.signatures[:, 1] +\
+    #     0.1*sf.signatures[:, 2] + 0.1*sf.signatures[:, 3]
+    # sol = sf.get_weights(signature)
+    # print(np.round(sol, decimals=3))
+    # print(np.sum(sol))
+    # sf = SignatureFinder(signatures)
+    
+    sol = sf.get_weights_batch(training_data)
+    sol = sol.detach().numpy()
+    df = pd.DataFrame(sol)
+    df.to_csv("data/validation_baseline.csv", header=False, index=False)
