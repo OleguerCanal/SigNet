@@ -133,3 +133,8 @@ data/
 runs/
 models/
 *.png
+cluster/
+parameters.txt
+*.sh
+signatures-nets.e*
+results/
