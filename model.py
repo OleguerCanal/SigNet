@@ -25,12 +25,12 @@ class SignatureNet(nn.Module):
         self.layer4 = nn.Linear(256,num_classes)
         self.activation = nn.LeakyReLU(0.1)
 
-        self.model = SignatureFinder(signatures)
+        #self.model = SignatureFinder(signatures)
         self.signatures = torch.stack(signatures).t()
 
 
-    def forward(self, x):
-        w = self.model.get_weights_batch(x)
+    def forward(self, x, w):
+        #w = self.model.get_weights_batch(x)
         # guess = torch.einsum("ij,bj->bi", (self.signatures, w))
         # error = x - guess
         # x = torch.cat([w, error], dim=1)

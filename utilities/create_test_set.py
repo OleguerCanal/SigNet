@@ -19,17 +19,17 @@ if __name__ == "__main__":
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                 for i in range(2, 74)][:num_classes]
     dataloader = DataLoader(signatures=signatures,
-                            batch_size=500,
+                            batch_size=5000,
                             n_samples=500,
                             min_n_signatures=1,
                             max_n_signatures=15,
                             seed=0)
-    input_batch, label_batch = dataloader.get_batch(normalize=False)
+    input_batch, label_batch = dataloader.get_batch(normalize=True)
     df = input_batch.detach().numpy()
-    df = np.array(df, dtype=int)
+    #df = np.array(df, dtype=int)
     df = pd.DataFrame(df)
-    df.to_csv("../data/test_input_2.csv", header=False, index=False)
+    df.to_csv("../data/validation_input.csv", header=False, index=False)
 
     df = label_batch.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../data/test_label_2.csv", header=False, index=False)
+    df.to_csv("../data/validation_label.csv", header=False, index=False)
