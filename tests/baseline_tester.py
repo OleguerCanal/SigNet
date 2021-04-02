@@ -1,9 +1,12 @@
 import os
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import torch
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.metrics import *
@@ -11,7 +14,7 @@ from baseline import SignatureFinder
 
 metrics = {
     "mse" : get_MSE,
-    "cos:" : get_cosine_similarity,
+    "cos" : get_negative_cosine_similarity,
     "cross_ent" : get_cross_entropy2,
     "KL" : get_kl_divergence,
     "JS" : get_jensen_shannon,
@@ -28,21 +31,43 @@ if __name__=="__main__":
     #     b = metrics[metric_name](prediction_2, true_label).item()
     #     print(metric_name, a, b)
 
-    num_classes = 5
+    num_classes = 72
     data = pd.read_excel("../data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
     sf = SignatureFinder(signatures)
-    label = np.array([0.5, 0.3, 0.1, 0.1, 0.0])
-    signature = label[0]*sf.signatures[:, 0] + label[1]*sf.signatures[:, 1] +\
-        label[2]*sf.signatures[:, 2] + label[3]*sf.signatures[:, 3]
+
+    validation_input = torch.tensor(pd.read_csv("../data/validation_input.csv", header=None).values, dtype=torch.double)
+    validation_label = torch.tensor(pd.read_csv("../data/validation_label.csv", header=None).values, dtype=torch.double)
     
-    for optimizer_metric in list(metrics.keys()):
-        sf.metric = metrics[optimizer_metric]
-        print("Optimizing", optimizer_metric)
-        pred = sf.get_weights(signature)
-        pred = torch.tensor(pred, dtype=torch.double).unsqueeze(0)
-        true = torch.tensor(label, dtype=torch.double).unsqueeze(0)
-        for wight_metric in list(metrics.keys()):
-            val = metrics[wight_metric](pred, true).item()
-            print(wight_metric, ":", np.round(val, decimals=4), ". sum:", np.round(torch.sum(pred).item(), decimals=4))
+    metrics_results = np.zeros((len(metrics), len(metrics)))
+    N_total = 500
+    for i in range(N_total):
+        print(i)
+        j = -1
+        for optimizer_metric in list(metrics.keys()):
+            j += 1
+            sf.metric = metrics[optimizer_metric]
+            pred = sf.get_weights(validation_input[i,:])
+            pred = torch.tensor(pred, dtype=torch.double).unsqueeze(0)
+            #print(pred)
+            # print(validation_label[i,:])
+            k = -1
+            for wight_metric in list(metrics.keys()):
+                k += 1
+                val = metrics[wight_metric](pred, validation_label[i,:].unsqueeze(0)).item()
+                metrics_results[k,j] += val
+    metrics_results = metrics_results/N_total
+    metrics_results[1,:] = -metrics_results[1,:]
+    df = pd.DataFrame(metrics_results)
+    df.to_csv("../data/metrics_results.csv", header=False, index=False)       
+
+    heatmap = sns.heatmap(df, annot=True, vmin=0, vmax=5)
+
+    heatmap.yaxis.set_ticklabels(
+        ['MSE', 'COS', 'CROSS_ENT', 'KL', 'JS', 'W'], rotation=0, ha='right', fontsize=6)
+    heatmap.xaxis.set_ticklabels(
+        ['MSE', 'COS', 'CROSS_ENT', 'KL', 'JS', 'W'], rotation=45, ha='right', fontsize=6)
+    plt.ylabel('Weights metric', fontsize=8)
+    plt.xlabel('Optimizer metric', fontsize=8)  
+    plt.show() 
