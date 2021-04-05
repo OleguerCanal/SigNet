@@ -2,6 +2,7 @@ import torch
 from scipy.stats import wasserstein_distance
 from snorkel import classification
 import copy
+import numpy as np
 
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
@@ -25,9 +26,9 @@ def get_cross_entropy(predicted_label, true_label):
     return classification.cross_entropy_with_probs(predicted_label, true_label)
 
 def get_cross_entropy2(predicted_label, true_label):
-    predicted_label_local = copy.deepcopy(predicted_label)
-    predicted_label_local += 1e-6
-    return torch.mean(-torch.einsum("ij,ij->i",(true_label, torch.log(predicted_label_local))))
+    #predicted_label_local = copy.deepcopy(predicted_label)
+    #predicted_label_local += 1e-6
+    return torch.mean(-torch.einsum("ij,ij->i",(true_label, torch.log(predicted_label))))
 
 
 def get_kl_divergence(predicted_label, true_label):
@@ -54,7 +55,7 @@ def get_wasserstein_distance(predicted_label, true_label):
     for i in range(predicted_label.shape[0]):
         dist += wasserstein_distance(
             predicted_label[i, :].detach().numpy(), true_label[i, :].detach().numpy())
-    return dist/predicted_label.shape[0]
+    return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
 
 if __name__ == "__main__":

@@ -29,22 +29,24 @@ class SignatureFinder:
             return np.sum(w) - 1
         self.constraints = [{"type": "eq", "fun": constrain}]
 
-    def __objective(self, w):
+    def __objective(self, w, signature):
         with torch.no_grad():
             guess = np.dot(self.signatures, w)
-            guess_tensor = torch.tensor(guess, dtype=torch.float).unsqueeze(0)
-            error = self.metric(guess_tensor, self.signature_tensor).item()
-        # return error + self.lagrange_mult*(np.sum(w) - 1)**2
-        return error
+            guess_tensor = torch.from_numpy(guess).unsqueeze(0)
+            signature_tensor = torch.from_numpy(np.array(signature)).unsqueeze(0)
+            error = self.metric(guess_tensor, signature_tensor)
+            #error = (get_MSE(guess_tensor, signature_tensor)*guess_tensor.shape[-1])**0.5
+        return error.numpy() + self.lagrange_mult*(np.sum(w) - 1)**2
+        #return error
 
     def get_weights(self, signature):
         #w = np.ones(self.__weight_len)/self.__weight_len
         w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
-        w = w/sum(w)
-        self.signature_tensor = torch.tensor(signature, dtype=torch.float).unsqueeze(0)
-        res = minimize(self.__objective, w,
-                       bounds=self.__bounds,
-                       constraints=self.constraints)
+        #w = w/sum(w)
+        # self.signature_tensor = torch.tensor(signature, dtype=torch.float).unsqueeze(0)
+        res = minimize(self.__objective, w, args=(signature,),
+                       bounds=self.__bounds)#,
+                       #constraints=self.constraints)
         return res.x
 
     def get_weights_batch(self, input_batch):
@@ -66,20 +68,20 @@ if __name__ == "__main__":
     data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
-    sf = SignatureFinder(signatures, metric=get_MSE)
+    sf = SignatureFinder(signatures, metric=get_jensen_shannon)
 
-    sol = sf.get_weights_batch(training_data)
-    sol = sol.detach().numpy()
-    df = pd.DataFrame(sol)
-    df.to_csv("data/training_baseline_2.csv", header=False, index=False)
-    print("Training done!")
+    # sol = sf.get_weights_batch(training_data)
+    # sol = sol.detach().numpy()
+    # df = pd.DataFrame(sol)
+    # df.to_csv("data/training_baseline_JS.csv", header=False, index=False)
+    # print("Training done!")
     sol = sf.get_weights_batch(validation_data)
     sol = sol.detach().numpy()
     df = pd.DataFrame(sol)
-    df.to_csv("data/validation_baseline_2.csv", header=False, index=False)
+    df.to_csv("data/validation_baseline_JS.csv", header=False, index=False)
     print("Validation done!")
-    sol = sf.get_weights_batch(test_data)
-    sol = sol.detach().numpy()
-    df = pd.DataFrame(sol)
-    df.to_csv("data/test_baseline_2.csv", header=False, index=False)
-    print("Test done!")
+    # sol = sf.get_weights_batch(test_data)
+    # sol = sol.detach().numpy()
+    # df = pd.DataFrame(sol)
+    # df.to_csv("data/test_baseline_JS.csv", header=False, index=False)
+    # print("Test done!")
