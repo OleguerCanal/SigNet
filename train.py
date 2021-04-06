@@ -19,14 +19,14 @@ num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_kl_reg4"
-iterations = 2500
+experiment_id = "comb_js_mse_1"
+iterations = 1500
 batch_size = 50
 num_samples = 1000
 intial_learning_rate = 0.01
 learning_rate_steps = 300
 learning_rate_gamma = 0.7
-l1_lambda = 1e-7
+l1_lambda = 0
 
 if __name__ == "__main__":
 
@@ -35,10 +35,10 @@ if __name__ == "__main__":
     signatures = [torch.tensor(data.iloc[:, i]).type(
         torch.float32) for i in range(2, 74)][:num_classes]
 
-    validation_input = torch.tensor(pd.read_csv("data/validation_input.csv", header=None).values, dtype=torch.float)
-    validation_label = torch.tensor(pd.read_csv("data/validation_label.csv", header=None).values, dtype=torch.float)
-    validation_baseline = torch.tensor(pd.read_csv("data/validation_baseline.csv", header=None).values, dtype=torch.float)
-    training_baseline = torch.tensor(pd.read_csv("data/training_baseline.csv", header=None).values, dtype=torch.float)
+    validation_input = torch.tensor(pd.read_csv("data/test_input.csv", header=None).values, dtype=torch.float)
+    validation_label = torch.tensor(pd.read_csv("data/test_label.csv", header=None).values, dtype=torch.float)
+    validation_baseline = torch.tensor(pd.read_csv("data/test_baseline_JS.csv", header=None).values, dtype=torch.float)
+    training_baseline = torch.tensor(pd.read_csv("data/training_baseline_JS.csv", header=None).values, dtype=torch.float)
     training_input = torch.tensor(pd.read_csv("data/training_input.csv", header=None).values, dtype=torch.float)
     training_label = torch.tensor(pd.read_csv("data/training_label.csv", header=None).values, dtype=torch.float)
     
@@ -70,8 +70,8 @@ if __name__ == "__main__":
         predicted_batch = sn(input_batch, baseline_batch)
 
         # l = get_cross_entropy(predicted_batch, label_batch)
-        # l = get_MSE(predicted_batch, label_batch)
-        l = get_kl_divergence(predicted_batch, label_batch)
+        l = get_MSE(predicted_batch, label_batch)
+        # l = get_kl_divergence(predicted_batch, label_batch)
         # l = get_jensen_shannon(predicted_batch, label_batch)
         l1_norm = sum(p.abs().sum() for p in sn.parameters())
         l = l + l1_lambda*l1_norm

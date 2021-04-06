@@ -32,10 +32,11 @@ class ModelTester:
         print("kl_divergence:", np.round(kl_divergence.item(), decimals=3))
         print("js_divergence:", np.round(js_divergence.item(), decimals=3))
         print("cosine_similarity:", np.round(cosine_similarity.item(), decimals=3))
-        print("wasserstein_distance:", np.round(wasserstein_distance, decimals=3))
+        print("wasserstein_distance:", np.round(wasserstein_distance.item(), decimals=3))
         
         label_sigs, predicted_sigs = self.probs_batch_to_sigs(
             true_labels, guessed_labels, cutoff=0.05, num_classes=self.num_classes)
+
         conf_mat = plot_confusion_matrix(
             label_sigs, predicted_sigs, range(self.num_classes+1))
 
@@ -64,7 +65,7 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "comb_kl_reg"
+    experiment_id = "comb_js_mse_1"
     num_hidden_layers = 4
     num_neurons = 600
     num_classes = 72
@@ -80,11 +81,12 @@ if __name__ == "__main__":
     #                         max_n_signatures=5,
     #                         seed=0)
     # input_batch, label_batch = dataloader.get_batch()
-    input_batch = torch.tensor(pd.read_csv("data/test_input_2.csv").values, dtype=torch.float)
-    input_batch = torch.nn.functional.normalize(input_batch, dim=1, p=1)
+    input_batch = torch.tensor(pd.read_csv("data/validation_input.csv", header=None).values, dtype=torch.float)
+    # input_batch = torch.nn.functional.normalize(input_batch, dim=1, p=1)
     # print(input_batch)
-    # label_batch = torch.tensor(pd.read_csv("data/test_label.csv", header=None).values)
-    label_batch = torch.tensor(pd.read_csv("data/test_label_2.csv").values, dtype=torch.float)
+    label_batch = torch.tensor(pd.read_csv("data/validation_label.csv", header=None).values, dtype=torch.float)
+    baseline_batch = torch.tensor(pd.read_csv("data/validation_baseline_JS.csv", header=None).values, dtype=torch.float)
+    # label_batch = torch.tensor(pd.read_csv("data/test_label_2.csv").values, dtype=torch.float)
     # print(label_batch)
 
     # guessed_labels = torch.tensor(pd.read_csv("data/deconstructSigs_test_2.csv").values, dtype=torch.float)
@@ -99,7 +101,7 @@ if __name__ == "__main__":
                           num_units=num_neurons)
     model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
     model.eval()
-    guessed_labels = model(input_batch)
+    guessed_labels = model(input_batch, baseline_batch)
     #guessed_labels = nn.Softmax(dim=1)(guessed_labels)
     # model = SignatureFinder(signatures)
     # t = time.time()
