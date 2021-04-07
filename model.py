@@ -22,7 +22,8 @@ class SignatureNet(nn.Module):
         self.layer2_2 = nn.Linear(128, 256)
 
         self.layer3 = nn.Linear(512,256)
-        self.layer4 = nn.Linear(256,num_classes)
+        self.layer4_1 = nn.Linear(256,num_classes)
+        self.layer4_2 = nn.Linear(256,num_classes)
         self.activation = nn.LeakyReLU(0.1)
 
         #self.model = SignatureFinder(signatures)
@@ -48,6 +49,7 @@ class SignatureNet(nn.Module):
 
         comb = torch.cat([w,x], dim=1)
         comb = self.activation(self.layer3(comb))
-        comb = self.layer4(comb)
-        comb = nn.Softmax(dim=1)(comb)
-        return comb
+        comb_1 = self.layer4_1(comb)
+        comb_2 = self.layer4_2(comb)
+        comb_1 = nn.Softmax(dim=1)(comb_1)
+        return comb_1, comb_2
