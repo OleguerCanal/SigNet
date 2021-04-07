@@ -21,7 +21,7 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
 
     def get_batch(self, normalize=True):
         input_batch = torch.empty(self.batch_size, 96)
-        label_batch = torch.empty(self.batch_size, self.__total_signatures)
+        label_batch = torch.empty(self.batch_size, self.__total_signatures + 1)
 
         for i in range(self.batch_size):
             # Pick the number of involved signatures
@@ -31,7 +31,13 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
             signature_ids = torch.randperm(self.__total_signatures)[:n_signatures]
 
             # Assign weights randomly
-            weights = torch.rand(size=(n_signatures,)) + 1e-6
+            weights = torch.rand(size=(n_signatures,))
+            weights = weights/torch.sum(weights)
+
+            # We want weights larger than 0.1
+            for j in range(len(weights)):
+                if weights[j]<0.1:
+                    weights[j] = 0
             weights = weights/torch.sum(weights)
             label = torch.zeros(self.__total_signatures).scatter_(dim=0, index=signature_ids, src=weights)
 
@@ -39,15 +45,17 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
             signature = torch.einsum("ij,j->i", (self.signatures, label))
             
             # Sample
+            if self.n_samples == 0:
+                n_samples_1 = np.random.randint(100, 2000)
             c = torch.distributions.categorical.Categorical(probs=signature)
-            samples = c.sample(sample_shape=torch.Size([self.n_samples,])).type(torch.float32)
+            samples = c.sample(sample_shape=torch.Size([n_samples_1,])).type(torch.float32)
             sample = torch.histc(samples, bins=96, min=0, max=95)
             if normalize:
-                sample = sample/float(self.n_samples)
+                sample = sample/float(n_samples_1)
             
             # Store
             input_batch[i, :] = sample
-            label_batch[i, :] = label
+            label_batch[i, :] = torch.cat([label, torch.tensor([n_samples_1])])
         return input_batch, label_batch
 
     def select_batch(self, training_input, training_label, training_baseline, current_ind=0):

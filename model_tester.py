@@ -65,7 +65,7 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "comb_js_mse_1"
+    experiment_id = "comb_js_mse_FN"
     num_hidden_layers = 4
     num_neurons = 600
     num_classes = 72
@@ -81,11 +81,11 @@ if __name__ == "__main__":
     #                         max_n_signatures=5,
     #                         seed=0)
     # input_batch, label_batch = dataloader.get_batch()
-    input_batch = torch.tensor(pd.read_csv("data/validation_input.csv", header=None).values, dtype=torch.float)
+    input_batch = torch.tensor(pd.read_csv("data/test_input.csv", header=None).values, dtype=torch.float)
     # input_batch = torch.nn.functional.normalize(input_batch, dim=1, p=1)
     # print(input_batch)
-    label_batch = torch.tensor(pd.read_csv("data/validation_label.csv", header=None).values, dtype=torch.float)
-    baseline_batch = torch.tensor(pd.read_csv("data/validation_baseline_JS.csv", header=None).values, dtype=torch.float)
+    label_batch = torch.tensor(pd.read_csv("data/test_label.csv", header=None).values, dtype=torch.float)
+    baseline_batch = torch.tensor(pd.read_csv("data/test_baseline_JS.csv", header=None).values, dtype=torch.float)
     # label_batch = torch.tensor(pd.read_csv("data/test_label_2.csv").values, dtype=torch.float)
     # print(label_batch)
 
