@@ -1,6 +1,7 @@
 
 library(deconstructSigs)
 library(readxl)
+library(parallel)
 
 cosmic.sigs <- read.table('data/COSMIC_signatures_v3.xlsx', sep="\t")
 cosmic.sigs_3 <- read_excel('data/COSMIC_Mutational_Signatures_v3.1.xlsx')
@@ -13,8 +14,8 @@ new_header <- paste(cont1,"[",subs,"]", cont3,sep ="")
 colnames(cosmic.sigs) <- new_header
 
 
-data <- read.csv("data/validation_input_w01.csv", header = FALSE)
-labels <- read.csv("data/validation_label_w01.csv", header = FALSE)
+data <- read.csv("data/test_input_w01.csv", header = FALSE)
+labels <- read.csv("data/test_label_w01.csv", header = FALSE)
 num_mutations <- labels[,73]
 data <- data * num_mutations
 
@@ -36,5 +37,17 @@ for(i in 1:1000){
   sigs <- rbind(sigs,sigs_res$weights[1,])
 }
 
-write.csv(sigs, file="data/deconstructSigs_validation_w01_1000.csv", row.names = FALSE)#, col.names = FALSE)
+whichSigs <- function(x){
+  library(deconstructSigs)
+  sigs_res <- whichSignatures(data, sample.id=as.character(x), signatures.ref = cosmic.sigs, signature.cutoff = 0,contexts.needed = TRUE, tri.counts.method ="default")
+  return(sigs_res$weights[1,])
+} 
+
+no_cores <- 8
+clust <- makeCluster(no_cores)
+clusterExport(clust, c("data", "cosmic.sigs"))
+sigs <- parSapply(clust, 1:nrow(data), whichSigs)
+stopCluster(clust)
+
+write.csv(t(sigs), file="data/deconstructSigs_test_w01.csv", row.names = FALSE)#, col.names = FALSE)
 
