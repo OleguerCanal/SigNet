@@ -17,11 +17,15 @@ class SignatureNet(nn.Module):
 
         self.layer1_1 = nn.Linear(num_classes, 128)
         self.layer1_2 = nn.Linear(96, 128)
+        # self.layer1_3 = nn.Linear(1, 16)
 
         self.layer2_1 = nn.Linear(128, 256)
         self.layer2_2 = nn.Linear(128, 256)
 
-        self.layer3 = nn.Linear(512,256)
+        self.layer3_1 = nn.Linear(513,1000)
+        #self.layer3_2 = nn.Linear(1000,1000)
+        self.layer3_3 = nn.Linear(1000,256)
+
         self.layer4_1 = nn.Linear(256,num_classes)
         self.layer4_2 = nn.Linear(256,num_classes)
         self.activation = nn.LeakyReLU(0.1)
@@ -30,7 +34,7 @@ class SignatureNet(nn.Module):
         self.signatures = torch.stack(signatures).t()
 
 
-    def forward(self, x, w):
+    def forward(self, x, w, num_mutations):
         #w = self.model.get_weights_batch(x)
         # guess = torch.einsum("ij,bj->bi", (self.signatures, w))
         # error = x - guess
@@ -43,12 +47,15 @@ class SignatureNet(nn.Module):
 
         w = self.activation(self.layer1_1(w))
         x = self.activation(self.layer1_2(x))
+        # num_mutations = self.activation(self.layer1_3(num_mutations))
 
         w = self.activation(self.layer2_1(w))
         x = self.activation(self.layer2_2(x))
 
-        comb = torch.cat([w,x], dim=1)
-        comb = self.activation(self.layer3(comb))
+        comb = torch.cat([w,x, num_mutations/10000], dim=1)
+        comb = self.activation(self.layer3_1(comb))
+        #comb = self.activation(self.layer3_2(comb))
+        comb = self.activation(self.layer3_3(comb))
         comb_1 = self.layer4_1(comb)
         comb_2 = self.layer4_2(comb)
         comb_1 = nn.Softmax(dim=1)(comb_1)
