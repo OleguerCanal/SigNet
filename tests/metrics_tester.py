@@ -28,10 +28,10 @@ if __name__ == "__main__":
     num_classes = 72
 
     label_batch = torch.tensor(pd.read_csv("../data/validation_label_w01.csv", header=None).values, dtype=torch.float)
-    #guessed_labels = torch.tensor(pd.read_csv("../data/validation_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
-    guessed_labels = torch.tensor(pd.read_csv("../data/deconstructSigs_validation_w01_100.csv").values, dtype=torch.float)
+    guessed_labels = torch.tensor(pd.read_csv("../data/validation_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    # guessed_labels = torch.tensor(pd.read_csv("../data/deconstructSigs_validation_w01.csv", header=None).values, dtype=torch.float)
 
     # # Get metrics
     model_tester = ModelTester(num_classes=num_classes)
-    model_tester.test(guessed_labels=guessed_labels[:100,], true_labels=label_batch[:100,:72])
+    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch[:,:72])
 
