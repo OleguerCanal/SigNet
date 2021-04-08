@@ -11,7 +11,7 @@ from baseline import SignatureFinder
 from model import SignatureNet
 from utilities.dataloader import DataLoader
 from utilities.metrics import *
-from utilities.plotting import plot_signature, plot_confusion_matrix
+from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison
 
 
 class ModelTester:
@@ -65,7 +65,7 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "comb_js_mse_FN"
+    experiment_id = "comb_js_kl_error_5"
     num_hidden_layers = 4
     num_neurons = 600
     num_classes = 72
@@ -74,24 +74,13 @@ if __name__ == "__main__":
     data = pd.read_excel("data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                  for i in range(2, 74)][:num_classes]
-    # dataloader = DataLoader(signatures=signatures,
-    #                         batch_size=500,
-    #                         n_samples=5000,
-    #                         min_n_signatures=1,
-    #                         max_n_signatures=5,
-    #                         seed=0)
-    # input_batch, label_batch = dataloader.get_batch()
-    input_batch = torch.tensor(pd.read_csv("data/test_input.csv", header=None).values, dtype=torch.float)
-    # input_batch = torch.nn.functional.normalize(input_batch, dim=1, p=1)
-    # print(input_batch)
-    label_batch = torch.tensor(pd.read_csv("data/test_label.csv", header=None).values, dtype=torch.float)
-    baseline_batch = torch.tensor(pd.read_csv("data/test_baseline_JS.csv", header=None).values, dtype=torch.float)
-    # label_batch = torch.tensor(pd.read_csv("data/test_label_2.csv").values, dtype=torch.float)
-    # print(label_batch)
 
-    # guessed_labels = torch.tensor(pd.read_csv("data/deconstructSigs_test_2.csv").values, dtype=torch.float)
-    # print(guessed_labels)
+    input_batch = torch.tensor(pd.read_csv("data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    label_mut_batch = torch.tensor(pd.read_csv("data/test_label_w01.csv", header=None).values, dtype=torch.float)
+    label_batch = label_mut_batch[:,:num_classes]
+    num_mut = torch.reshape(label_mut_batch[:,num_classes], (list(label_mut_batch.size())[0],1))
 
+    baseline_batch = torch.tensor(pd.read_csv("data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
 
     
     # Instantiate model and do predictions
@@ -101,15 +90,13 @@ if __name__ == "__main__":
                           num_units=num_neurons)
     model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
     model.eval()
-    guessed_labels = model(input_batch, baseline_batch)
-    #guessed_labels = nn.Softmax(dim=1)(guessed_labels)
-    # model = SignatureFinder(signatures)
-    # t = time.time()
-    # guessed_labels = model.get_weights_batch(input_batch)
-    # elapsed_time = time.time() - t
-    # print("elapsed_time:", elapsed_time)
-
-
+    guessed_labels, guessed_error = model(input_batch, baseline_batch, num_mut)
+    #deconstructSigs_guessed_labels = torch.tensor(pd.read_csv("data/deconstructSigs_test_w01.csv", header=None).values, dtype=torch.float)
     # # Get metrics
-    model_tester = ModelTester(num_classes=num_classes)
-    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+    #model_tester = ModelTester(num_classes=num_classes)
+    #model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+
+    # Plot signatures
+    plot_weights_comparison(label_batch[0,:].detach().numpy(), guessed_labels[0,:].detach().numpy(), guessed_error[0,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[9,:].detach().numpy(), guessed_labels[9,:].detach().numpy(), guessed_error[9,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[22,:].detach().numpy(),guessed_labels[22,:].detach().numpy(), guessed_error[22,:].detach().numpy(), list(data.columns)[2:])

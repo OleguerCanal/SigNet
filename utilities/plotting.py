@@ -27,3 +27,34 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
     plt.xlabel('Predicted label')
     plt.show()
     return conf_mat
+
+def plot_weights(guessed_labels, guessed_error, sigs_names):
+    num_classes = len(guessed_labels)
+    fig, ax = plt.subplots()
+    ax.bar(range(num_classes),guessed_labels, yerr=guessed_error, align='center', alpha=0.5, ecolor='black', capsize=10)
+    ax.set_ylabel('Weights')
+    ax.set_xticks(range(num_classes))
+    ax.set_xticklabels(sigs_names, rotation='vertical')
+    ax.set_title('Signature decomposition')
+    plt.tight_layout()
+    plt.show()
+
+def plot_weights_comparison(true_labels, guessed_labels, guessed_error, sigs_names):
+    num_classes = len(guessed_labels)
+    fig, ax = plt.subplots()
+    ax.bar(range(num_classes),guessed_labels, yerr=guessed_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
+    ax.set_ylabel('Weights')
+    ax.set_xticks(range(num_classes))
+    ax.set_xticklabels(sigs_names, rotation='vertical')
+    ax.set_title('Signature decomposition')
+    plt.tight_layout()
+    plt.show()
+    
+if __name__ == "__main__":
+    real_labels = [0.2, 0.5, 0.3]
+    guessed_labels = [0.25, 0.6, 0.2]
+    guessed_error = [0.01, 0.04, 0.001]
+    sigs_names = ["SBS1", "SBS2", "SBS3"]
+
+    plot_weights_comparison(real_labels, guessed_labels, guessed_error, sigs_names)
