@@ -23,7 +23,7 @@ class SignatureNet(nn.Module):
         self.layer2_2 = nn.Linear(128, 256)
 
         self.layer3_1 = nn.Linear(513,1000)
-        #self.layer3_2 = nn.Linear(1000,1000)
+        self.layer3_2 = nn.Linear(1000,1000)
         self.layer3_3 = nn.Linear(1000,256)
 
         self.layer4_1 = nn.Linear(256,num_classes)
@@ -52,9 +52,9 @@ class SignatureNet(nn.Module):
         w = self.activation(self.layer2_1(w))
         x = self.activation(self.layer2_2(x))
 
-        comb = torch.cat([w,x, num_mutations/10000], dim=1)
+        comb = torch.cat([w,x, num_mutations/2000], dim=1)
         comb = self.activation(self.layer3_1(comb))
-        #comb = self.activation(self.layer3_2(comb))
+        comb = self.activation(self.layer3_2(comb))
         comb = self.activation(self.layer3_3(comb))
         comb_1 = self.layer4_1(comb)
         comb_2 = self.layer4_2(comb)

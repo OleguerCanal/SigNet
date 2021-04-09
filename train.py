@@ -20,15 +20,16 @@ num_neurons = 600
 num_classes = 72
 
 # Training params
-experiment_id = "comb_js_kl_error_5"
-iterations = 5000
+experiment_id = "comb_js_kl_error_4"
+iterations = 7000
 batch_size = 50
 num_samples = 1000
 intial_learning_rate = 0.001
-learning_rate_steps = 300
-learning_rate_gamma = 0.7
+learning_rate_steps = 200
+learning_rate_gamma = 0.9
 l1_lambda = 0
-FN_param = 0.1
+FN_param = 0.01
+FP_param = 0
 
 if __name__ == "__main__":
 
@@ -52,12 +53,14 @@ if __name__ == "__main__":
 
     writer = SummaryWriter(log_dir=os.path.join("runs", experiment_id))
     writer_validation = SummaryWriter(log_dir=os.path.join("runs/validation", experiment_id))
-    writer_deconstruct = SummaryWriter(log_dir=os.path.join("runs/deconstruct", experiment_id))
+    writer_deconstructSigs = SummaryWriter(log_dir="runs/deconstruct")
+    writer_baseline_JS = SummaryWriter(log_dir="runs/baseline_JS")
 
     sn = SignatureNet(signatures=signatures,
                       num_classes=num_classes,
                       num_hidden_layers=num_hidden_layers, num_units=num_neurons)
     optimizer = optim.Adam(sn.parameters(), lr=intial_learning_rate)
+    # optimizer = optim.SGD(sn.parameters(), lr=intial_learning_rate, momentum=0.9)
     scheduler = optim.lr_scheduler.StepLR(
         optimizer, step_size=learning_rate_steps, gamma=learning_rate_gamma)
     #loss = nn.CrossEntropyLoss()
@@ -84,9 +87,10 @@ if __name__ == "__main__":
         l_2 = get_MSE(predicted_error, abs(predicted_batch-label_batch))
 
         FN = sum(predicted_sigs_list == num_classes)
+        FP = sum(label_sigs_list == num_classes)
         l1_norm = sum(p.abs().sum() for p in sn.parameters())
         #l = l + l1_lambda*l1_norm + FN_param*FN
-        l = l_1 + l_2 + FN_param*FN
+        l = l_1 + 1000*l_2 + FN_param*FN + FP_param*FP
 
         l.backward()
         optimizer.step()
@@ -98,24 +102,30 @@ if __name__ == "__main__":
         validation_prediction, val_error = sn(validation_input, validation_baseline, validation_mut)
         writer.add_scalar(f'metrics/cross-entropy', get_cross_entropy2(predicted_batch, label_batch), iteration)
         writer_validation.add_scalar(f'metrics/cross-entropy', get_cross_entropy2(validation_prediction, validation_label), iteration)
-        writer_deconstruct.add_scalar(f'metrics/cross-entropy',  3.948, iteration)
+        writer_deconstructSigs.add_scalar(f'metrics/cross-entropy',  3.948, iteration)
+        writer_baseline_JS.add_scalar(f'metrics/cross-entropy',  3.947, iteration)
         writer.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(predicted_batch, label_batch), iteration)
         writer_validation.add_scalar(f'metrics/cosine_similarity', get_cosine_similarity(validation_prediction, validation_label), iteration)
-        writer_deconstruct.add_scalar(f'metrics/cosine_similarity', 0.956, iteration)
+        writer_deconstructSigs.add_scalar(f'metrics/cosine_similarity', 0.956, iteration)
+        writer_baseline_JS.add_scalar(f'metrics/cosine_similarity', 0.963, iteration)
         writer.add_scalar(f'metrics/KL-divergence',get_kl_divergence(predicted_batch, label_batch), iteration)
         writer_validation.add_scalar(f'metrics/KL-divergence', get_kl_divergence(validation_prediction, validation_label), iteration)
-        writer_deconstruct.add_scalar(f'metrics/KL-divergence', 0, iteration)
+        writer_deconstructSigs.add_scalar(f'metrics/KL-divergence', 0.396, iteration)
+        writer_baseline_JS.add_scalar(f'metrics/KL-divergence', 0.395, iteration)
         writer.add_scalar(f'metrics/JS-divergence',get_jensen_shannon(predicted_batch, label_batch), iteration)
         writer_validation.add_scalar(f'metrics/JS-divergence', get_jensen_shannon(validation_prediction, validation_label), iteration)
-        writer_deconstruct.add_scalar(f'metrics/JS-divergence', 0.064, iteration)
+        writer_deconstructSigs.add_scalar(f'metrics/JS-divergence', 0.064, iteration)
+        writer_baseline_JS.add_scalar(f'metrics/JS-divergence', 0.057, iteration)
         writer.add_scalar(f'metrics/mse', get_MSE(predicted_batch, label_batch), iteration)
         writer_validation.add_scalar(f'metrics/mse', get_MSE(validation_prediction, validation_label), iteration)
-        writer_deconstruct.add_scalar(f'metrics/mse', 0.00033, iteration)
+        writer_deconstructSigs.add_scalar(f'metrics/mse', 0.00033, iteration)
+        writer_baseline_JS.add_scalar(f'metrics/mse', 0.00029, iteration)
         writer.add_scalar(f'loss/total-loss', l, iteration)
         writer.add_scalar(f'loss/loss_1', l_1, iteration)
         writer.add_scalar(f'loss/loss_2', l_2, iteration)
         if iteration % 500 == 0:
             torch.save(sn.state_dict(), os.path.join("models", experiment_id))
-            print(FN)
+            print('False Negative:', FN)
+            print('False Positive:',FP)
 
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))
