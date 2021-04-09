@@ -14,10 +14,11 @@ new_header <- paste(cont1,"[",subs,"]", cont3,sep ="")
 colnames(cosmic.sigs) <- new_header
 
 
-data <- read.csv("data/test_input_w01.csv", header = FALSE)
-labels <- read.csv("data/test_label_w01.csv", header = FALSE)
+data <- read.csv("data/test_input_w01_large.csv", header = FALSE)
+labels <- read.csv("data/test_label_w01_large.csv", header = FALSE)
 num_mutations <- labels[,73]
-data <- data * num_mutations
+num_mutations <- read.csv("data/MC3_ACC_num_mut.csv", header = FALSE)
+data <- rep(num_mutations, 96) * data
 
 new_colnames <- colnames(cosmic.sigs) 
 order1 <- c(1,2,3,4,25,26,27,28,49,50,51,52,73,74,75,76)
@@ -49,5 +50,5 @@ clusterExport(clust, c("data", "cosmic.sigs"))
 sigs <- parSapply(clust, 1:nrow(data), whichSigs)
 stopCluster(clust)
 
-write.csv(t(sigs), file="data/deconstructSigs_test_w01.csv", row.names = FALSE)#, col.names = FALSE)
+write.csv(t(sigs), file="data/test_deconstructSigs_w01_large.csv", row.names = FALSE)#, col.names = FALSE)
 
