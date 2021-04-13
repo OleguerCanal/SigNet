@@ -11,7 +11,7 @@ from tqdm import tqdm
 from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
 from model import SignatureNet
 from utilities.train_dataset import TrainDataSet
-from utilities.metrics import get_kl_divergence, get_cross_entropy2
+from utilities.metrics import get_MSE
 
 
 class MetaParamOptimizer:
@@ -27,6 +27,7 @@ class MetaParamOptimizer:
         self.val_baseline = val_baseline
         # Not sure why we have to do this
         # (claudia): because in the last column we save the number of mutations and we don't need them here. 
+        self.val_num_mut = torch.reshape(val_label[:,self.num_classes], (list(val_label.size())[0],1))
         self.val_label = val_label[:, :self.num_classes]
 
     def objective(self, batch_size, lr, num_neurons, num_hidden_layers):
@@ -37,7 +38,7 @@ class MetaParamOptimizer:
         sn = SignatureNet(num_classes=self.num_classes,
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_neurons))
-        sn.to(torch.device("cuda:0"))
+        sn.to(torch.device(dev))
         optimizer = optim.Adam(sn.parameters(),
                                lr=lr)
         #writer = SummaryWriter(log_dir=os.path.join("test", "1"))
@@ -45,20 +46,20 @@ class MetaParamOptimizer:
         for iteration in range(self.iterations):
             for train_input, train_label, train_baseline in tqdm(dataloader):
                 #k += 1
-                # Not sure why this line
+                num_mut = torch.reshape(train_label[:,num_classes], (list(train_label.size())[0],1))
                 train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()
-                train_prediction = sn(train_input, train_baseline)
-                l = get_kl_divergence(train_prediction, train_label)
-                #writer.add_scalar(f'loss/KL-divergence', l, iteration)
+                train_prediction = sn(train_baseline, num_mut)
+                l = get_MSE(train_prediction, abs(train_baseline - train_label))
+                #writer.add_scalar(f'loss', l, iteration)
                 l.backward()
                 optimizer.step()
 
                 with torch.no_grad():
-                    val_prediction = sn(self.val_input, self.val_baseline)
-                    l_val.append(get_kl_divergence(
-                        val_prediction, self.val_label).item())    
+                    val_prediction = sn(self.val_baseline, self.val_num_mut)
+                    l_val.append(get_MSE(
+                        val_prediction, abs(self.val_label - self.val_baseline)).item())    
 
         # Negative because we have a maximizer
         result = -np.nanmean(l_val[-100:])
@@ -113,7 +114,7 @@ if __name__ == "__main__":
                              val_label=val_label)
 
     batch_sizes = Integer(name='batch_size', low=10, high=1000)
-    learning_rates = Real(name='lr', low=0.00001, high=0.01)
+    learning_rates = Real(name='lr', low=0.00001, high=0.05)
     neurons = Integer(name='num_neurons', low=20, high=1500)
     layers = Integer(name='num_hidden_layers', low=1, high=10)
 
@@ -123,12 +124,12 @@ if __name__ == "__main__":
     gp_search = GaussianProcessSearch(search_space=search_space,
                                       fixed_space=fixed_space,
                                       evaluator=mpo.objective,
-                                      input_file='bo_search.csv',  # Use None to start from zero
-                                      output_file='bo_search_2.csv')  # Store tested points
+                                      input_file=None,  # Use None to start from zero
+                                      output_file='bo_search.csv')  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=10,
-        n_random_starts=0,
+        n_calls=3,
+        n_random_starts=2,
         noise=0.01,
         verbose=True,
         plot_results=True)
