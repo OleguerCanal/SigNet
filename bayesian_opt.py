@@ -38,7 +38,7 @@ class MetaParamOptimizer:
         sn = SignatureNet(num_classes=self.num_classes,
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_neurons))
-        sn.to(torch.device(dev))
+        sn.to(torch.device("cuda:0"))
         optimizer = optim.Adam(sn.parameters(),
                                lr=lr)
         #writer = SummaryWriter(log_dir=os.path.join("test", "1"))
@@ -124,12 +124,12 @@ if __name__ == "__main__":
     gp_search = GaussianProcessSearch(search_space=search_space,
                                       fixed_space=fixed_space,
                                       evaluator=mpo.objective,
-                                      input_file=None,  # Use None to start from zero
-                                      output_file='bo_search.csv')  # Store tested points
+                                      input_file='bo_search.csv',  # Use None to start from zero
+                                      output_file='bo_search2.csv')  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=3,
-        n_random_starts=2,
+        n_calls=0,
+        n_random_starts=0,
         noise=0.01,
         verbose=True,
         plot_results=True)
