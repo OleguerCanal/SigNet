@@ -15,19 +15,18 @@ from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
-num_hidden_layers = 4
-num_neurons = 600
+num_hidden_layers = 5
+num_neurons = 36
 num_classes = 72
 
 # Training params
-experiment_id = "learn_error_6"
-iterations = 15000
-batch_size = 50
+experiment_id = "learn_error_bayesian_2"
+iterations = 10000
+batch_size = 63
 num_samples = 1000
-intial_learning_rate = 0.001
-learning_rate_steps = 5000
-learning_rate_gamma = 0.1
-
+intial_learning_rate = 0.0005
+learning_rate_steps = 10000
+learning_rate_gamma = 1
 
 if __name__ == "__main__":
 
