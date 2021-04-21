@@ -21,10 +21,10 @@ num_classes = 72
 
 # Training params
 experiment_id = "learn_error_bayesian_large"
-iterations = 3000
+iterations = 10000
 batch_size = 343
 num_samples = 1000
-intial_learning_rate = 0.00095
+intial_learning_rate = 0.001
 learning_rate_steps = 10000
 learning_rate_gamma = 1
 

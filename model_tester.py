@@ -65,9 +65,9 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "learn_error_5"
-    num_hidden_layers = 4
-    num_neurons = 600
+    experiment_id = "learn_error_bayesian_large"
+    num_hidden_layers = 7
+    num_neurons = 463
     num_classes = 72
 
     # Generate data
@@ -75,19 +75,19 @@ if __name__ == "__main__":
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                  for i in range(2, 74)][:num_classes]
 
-    # input_batch = torch.tensor(pd.read_csv("data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    # label_mut_batch = torch.tensor(pd.read_csv("data/test_label_w01.csv", header=None).values, dtype=torch.float)
-    # label_batch = label_mut_batch[:,:num_classes]
-    # num_mut = torch.reshape(label_mut_batch[:,num_classes], (list(label_mut_batch.size())[0],1))
+    input_batch = torch.tensor(pd.read_csv("data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    label_mut_batch = torch.tensor(pd.read_csv("data/test_label_w01.csv", header=None).values, dtype=torch.float)
+    label_batch = label_mut_batch[:,:num_classes]
+    num_mut = torch.reshape(label_mut_batch[:,num_classes], (list(label_mut_batch.size())[0],1))
 
-    # baseline_batch = torch.tensor(pd.read_csv("data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
-    # deconstructSigs_batch = torch.tensor(pd.read_csv("data/deconstructSigs_test_w01.csv", header=None).values, dtype=torch.float)
+    baseline_batch = torch.tensor(pd.read_csv("data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    deconstructSigs_batch = torch.tensor(pd.read_csv("data/deconstructSigs_test_w01.csv", header=None).values, dtype=torch.float)
     
-    num_mut = torch.tensor(pd.read_csv("data/MC3_ACC_num_mut.csv", header=None).values, dtype=torch.float)
-    num_mut = torch.reshape(num_mut, (list(num_mut.size())[0],1))
+    # num_mut = torch.tensor(pd.read_csv("data/MC3_ACC_num_mut.csv", header=None).values, dtype=torch.float)
+    # num_mut = torch.reshape(num_mut, (list(num_mut.size())[0],1))
 
-    baseline_batch = torch.tensor(pd.read_csv("data/MC3_ACC_data_baseline_JS.csv", header=None).values, dtype=torch.float)
-    deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+    # baseline_batch = torch.tensor(pd.read_csv("data/MC3_ACC_data_baseline_JS.csv", header=None).values, dtype=torch.float)
+    # deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
     
     # Instantiate model and do predictions
     model = SignatureNet(signatures=signatures,
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Plot signatures
 
-    plot_weights_comparison(deconstructSigs_batch[0,:].detach().numpy(), baseline_batch[0,:].detach().numpy(), guessed_error[0,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[9,:].detach().numpy(),baseline_batch[9,:].detach().numpy(), guessed_error[9,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error[22,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[-3,:].detach().numpy(),baseline_batch[-3,:].detach().numpy(), guessed_error[-3,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[0,:].detach().numpy(), deconstructSigs_batch[0,:].detach().numpy(), baseline_batch[0,:].detach().numpy(), guessed_error[0,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[22,:].detach().numpy(),deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error[22,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[-3,:].detach().numpy(),deconstructSigs_batch[-3,:].detach().numpy(),baseline_batch[-3,:].detach().numpy(), guessed_error[-3,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[-1,:].detach().numpy(),deconstructSigs_batch[-1,:].detach().numpy(),baseline_batch[-1,:].detach().numpy(), guessed_error[-1,:].detach().numpy(), list(data.columns)[2:])

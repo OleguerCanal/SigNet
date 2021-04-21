@@ -59,7 +59,7 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
         return input_batch, label_batch
 
     def select_batch(self, training_input, training_label, training_baseline, current_ind=0):
-        if current_ind < len(training_input):
+        if current_ind < (len(training_input)-self.batch_size):
             last_ind = current_ind + self.batch_size
         else:
             current_ind = 0
