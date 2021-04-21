@@ -15,16 +15,16 @@ from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
-num_hidden_layers = 5
-num_neurons = 36
+num_hidden_layers = 7
+num_neurons = 463
 num_classes = 72
 
 # Training params
-experiment_id = "learn_error_bayesian_2"
-iterations = 10000
-batch_size = 63
+experiment_id = "learn_error_bayesian_large"
+iterations = 3000
+batch_size = 343
 num_samples = 1000
-intial_learning_rate = 0.0005
+intial_learning_rate = 0.00095
 learning_rate_steps = 10000
 learning_rate_gamma = 1
 
