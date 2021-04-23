@@ -21,7 +21,8 @@ class SignatureNet(nn.Module):
             modules=[nn.Linear(num_units, num_units)
             for _ in range(num_hidden_layers)])
 
-        self.output_layer = nn.Linear(num_units, num_classes)
+        self.output_layer_pos = nn.Linear(num_units, num_classes)
+        self.output_layer_neg = nn.Linear(num_units, num_classes)
         self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
@@ -47,6 +48,7 @@ class SignatureNet(nn.Module):
             comb = self.activation(layer(comb))
 
         # Apply output layer
-        comb = self.output_layer(comb)
-        comb = self.softmax(comb)
-        return comb
+        res_pos = self.output_layer_pos(comb)
+        res_neg = self.output_layer_neg(comb)
+        #comb = self.softmax(comb)
+        return res_pos, res_neg

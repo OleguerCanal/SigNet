@@ -15,15 +15,15 @@ from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
-num_hidden_layers = 7
-num_neurons = 463
+num_hidden_layers = 4
+num_neurons = 500
 num_classes = 72
 
 # Training params
-experiment_id = "learn_error_bayesian_large"
-iterations = 10000
+experiment_id = "learn_error_posneg_large_3"
+iterations = 3500
 batch_size = 343
-num_samples = 1000
+num_samples = 1500
 intial_learning_rate = 0.001
 learning_rate_steps = 10000
 learning_rate_gamma = 1
@@ -66,13 +66,18 @@ if __name__ == "__main__":
 
         optimizer.zero_grad()
 
-        predicted_error = sn(baseline_batch, num_mut)
+        predicted_error_pos, predicted_error_neg = sn(baseline_batch, num_mut)
         mt = ModelTester(num_classes)
         # l = get_cross_entropy(predicted_batch, label_batch)
         # l = get_MSE(predicted_batch, label_batch)
         # l = get_kl_divergence(predicted_batch, label_batch)
         # l = get_jensen_shannon(predicted_batch, label_batch)
-        l = get_MSE(predicted_error, abs(baseline_batch-label_batch))
+        real_error = label_batch - baseline_batch
+        real_error_pos = copy.deepcopy(real_error)
+        real_error_pos[real_error < 0] = 0
+        real_error_neg = copy.deepcopy(real_error)
+        real_error_neg[real_error > 0] = 0
+        l = get_MSE(predicted_error_pos, real_error_pos) + get_MSE(predicted_error_neg, real_error_neg)
 
         l.backward()
         optimizer.step()
@@ -81,11 +86,18 @@ if __name__ == "__main__":
         validation_label = validation_mut_label[:,:num_classes]
         validation_mut =  torch.reshape(validation_mut_label[:,num_classes], (list(validation_label.size())[0],1))
         
-        val_error = sn(validation_baseline, validation_mut)
+        val_error_pos, val_error_neg = sn(validation_baseline, validation_mut)
+        val_real_error = validation_label - validation_baseline
+        val_real_error_pos = copy.deepcopy(val_real_error)
+        val_real_error_pos[val_real_error < 0] = 0
+        val_real_error_neg = copy.deepcopy(val_real_error)
+        val_real_error_neg[val_real_error > 0] = 0
         
         writer.add_scalar(f'loss', l, iteration)
-        writer_validation.add_scalar(f'loss', get_MSE(val_error, abs(validation_baseline-validation_label)), iteration)
+        writer_validation.add_scalar(f'loss',get_MSE(val_error_pos, val_real_error_pos) + get_MSE(val_error_neg, val_real_error_neg), iteration)
         if iteration % 500 == 0:
             torch.save(sn.state_dict(), os.path.join("models", experiment_id))
+            print(predicted_error_pos)
+            print(predicted_error_neg)
 
     torch.save(sn.state_dict(), os.path.join("models", experiment_id))

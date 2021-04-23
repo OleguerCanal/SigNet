@@ -65,9 +65,9 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "learn_error_bayesian_large"
-    num_hidden_layers = 7
-    num_neurons = 463
+    experiment_id = "learn_error_posneg_large_3"
+    num_hidden_layers = 4
+    num_neurons = 500
     num_classes = 72
 
     # Generate data
@@ -96,12 +96,13 @@ if __name__ == "__main__":
                           num_units=num_neurons)
     model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
     model.eval()
-    guessed_error = model(baseline_batch, num_mut)
-    
+    guessed_error_pos, guessed_error_neg = model(baseline_batch, num_mut)
+    print(guessed_error_pos)
+    print(guessed_error_neg)
 
     # Plot signatures
 
-    plot_weights_comparison_deconstructSigs(label_batch[0,:].detach().numpy(), deconstructSigs_batch[0,:].detach().numpy(), baseline_batch[0,:].detach().numpy(), guessed_error[0,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison_deconstructSigs(label_batch[22,:].detach().numpy(),deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error[22,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison_deconstructSigs(label_batch[-3,:].detach().numpy(),deconstructSigs_batch[-3,:].detach().numpy(),baseline_batch[-3,:].detach().numpy(), guessed_error[-3,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison_deconstructSigs(label_batch[-1,:].detach().numpy(),deconstructSigs_batch[-1,:].detach().numpy(),baseline_batch[-1,:].detach().numpy(), guessed_error[-1,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[0,:].detach().numpy(), deconstructSigs_batch[0,:].detach().numpy(), baseline_batch[0,:].detach().numpy(), guessed_error_pos[0,:].detach().numpy(),guessed_error_neg[0,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[22,:].detach().numpy(),deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error_pos[22,:].detach().numpy(),guessed_error_pos[22,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[-3,:].detach().numpy(),deconstructSigs_batch[-3,:].detach().numpy(),baseline_batch[-3,:].detach().numpy(), guessed_error_pos[-3,:].detach().numpy(), guessed_error_neg[-3,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[-1,:].detach().numpy(),deconstructSigs_batch[-1,:].detach().numpy(),baseline_batch[-1,:].detach().numpy(), guessed_error_pos[-1,:].detach().numpy(),guessed_error_neg[-1,:].detach().numpy(), list(data.columns)[2:])
