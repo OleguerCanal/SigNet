@@ -15,13 +15,15 @@ from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix
 
 # Model params
-num_hidden_layers = 4
-num_neurons = 500
+num_hidden_layers_pos = 2
+num_neurons_pos = 500
+num_hidden_layers_neg = 2
+num_neurons_neg = 500
 num_classes = 72
 
 # Training params
-experiment_id = "learn_error_posneg_large_3"
-iterations = 3500
+experiment_id = "learn_error_posneg_large_4"
+iterations = 4000
 batch_size = 343
 num_samples = 1500
 intial_learning_rate = 0.001
@@ -53,7 +55,8 @@ if __name__ == "__main__":
 
     sn = SignatureNet(signatures=signatures,
                       num_classes=num_classes,
-                      num_hidden_layers=num_hidden_layers, num_units=num_neurons)
+                      num_hidden_layers_pos=num_hidden_layers_pos, num_units_pos=num_neurons_pos,
+                      num_hidden_layers_neg=num_hidden_layers_neg, num_units_neg=num_neurons_neg)
     optimizer = optim.Adam(sn.parameters(), lr=intial_learning_rate)
     scheduler = optim.lr_scheduler.StepLR(
         optimizer, step_size=learning_rate_steps, gamma=learning_rate_gamma)

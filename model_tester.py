@@ -65,9 +65,11 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "learn_error_posneg_large_3"
-    num_hidden_layers = 4
-    num_neurons = 500
+    experiment_id = "learn_error_posneg_large_4"
+    num_hidden_layers_pos = 2
+    num_neurons_pos = 500
+    num_hidden_layers_neg = 2
+    num_neurons_neg = 500
     num_classes = 72
 
     # Generate data
@@ -92,8 +94,10 @@ if __name__ == "__main__":
     # Instantiate model and do predictions
     model = SignatureNet(signatures=signatures,
                           num_classes=num_classes,
-                          num_hidden_layers=num_hidden_layers,
-                          num_units=num_neurons)
+                          num_hidden_layers_pos=num_hidden_layers_pos,
+                          num_units_pos=num_neurons_pos,
+                          num_hidden_layers_neg=num_hidden_layers_neg,
+                          num_units_neg=num_neurons_neg)
     model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
     model.eval()
     guessed_error_pos, guessed_error_neg = model(baseline_batch, num_mut)
@@ -103,6 +107,6 @@ if __name__ == "__main__":
     # Plot signatures
 
     plot_weights_comparison_deconstructSigs(label_batch[0,:].detach().numpy(), deconstructSigs_batch[0,:].detach().numpy(), baseline_batch[0,:].detach().numpy(), guessed_error_pos[0,:].detach().numpy(),guessed_error_neg[0,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison_deconstructSigs(label_batch[22,:].detach().numpy(),deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error_pos[22,:].detach().numpy(),guessed_error_pos[22,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison_deconstructSigs(label_batch[22,:].detach().numpy(),deconstructSigs_batch[22,:].detach().numpy(),baseline_batch[22,:].detach().numpy(), guessed_error_pos[22,:].detach().numpy(),guessed_error_neg[22,:].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison_deconstructSigs(label_batch[-3,:].detach().numpy(),deconstructSigs_batch[-3,:].detach().numpy(),baseline_batch[-3,:].detach().numpy(), guessed_error_pos[-3,:].detach().numpy(), guessed_error_neg[-3,:].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison_deconstructSigs(label_batch[-1,:].detach().numpy(),deconstructSigs_batch[-1,:].detach().numpy(),baseline_batch[-1,:].detach().numpy(), guessed_error_pos[-1,:].detach().numpy(),guessed_error_neg[-1,:].detach().numpy(), list(data.columns)[2:])
