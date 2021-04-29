@@ -5,7 +5,9 @@ from baseline import SignatureFinder
 
 class SignatureNet(nn.Module):
 
-    def __init__(self, signatures=None, num_classes=72, num_hidden_layers_pos=2, num_hidden_layers_neg=2, num_units_pos=400, num_units_neg=400, normalize_mut = 20000):
+    def __init__(self, signatures=None, num_classes=72, num_hidden_layers_pos=2, 
+    num_hidden_layers_neg=2, num_units_pos=400, num_units_neg=400, 
+    normalize_mut = 20000):
         super(SignatureNet, self).__init__()
         self.num_classes = num_classes
         self.normalize_mut = normalize_mut
