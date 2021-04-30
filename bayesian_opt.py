@@ -130,7 +130,7 @@ if __name__ == "__main__":
                              val_baseline=val_baseline,
                              val_label=val_label)
 
-    batch_sizes = Integer(name='batch_size', low=10, high=1000)
+    batch_sizes = Integer(name='batch_size', low=50, high=1000)
     learning_rates = Real(name='lr', low=0.00001, high=0.005)
     neurons_pos = Integer(name='num_neurons_pos', low=20, high=1500)
     layers_pos = Integer(name='num_hidden_layers_pos', low=1, high=10)
@@ -144,12 +144,12 @@ if __name__ == "__main__":
     gp_search = GaussianProcessSearch(search_space=search_space,
                                       fixed_space=fixed_space,
                                       evaluator=mpo.objective,
-                                      input_file=None,  # Use None to start from zero
-                                      output_file='search.csv')  # Store tested points
+                                      input_file='search.csv',  # Use None to start from zero
+                                      output_file='search2.csv')  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=20,
-        n_random_starts=10,
+        n_calls=100,
+        n_random_starts=20,
         noise=0.01,
         verbose=True,
         plot_results=True)
