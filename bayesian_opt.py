@@ -43,7 +43,7 @@ class MetaParamOptimizer:
                           num_hidden_layers_neg=int(num_hidden_layers_neg),
                           num_units_neg=int(num_neurons_neg),
                           normalize_mut=int(normalize_mut))
-        #sn.to(torch.device("cuda:0"))
+        sn.to(torch.device("cuda:0"))
         optimizer = optim.Adam(sn.parameters(),
                                lr=lr)
         #writer = SummaryWriter(log_dir=os.path.join("test", "1"))
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
         n_calls=100,
-        n_random_starts=20,
+        n_random_starts=0,
         noise=0.01,
         verbose=True,
         plot_results=True)
