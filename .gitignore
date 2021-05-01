@@ -131,7 +131,7 @@ dmypy.json
 data/
 .vscode/*
 runs/
-models/
+trained_models/
 *.png
 cluster/
 parameters.txt
