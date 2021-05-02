@@ -129,12 +129,13 @@ dmypy.json
 .pyre/
 
 data/
-.vscode/
+.vscode/*
 runs/
-models/
+trained_models/
 *.png
 cluster/
 parameters.txt
 *.sh
 signatures-nets.e*
 results/
+plots/*
