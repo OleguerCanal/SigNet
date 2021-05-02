@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 
 import numpy as np
@@ -7,8 +8,9 @@ import torch
 import torch.nn as nn
 import seaborn as sn
 
-from baseline import SignatureFinder
-from model import SignatureNet
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.finetuner import FineTuner
 from utilities.dataloader import DataLoader
 from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison
@@ -65,36 +67,35 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params
-    experiment_id = "comb_js_kl_error_4"
-    num_hidden_layers = 4
-    num_neurons = 600
+    experiment_id = "finetuner_model_2"
+    num_hidden_layers = 1
+    num_neurons = 1500
     num_classes = 72
 
     # Generate data
-    data = pd.read_excel("data/data.xlsx")
+    data = pd.read_excel("../../data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                  for i in range(2, 74)][:num_classes]
 
-    input_batch = torch.tensor(pd.read_csv("data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    label_mut_batch = torch.tensor(pd.read_csv("data/test_label_w01.csv", header=None).values, dtype=torch.float)
+    input_batch = torch.tensor(pd.read_csv("../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    label_mut_batch = torch.tensor(pd.read_csv("../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
     label_batch = label_mut_batch[:,:num_classes]
     num_mut = torch.reshape(label_mut_batch[:,num_classes], (list(label_mut_batch.size())[0],1))
 
-    baseline_batch = torch.tensor(pd.read_csv("data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    baseline_batch = torch.tensor(pd.read_csv("../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
 
     
     # Instantiate model and do predictions
-    model = SignatureNet(signatures=signatures,
-                          num_classes=num_classes,
+    model = FineTuner(num_classes=num_classes,
                           num_hidden_layers=num_hidden_layers,
                           num_units=num_neurons)
-    model.load_state_dict(torch.load(os.path.join("models", experiment_id)))
+    model.load_state_dict(torch.load(os.path.join("../../trained_models", experiment_id)))
     model.eval()
-    guessed_labels, guessed_error = model(input_batch, baseline_batch, num_mut)
+    guessed_labels = model(input_batch, baseline_batch)
     
     # # Get metrics
     model_tester = ModelTester(num_classes=num_classes)
-    #model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # False negatives:
     label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(label_batch[:,:72], guessed_labels, 0.05, num_classes)
