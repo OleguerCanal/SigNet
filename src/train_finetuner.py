@@ -7,12 +7,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data
 from trainers.finetuner_trainer import FinetunerTrainer
 
-experiment_id = "test_0"
+experiment_id = "finetuner_model_2"
 model_path = "../trained_models"
 iterations = 7
 num_classes = 72
-fp_param = 1e-4
-fn_param = 1e-4
+fp_param = 1
+fn_param = 1
 
 batch_size = 336
 lr = 0.001
@@ -37,6 +37,8 @@ if __name__ == "__main__":
                                val_label=val_label,
                                experiment_id=experiment_id,
                                num_classes=num_classes,
+                               fp_param=fp_param,
+                               fn_param=fn_param,
                                device=device,
                                model_path=model_path)
 
