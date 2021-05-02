@@ -9,9 +9,9 @@ from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
 
-experiment_id = "error_learner_0"
+experiment_id = "error_learner_model_1"
 model_path = "../trained_models"
-finetuner_model_name = "test_0"
+finetuner_model_name = "finetuner_model_1"
 iterations = 7
 num_classes = 72
 
