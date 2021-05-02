@@ -2,6 +2,7 @@ import os
 import sys
 
 import torch
+from torchsummary import summary
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
@@ -28,6 +29,10 @@ normalize_mut = 2e4
 num_hidden_layers = 1
 num_units = 1500
 
+def print_size(name, tensor):
+    size = tensor.element_size() * tensor.nelement() * 1e-6
+    print(name, "has size:", size, "MB (", tensor.type(), ")")
+
 if __name__ == "__main__":
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     dev = "cpu"
@@ -37,9 +42,18 @@ if __name__ == "__main__":
     train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data(
         dev)
 
+    print_size("train_input", train_input)
+    print_size("train_guess_0", train_guess_0)
+    print_size("train_label", train_label)
+    print_size("val_input", val_input)
+    print_size("val_guess_0", val_guess_0)
+    print_size("val_label", val_label)
+
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
                           num_units=num_units)
+    # summary(finetuner, (96, 72), batch_size=train_input.shape[0])
+
     finetuner.to(device)
     finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
     finetuner.eval()
@@ -51,6 +65,10 @@ if __name__ == "__main__":
     del finetuner
     del train_guess_0
     del val_guess_0
+
+    print_size("train_guess_1", train_guess_1)
+    print_size("val_guess_1", val_guess_1)
+
 
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
                            train_input=train_input,
