@@ -60,12 +60,12 @@ if __name__ == "__main__":
     gc.collect()
     torch.cuda.empty_cache()
 
-    train_input = train_input.to(device)
-    train_guess_1 = train_guess_1.to(device)
-    train_label = train_label.to(device)
-    val_input = val_input.to(device)
-    val_guess_1 = val_guess_1.to(device)
-    val_label = val_label.to(device)
+    train_input = train_input.to(device).detach()
+    train_guess_1 = train_guess_1.to(device).detach()
+    train_label = train_label.to(device).detach()
+    val_input = val_input.to(device).detach()
+    val_guess_1 = val_guess_1.to(device).detach()
+    val_label = val_label.to(device).detach()
 
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
                            train_input=train_input,
