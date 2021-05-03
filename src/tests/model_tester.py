@@ -103,20 +103,20 @@ if __name__ == "__main__":
                       num_hidden_layers=num_hidden_layers,
                       num_units=num_neurons)
     model.load_state_dict(torch.load(os.path.join(
-        "../../trained_models", experiment_id_finetune)))
+        "../../trained_models", experiment_id_finetune), map_location=torch.device('cpu')))
     model.eval()
     guessed_labels = model(input_batch, baseline_batch)
 
     # Instantiate model and do predictions for error learner:
     model_error = ErrorFinder(num_classes=num_classes,
                               num_hidden_layers_pos=num_hidden_layers_pos,
-                              num_neurons_pos=num_neurons_pos,
+                              num_units_pos=num_neurons_pos,
                               num_hidden_layers_neg=num_hidden_layers_neg,
-                              num_neurons_neg=num_neurons_neg,
+                              num_units_neg=num_neurons_neg,
                               normalize_mut=normalize_mut)
 
     model_error.load_state_dict(torch.load(os.path.join(
-        "../../trained_models", experiment_id_error_learner)))
+        "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
     model_error.eval()
     guessed_error_pos, guessed_error_neg = model_error(guessed_labels, num_mut)
 
@@ -136,8 +136,8 @@ if __name__ == "__main__":
 
     # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    ), guessed_error_neg[0, :].detach().numpy(), guessed_error_pos[0, :].detach().numpy(), list(data.columns)[2:])
+    ), guessed_error_pos[0, :].detach().numpy(), guessed_error_neg[0, :].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
-    ), guessed_error_neg[9, :].detach().numpy(), guessed_error_pos[9, :].detach().numpy(), list(data.columns)[2:])
+    ), guessed_error_pos[9, :].detach().numpy(), guessed_error_neg[9, :].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
-    ), guessed_error_neg[22, :].detach().numpy(), guessed_error_pos[22, :].detach().numpy(), list(data.columns)[2:])
+    ), guessed_error_pos[22, :].detach().numpy(), guessed_error_neg[22, :].detach().numpy(), list(data.columns)[2:])
