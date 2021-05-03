@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 data/
+data_old/
 .vscode/*
 runs/
 trained_models/
