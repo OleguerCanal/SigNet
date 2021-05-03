@@ -16,8 +16,8 @@ iterations = 7
 num_classes = 72
 
 # Error finder params
-batch_size = 336
-lr = 0.001
+batch_size = 500
+lr = 0.0001
 num_hidden_layers_pos = 1
 num_neurons_pos = 500
 num_hidden_layers_neg = 1
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                           num_hidden_layers=num_hidden_layers,
                           num_units=num_units)
     finetuner.to(device)
-    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
+    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name), map_location=torch.device('cpu')))
     finetuner.eval()
     train_guess_1 = finetuner(mutation_dist=train_input,
                               weights=train_guess_0)
