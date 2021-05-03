@@ -116,7 +116,7 @@ class ErrorTrainer:
                     self.logger.log(train_loss=train_loss,
                                     val_loss=val_loss,
                                     step=step)
-                if self.model_path is not None and step % 500 == 0:
+                if self.model_path is not None and step % 100 == 0:
                     torch.save(model.state_dict(), os.path.join(
                         self.model_path, self.experiment_id))
                 step += 1
