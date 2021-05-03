@@ -47,12 +47,13 @@ if __name__ == "__main__":
     finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
     finetuner.to("cpu")
     finetuner.eval()
+    
+    with torch.no_grad():
+        train_guess_1 = finetuner(mutation_dist=train_input,
+                                weights=train_guess_0)
 
-    train_guess_1 = finetuner(mutation_dist=train_input,
-                              weights=train_guess_0)
-
-    val_guess_1 = finetuner(mutation_dist=val_input,
-                            weights=val_guess_0)
+        val_guess_1 = finetuner(mutation_dist=val_input,
+                                weights=val_guess_0)
 
     del finetuner
     del train_guess_0
@@ -60,12 +61,12 @@ if __name__ == "__main__":
     gc.collect()
     torch.cuda.empty_cache()
 
-    train_input = train_input.to(device).detach()
-    train_guess_1 = train_guess_1.to(device).detach()
-    train_label = train_label.to(device).detach()
-    val_input = val_input.to(device).detach()
-    val_guess_1 = val_guess_1.to(device).detach()
-    val_label = val_label.to(device).detach()
+    train_input = train_input.to(device)
+    train_guess_1 = train_guess_1.to(device)
+    train_label = train_label.to(device)
+    val_input = val_input.to(device)
+    val_guess_1 = val_guess_1.to(device)
+    val_label = val_label.to(device)
 
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
                            train_input=train_input,
