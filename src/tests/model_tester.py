@@ -10,11 +10,11 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
-from utilities.dataloader import DataLoader
-from utilities.metrics import *
 from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison
-
+from utilities.metrics import *
+from utilities.dataloader import DataLoader
+from models.finetuner import FineTuner
+from models.error_finder import ErrorFinder
 
 class ModelTester:
     def __init__(self, num_classes):
@@ -33,9 +33,11 @@ class ModelTester:
         print("cross_entropy:", np.round(cross_entropy.item(), decimals=3))
         print("kl_divergence:", np.round(kl_divergence.item(), decimals=3))
         print("js_divergence:", np.round(js_divergence.item(), decimals=3))
-        print("cosine_similarity:", np.round(cosine_similarity.item(), decimals=3))
-        print("wasserstein_distance:", np.round(wasserstein_distance.item(), decimals=3))
-        
+        print("cosine_similarity:", np.round(
+            cosine_similarity.item(), decimals=3))
+        print("wasserstein_distance:", np.round(
+            wasserstein_distance.item(), decimals=3))
+
         label_sigs, predicted_sigs = self.probs_batch_to_sigs(
             true_labels, guessed_labels, cutoff=0.05, num_classes=self.num_classes)
 
@@ -66,39 +68,65 @@ class ModelTester:
 
 
 if __name__ == "__main__":
-    # Model params
-    experiment_id = "finetuner_model_2"
+    # Model params finetuner
+    experiment_id_finetune = "finetuner_model_2"
     num_hidden_layers = 1
     num_neurons = 1500
     num_classes = 72
 
+    # Model params error
+    experiment_id_error_learner = "error_learner_model_1"
+    num_hidden_layers_pos = 1
+    num_neurons_pos = 500
+    num_hidden_layers_neg = 1
+    num_neurons_neg = 500
+    normalize_mut = 2e4
+
     # Generate data
     data = pd.read_excel("../../data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
-                 for i in range(2, 74)][:num_classes]
+                  for i in range(2, 74)][:num_classes]
 
-    input_batch = torch.tensor(pd.read_csv("../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    label_mut_batch = torch.tensor(pd.read_csv("../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
-    label_batch = label_mut_batch[:,:num_classes]
-    num_mut = torch.reshape(label_mut_batch[:,num_classes], (list(label_mut_batch.size())[0],1))
+    input_batch = torch.tensor(pd.read_csv(
+        "../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    label_mut_batch = torch.tensor(pd.read_csv(
+        "../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
+    label_batch = label_mut_batch[:, :num_classes]
+    num_mut = torch.reshape(
+        label_mut_batch[:, num_classes], (list(label_mut_batch.size())[0], 1))
 
-    baseline_batch = torch.tensor(pd.read_csv("../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    baseline_batch = torch.tensor(pd.read_csv(
+        "../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
 
-    
-    # Instantiate model and do predictions
+    # Instantiate model and do predictions for finetuner:
     model = FineTuner(num_classes=num_classes,
-                          num_hidden_layers=num_hidden_layers,
-                          num_units=num_neurons)
-    model.load_state_dict(torch.load(os.path.join("../../trained_models", experiment_id)))
+                      num_hidden_layers=num_hidden_layers,
+                      num_units=num_neurons)
+    model.load_state_dict(torch.load(os.path.join(
+        "../../trained_models", experiment_id_finetune)))
     model.eval()
     guessed_labels = model(input_batch, baseline_batch)
-    
+
+    # Instantiate model and do predictions for error learner:
+    model_error = ErrorFinder(num_classes=num_classes,
+                              num_hidden_layers_pos=num_hidden_layers_pos,
+                              num_neurons_pos=num_neurons_pos,
+                              num_hidden_layers_neg=num_hidden_layers_neg,
+                              num_neurons_neg=num_neurons_neg,
+                              normalize_mut=normalize_mut)
+
+    model_error.load_state_dict(torch.load(os.path.join(
+        "../../trained_models", experiment_id_error_learner)))
+    model_error.eval()
+    guessed_error_pos, guessed_error_neg = model_error(guessed_labels, num_mut)
+
     # # Get metrics
     model_tester = ModelTester(num_classes=num_classes)
     model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # False negatives:
-    label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(label_batch[:,:72], guessed_labels, 0.05, num_classes)
+    label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
+        label_batch[:, :72], guessed_labels, 0.05, num_classes)
     FN = sum(predicted_sigs_list == num_classes)
     print('Number of FN:', FN)
 
@@ -107,6 +135,9 @@ if __name__ == "__main__":
     print('Number of FP:', FP)
 
     # Plot signatures
-    plot_weights_comparison(label_batch[0,:].detach().numpy(), guessed_labels[0,:].detach().numpy(), guessed_error[0,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[9,:].detach().numpy(), guessed_labels[9,:].detach().numpy(), guessed_error[9,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[22,:].detach().numpy(),guessed_labels[22,:].detach().numpy(), guessed_error[22,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    ), guessed_error_neg[0, :].detach().numpy(), guessed_error_pos[0, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
+    ), guessed_error_neg[9, :].detach().numpy(), guessed_error_pos[9, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
+    ), guessed_error_neg[22, :].detach().numpy(), guessed_error_pos[22, :].detach().numpy(), list(data.columns)[2:])
