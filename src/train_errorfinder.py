@@ -47,12 +47,13 @@ if __name__ == "__main__":
     finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
     finetuner.to("cpu")
     finetuner.eval()
+    
+    with torch.no_grad():
+        train_guess_1 = finetuner(mutation_dist=train_input,
+                                weights=train_guess_0)
 
-    train_guess_1 = finetuner(mutation_dist=train_input,
-                              weights=train_guess_0)
-
-    val_guess_1 = finetuner(mutation_dist=val_input,
-                            weights=val_guess_0)
+        val_guess_1 = finetuner(mutation_dist=val_input,
+                                weights=val_guess_0)
 
     del finetuner
     del train_guess_0

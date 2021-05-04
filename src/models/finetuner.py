@@ -8,10 +8,10 @@ class FineTuner(nn.Module):
                  num_hidden_layers=2,
                  num_units=400):
         super(FineTuner, self).__init__()
-        self.num_classes = num_classes
 
         num_units = int(num_units/2)*2  # To have an even number of units
         num_units_branch = int(num_units/2)
+
         self.layer1_1 = nn.Linear(num_classes, num_units_branch)
         # 96 = total number of possible muts
         self.layer1_2 = nn.Linear(96, num_units_branch)
