@@ -34,7 +34,6 @@ class SignatureNet:
         self.error_finder.eval()
 
         self.opp = create_opportunities(path_opportunities)
-        self.models_path = models_path
 
     def __call__(self,
                  mutation_vec):
