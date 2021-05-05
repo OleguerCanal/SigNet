@@ -65,6 +65,21 @@ def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels,
     plt.tight_layout()
     plt.show()
      
+def plot_interval_performance(label_batch, train_weight_guess, prediction_pos, prediction_neg, sigs_names):
+    lower_bound = train_weight_guess - abs(prediction_neg)
+    upper_bound = train_weight_guess + abs(prediction_pos)
+    lower = label_batch - lower_bound
+    upper = prediction_pos - label_batch
+    num_error = torch.sum(lower<0, dim=0)
+    num_error += torch.sum(upper<0, dim=0)
+    num_error = num_error / label_batch.shape[0]
+    num_classes = 72
+    plt.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    plt.ylabel("Percentage of error (%)")
+    plt.xticks(range(num_classes), sigs_names, rotation='vertical')
+    plt.title('Confidence intervals performance')
+    plt.show()
+        
 if __name__ == "__main__":
     deconstructSigs_labels = [0.1, 0.7, 0.2]
     real_labels = [0.2, 0.5, 0.3]
