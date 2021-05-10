@@ -1,3 +1,4 @@
+import gc
 import os
 import sys
 
@@ -10,8 +11,8 @@ from models.finetuner import FineTuner
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-experiment_id = "error_learner"
-iterations = 5
+experiment_id = "error_finder"
+iterations = 8
 num_classes = 72
 
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
                           num_units=num_units)
-    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
+    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name), map_location=torch.device('cpu')))
     finetuner.to("cpu")
     finetuner.eval()
 
@@ -89,8 +90,8 @@ if __name__ == "__main__":
                                       output_file=output_file)  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=100,
-        n_random_starts=0,
+        n_calls=1000,
+        n_random_starts=100,
         noise=0.01,
         verbose=True,
         plot_results=True)
