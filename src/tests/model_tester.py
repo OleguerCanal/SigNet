@@ -10,7 +10,7 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison
+from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 from utilities.metrics import *
 from utilities.dataloader import DataLoader
 from models.finetuner import FineTuner
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_1"
+    experiment_id_error_learner = "error_learner_model_3"
     num_hidden_layers_pos = 1
     num_neurons_pos = 500
     num_hidden_layers_neg = 1
@@ -121,18 +121,18 @@ if __name__ == "__main__":
     guessed_error_pos, guessed_error_neg = model_error(guessed_labels, num_mut)
 
     # # Get metrics
-    model_tester = ModelTester(num_classes=num_classes)
-    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+    # model_tester = ModelTester(num_classes=num_classes)
+    # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
-    # False negatives:
-    label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
-        label_batch[:, :72], guessed_labels, 0.05, num_classes)
-    FN = sum(predicted_sigs_list == num_classes)
-    print('Number of FN:', FN)
+    # # False negatives:
+    # label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
+    #     label_batch[:, :72], guessed_labels, 0.05, num_classes)
+    # FN = sum(predicted_sigs_list == num_classes)
+    # print('Number of FN:', FN)
 
-    # False positives:
-    FP = sum(label_sigs_list == num_classes)
-    print('Number of FP:', FP)
+    # # False positives:
+    # FP = sum(label_sigs_list == num_classes)
+    # print('Number of FP:', FP)
 
     # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
@@ -141,3 +141,6 @@ if __name__ == "__main__":
     ), guessed_error_pos[9, :].detach().numpy(), guessed_error_neg[9, :].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
     ), guessed_error_pos[22, :].detach().numpy(), guessed_error_neg[22, :].detach().numpy(), list(data.columns)[2:])
+
+    # Plot interval performance
+    plot_interval_performance(label_batch, guessed_labels, guessed_error_pos, guessed_error_neg, list(data.columns)[2:])
