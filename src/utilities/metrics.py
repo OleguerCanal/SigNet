@@ -126,7 +126,7 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5
     lagrange_mult [float]: "How much do we care about missclassifications"
                             Larger lagrange_mult means more correctly guessed points at the expense of larger intervals
     softening_factor [float]: The bigger the closer it is to the real function
-                              This means better guesses but harder optimization (less differenciable)
+                              This means better guesses but harder optimization (less differentiable)
     """
     EPS_ = 1e-6
 
