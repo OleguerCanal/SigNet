@@ -14,10 +14,10 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.train_dataset import TrainDataSet
-from utilities.metrics import get_MSE, distance_to_interval
-from models.error_finder import ErrorFinder
 from loggers.error_finder_logger import ErrorFinderLogger
+from models.error_finder import ErrorFinder
+from utilities.metrics import distance_to_interval, get_soft_qd_loss
+from utilities.train_dataset import TrainDataSet
 
 class ErrorTrainer:
     def __init__(self,
@@ -93,14 +93,25 @@ class ErrorTrainer:
                                                                    num_mutations=num_mut)
 
                 # Compute loss
-                train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
+                # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
+                pred_lower = train_weight_guess - train_prediction_neg
+                pred_upper = train_weight_guess + train_prediction_pos
+                train_loss, _, _ = get_soft_qd_loss(label=train_label,  # TODO: Log PICP_s, MPIW metrics
+                                                    pred_lower=pred_lower,
+                                                    pred_upper=pred_upper)
                 train_loss.backward(retain_graph=True)
                 optimizer.step()
 
                 with torch.no_grad():
-                    val_prediction_pos, val_prediction_neg = model(
-                        self.val_weight_guess, self.val_num_mut)
-                    val_loss =  distance_to_interval(self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
+                    val_prediction_pos, val_prediction_neg = model(weights=self.val_weight_guess,
+                                                                   num_mutations=self.val_num_mut)
+                    # val_loss = distance_to_interval(
+                    #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
+                    pred_lower = self.val_weight_guess - val_prediction_neg
+                    pred_upper = self.val_weight_guess + val_prediction_pos
+                    val_loss, _, _ = get_soft_qd_loss(label=self.val_label,  # TODO: Log PICP_s, MPIW metrics
+                                                      pred_lower=pred_lower,
+                                                      pred_upper=pred_upper)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
