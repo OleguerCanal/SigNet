@@ -147,7 +147,7 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5
 
     # Compute constrain
     n = float(torch.numel(label))  # number elements in the input
-    constrain = (n/(conf*(1.0 - conf)))*torch.max(torch.tensor(0), (1.0 - conf) - PICP_s)**2
+    constrain = (n/(conf*(1.0 - conf)))*torch.max(torch.tensor(0).to(PICP_s), (1.0 - conf) - PICP_s)**2
     
     # Compute and return loss
     loss = MPIW + lagrange_mult*constrain
