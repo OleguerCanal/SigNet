@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.train_dataset import TrainDataSet
-from utilities.metrics import get_MSE
+from utilities.metrics import get_MSE, distance_to_interval
 from models.error_finder import ErrorFinder
 from loggers.error_finder_logger import ErrorFinderLogger
 
@@ -93,22 +93,14 @@ class ErrorTrainer:
                                                                    num_mutations=num_mut)
 
                 # Compute loss
-                real_error = train_label - train_weight_guess
-                real_error_pos, real_error_neg = self.__decompose_errors(
-                    real_error.detach())
-                train_loss = get_MSE(train_prediction_pos, real_error_pos) + \
-                             get_MSE(train_prediction_neg, real_error_neg)
+                train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
                 train_loss.backward(retain_graph=True)
                 optimizer.step()
 
                 with torch.no_grad():
                     val_prediction_pos, val_prediction_neg = model(
                         self.val_weight_guess, self.val_num_mut)
-                    val_real_error = self.val_label - self.val_weight_guess
-                    val_real_error_pos, val_real_error_neg = self.__decompose_errors(
-                        val_real_error.detach())
-                    val_loss = get_MSE(val_prediction_pos, val_real_error_pos) +\
-                        get_MSE(val_prediction_neg, val_real_error_neg)
+                    val_loss =  distance_to_interval(self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
@@ -116,7 +108,7 @@ class ErrorTrainer:
                     self.logger.log(train_loss=train_loss,
                                     val_loss=val_loss,
                                     step=step)
-                if self.model_path is not None and step % 100 == 0:
+                if self.model_path is not None and step % 500 == 0:
                     torch.save(model.state_dict(), os.path.join(
                         self.model_path, self.experiment_id))
                 step += 1

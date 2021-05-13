@@ -64,6 +64,18 @@ def get_fp_fn(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     fn = torch.sum(label_mask - prediction_mask > 0)
     return fp, fn
 
+def distance_to_interval(label_batch, train_weight_guess, prediction_pos, prediction_neg, penalization):
+    lower_bound = train_weight_guess - abs(prediction_neg)
+    lower = label_batch - lower_bound
+    upper_bound = train_weight_guess + abs(prediction_pos)
+    upper = prediction_pos - label_batch
+    lower[lower>0] = 0
+    upper[upper>0] = 0
+    interval_length = upper_bound - lower_bound
+    return torch.sum(abs(lower)) + torch.sum(abs(upper)) + penalization * torch.sum(interval_length)
+
+
+
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)
     predicted_sigs_list = torch.zeros(0, dtype=torch.long)

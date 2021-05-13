@@ -44,7 +44,7 @@ if __name__ == "__main__":
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
                           num_units=num_units)
-    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name)))
+    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name),  map_location=torch.device('cpu')))
     finetuner.to("cpu")
     finetuner.eval()
     
