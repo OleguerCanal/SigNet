@@ -114,7 +114,7 @@ def get_pi_metrics(label, pred_lower, pred_upper):
     return in_prop, mean_interval_width
 
 
-def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1.0, softening_factor=50.0):
+def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5, softening_factor=100.0):
     """Used to optimize:
     
     min pred_upper - pred_lower
@@ -122,7 +122,11 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1.0
 
     Algorithm 1 of https://arxiv.org/pdf/1802.07167.pdf
 
+    conf [float]: Interval confidence, proportion of missplaced points which is "ok" usually ~0.05
+    lagrange_mult [float]: "How much do we care about missclassifications"
+                            Larger lagrange_mult means more correctly guessed points at the expense of larger intervals
     softening_factor [float]: The bigger the closer it is to the real function
+                              This means better guesses but harder optimization (less differenciable)
     """
     EPS_ = 1e-6
 
@@ -131,18 +135,15 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1.0
     k_hl = (pred_lower < label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
     PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
-    print(PICP_h)
 
     # Softened in-between constrain (same as before but differentiable)
     k_su = nn.Sigmoid()((pred_upper - label)*softening_factor)
     k_sl = nn.Sigmoid()((label - pred_lower)*softening_factor)
     k_s = torch.einsum("be,be->be", k_sl, k_su)
     PICP_s = torch.mean(k_s)  # Soft Prediction Interval Coverage Probability
-    print(PICP_s)
 
     # Compute Mean Prediction Interval Width (MPIW)
     MPIW = torch.sum(torch.einsum("be,be->be", (pred_upper - pred_lower), k_h))/(torch.sum(k_h) + EPS_)
-    print(MPIW)
 
     # Compute constrain
     n = float(torch.numel(label))  # number elements in the input
@@ -160,18 +161,16 @@ if __name__ == "__main__":
     mpiws = []
     picps = []
     for u in u_s:
-        print("#########")
-        print(u)
         lower = torch.tensor([[0.0]])
         label = torch.tensor([[0.25]])
         upper = torch.tensor([[u]])
 
-        in_prop, mean_interval_width = get_pi_metrics(label, lower, upper)
-        print("in_prop", in_prop)
-        print("mean_interval_width", mean_interval_width)
+        # in_prop, mean_interval_width = get_pi_metrics(label, lower, upper)
+        # print("in_prop", in_prop)
+        # print("mean_interval_width", mean_interval_width)
 
         loss, picp, mpiw = get_soft_qd_loss(label, lower, upper)
-        print("loss", loss)
+        # print("loss", loss)
         losses.append(loss)
         picps.append(picp)
         mpiws.append(mpiw)
