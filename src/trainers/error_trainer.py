@@ -96,7 +96,7 @@ class ErrorTrainer:
                 # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
                 pred_lower = train_weight_guess - train_prediction_neg
                 pred_upper = train_weight_guess + train_prediction_pos
-                train_loss, _, _ = get_soft_qd_loss(label=train_label,  # TODO: Log PICP_s, MPIW metrics
+                train_loss, train_in_prop, train_pi_width = get_soft_qd_loss(label=train_label,  # TODO: Log PICP_s, MPIW metrics
                                                     pred_lower=pred_lower,
                                                     pred_upper=pred_upper)
                 train_loss.backward(retain_graph=True)
@@ -109,7 +109,7 @@ class ErrorTrainer:
                     #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
                     pred_lower = self.val_weight_guess - val_prediction_neg
                     pred_upper = self.val_weight_guess + val_prediction_pos
-                    val_loss, _, _ = get_soft_qd_loss(label=self.val_label,  # TODO: Log PICP_s, MPIW metrics
+                    val_loss, val_in_prop, val_pi_width = get_soft_qd_loss(label=self.val_label,  # TODO: Log PICP_s, MPIW metrics
                                                       pred_lower=pred_lower,
                                                       pred_upper=pred_upper)
                     l_vals.append(val_loss.item())
@@ -117,7 +117,11 @@ class ErrorTrainer:
 
                 if plot:
                     self.logger.log(train_loss=train_loss,
+                                    train_in_prop=train_in_prop,
+                                    train_pi_width=train_pi_width,
                                     val_loss=val_loss,
+                                    val_in_prop=val_in_prop,
+                                    val_pi_width=val_pi_width,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
                     torch.save(model.state_dict(), os.path.join(
