@@ -1,8 +1,11 @@
-import torch
+import copy
+
+import numpy as np
 from scipy.stats import wasserstein_distance
 from snorkel import classification
-import copy
-import numpy as np
+import torch
+import torch.nn as nn
+
 
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
@@ -74,8 +77,6 @@ def distance_to_interval(label_batch, train_weight_guess, prediction_pos, predic
     interval_length = upper_bound - lower_bound
     return torch.sum(abs(lower)) + torch.sum(abs(upper)) + penalization * torch.sum(interval_length)
 
-
-
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)
     predicted_sigs_list = torch.zeros(0, dtype=torch.long)
@@ -98,11 +99,86 @@ def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=
                     [predicted_sigs_list, torch.from_numpy(np.array([j]))])
     return label_sigs_list, predicted_sigs_list
 
+def get_pi_metrics(label, pred_lower, pred_upper):
+    """Used to compare prediction interval guesses.
+    
+    Returns:
+        in_prop [float]: Proportion of labels in (pred_lower, pred_upper)
+        mean_interval_width [float]: Mean width of the intervals
+    """
+    k_hu = (label < pred_upper).type(torch.float)  # 1 if label < upper; else 0
+    k_hl = (pred_lower < label).type(torch.float)  # 1 if lower < label; else 0
+    k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
+    in_prop = torch.mean(k_h)  # Hard Prediction Interval Coverage Probability
+    mean_interval_width = torch.mean(torch.max(torch.zeros_like(label), pred_upper - pred_lower))
+    return in_prop, mean_interval_width
+
+
+def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1.0, softening_factor=50.0):
+    """Used to optimize:
+    
+    min pred_upper - pred_lower
+    s.t. p(label in (pred_lower, pred_upper)) >= 1 - conf
+
+    Algorithm 1 of https://arxiv.org/pdf/1802.07167.pdf
+
+    softening_factor [float]: The bigger the closer it is to the real function
+    """
+    EPS_ = 1e-6
+
+    # Hard in-between constrain
+    k_hu = (label < pred_upper).type(torch.float)  # 1 if label < upper; else 0
+    k_hl = (pred_lower < label).type(torch.float)  # 1 if lower < label; else 0
+    k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
+    PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
+    print(PICP_h)
+
+    # Softened in-between constrain (same as before but differentiable)
+    k_su = nn.Sigmoid()((pred_upper - label)*softening_factor)
+    k_sl = nn.Sigmoid()((label - pred_lower)*softening_factor)
+    k_s = torch.einsum("be,be->be", k_sl, k_su)
+    PICP_s = torch.mean(k_s)  # Soft Prediction Interval Coverage Probability
+    print(PICP_s)
+
+    # Compute Mean Prediction Interval Width (MPIW)
+    MPIW = torch.sum(torch.einsum("be,be->be", (pred_upper - pred_lower), k_h))/(torch.sum(k_h) + EPS_)
+    print(MPIW)
+
+    # Compute constrain
+    n = float(torch.numel(label))  # number elements in the input
+    constrain = (n/(conf*(1.0 - conf)))*torch.max(torch.tensor(0), (1.0 - conf) - PICP_s)**2
+    
+    # Compute and return loss
+    loss = MPIW + lagrange_mult*constrain
+    return loss, PICP_s, MPIW
+
 if __name__ == "__main__":
     torch.seed = 0
-    a = torch.rand((4, 6))
-    a = torch.nn.functional.normalize(a, dim=1, p=1)
-    print(a)
-    print(get_entropy(a))
-    print(a)
-    print(get_divergence(a))
+
+    u_s = [u/100. for u in range(100)]
+    losses = []
+    mpiws = []
+    picps = []
+    for u in u_s:
+        print("#########")
+        print(u)
+        lower = torch.tensor([[0.0]])
+        label = torch.tensor([[0.25]])
+        upper = torch.tensor([[u]])
+
+        in_prop, mean_interval_width = get_pi_metrics(label, lower, upper)
+        print("in_prop", in_prop)
+        print("mean_interval_width", mean_interval_width)
+
+        loss, picp, mpiw = get_soft_qd_loss(label, lower, upper)
+        print("loss", loss)
+        losses.append(loss)
+        picps.append(picp)
+        mpiws.append(mpiw)
+
+    import matplotlib.pyplot as plt
+    plt.plot(u_s, losses, label="loss")
+    plt.plot(u_s, picps, label="in_prop")
+    plt.plot(u_s, mpiws, label="width")
+    plt.legend()
+    plt.show()
