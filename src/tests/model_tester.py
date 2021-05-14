@@ -75,11 +75,18 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_3"
-    num_hidden_layers_pos = 1
-    num_neurons_pos = 500
-    num_hidden_layers_neg = 1
-    num_neurons_neg = 500
+    # experiment_id_error_learner = "error_finder_model_bayesian"
+    # num_hidden_layers_pos = 1
+    # num_neurons_pos = 1500
+    # num_hidden_layers_neg = 5
+    # num_neurons_neg = 1500
+    # normalize_mut = 1e4
+
+    experiment_id_error_learner = "error_finder_model_new_loss"
+    num_hidden_layers_pos = 5
+    num_neurons_pos = 1000
+    num_hidden_layers_neg = 5
+    num_neurons_neg = 1000
     normalize_mut = 2e4
 
     # Generate data
@@ -144,3 +151,10 @@ if __name__ == "__main__":
 
     # Plot interval performance
     plot_interval_performance(label_batch, guessed_labels, guessed_error_pos, guessed_error_neg, list(data.columns)[2:])
+
+    # Print metrics
+    pred_lower = guessed_labels - guessed_error_neg
+    pred_upper = guessed_labels + guessed_error_pos
+    in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
+    print("In proportion:", in_prop.detach().numpy())
+    print("Mean length:", mean_length.detach().numpy())
