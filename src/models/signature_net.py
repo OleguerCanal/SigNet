@@ -58,6 +58,6 @@ class SignatureNet:
                                             weights=weight_guess_0)
 
             # Run error_finder
-            positive_errors, negative_errors = self.error_finder(weights=weight_guess_1,
+            pred_upper, pred_lower = self.error_finder(weights=weight_guess_1,
                                                                 num_mutations=num_mutations)
-        return weight_guess_1, positive_errors
+        return weight_guess_1, pred_upper, pred_lower
