@@ -89,29 +89,25 @@ class ErrorTrainer:
                 train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()
-                train_prediction_pos, train_prediction_neg = model(weights=train_weight_guess,
+                train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
                                                                    num_mutations=num_mut)
 
                 # Compute loss
                 # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
-                pred_lower = train_weight_guess - train_prediction_neg
-                pred_upper = train_weight_guess + train_prediction_pos
-                train_loss, train_in_prop, train_pi_width = get_soft_qd_loss(label=train_label,  # TODO: Log PICP_s, MPIW metrics
-                                                    pred_lower=pred_lower,
-                                                    pred_upper=pred_upper)
+                train_loss, train_in_prop, train_pi_width = get_soft_qd_loss(label=train_label,
+                                                                             pred_lower=train_pred_lower,
+                                                                             pred_upper=train_pred_upper)
                 train_loss.backward(retain_graph=True)
                 optimizer.step()
 
                 with torch.no_grad():
-                    val_prediction_pos, val_prediction_neg = model(weights=self.val_weight_guess,
+                    val_pred_upper, val_pred_lower = model(weights=self.val_weight_guess,
                                                                    num_mutations=self.val_num_mut)
                     # val_loss = distance_to_interval(
                     #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
-                    pred_lower = self.val_weight_guess - val_prediction_neg
-                    pred_upper = self.val_weight_guess + val_prediction_pos
-                    val_loss, val_in_prop, val_pi_width = get_soft_qd_loss(label=self.val_label,  # TODO: Log PICP_s, MPIW metrics
-                                                      pred_lower=pred_lower,
-                                                      pred_upper=pred_upper)
+                    val_loss, val_in_prop, val_pi_width = get_soft_qd_loss(label=self.val_label,
+                                                                           pred_lower=val_pred_lower,
+                                                                           pred_upper=val_pred_upper)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
