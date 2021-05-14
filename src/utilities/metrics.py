@@ -67,15 +67,15 @@ def get_fp_fn(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     fn = torch.sum(label_mask - prediction_mask > 0)
     return fp, fn
 
-def distance_to_interval(label_batch, train_weight_guess, prediction_pos, prediction_neg, penalization):
-    lower_bound = train_weight_guess - abs(prediction_neg)
-    lower = label_batch - lower_bound
-    upper_bound = train_weight_guess + abs(prediction_pos)
-    upper = prediction_pos - label_batch
-    lower[lower>0] = 0
-    upper[upper>0] = 0
-    interval_length = upper_bound - lower_bound
-    return torch.sum(abs(lower)) + torch.sum(abs(upper)) + penalization * torch.sum(interval_length)
+def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=1.0):
+    lower = label - pred_lower
+    upper = pred_upper - label
+    lower = nn.ELU(0.1)(-lower)
+    upper = nn.ELU(0.1)(-upper)
+    interval_length = (pred_upper - pred_lower)**2
+    with torch.no_grad():
+        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
+    return torch.sum(interval_length) + lagrange_mult*(torch.sum(lower) + torch.sum(upper)), in_prop, mean_interval_width
 
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)
@@ -114,7 +114,7 @@ def get_pi_metrics(label, pred_lower, pred_upper):
     return in_prop, mean_interval_width
 
 
-def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1e-4, softening_factor=100.0):
+def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-4, softening_factor=500.0):
     """Used to optimize:
     
     min pred_upper - pred_lower
@@ -128,17 +128,19 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1e-
     softening_factor [float]: The bigger the closer it is to the real function
                               This means better guesses but harder optimization (less differentiable)
     """
-    EPS_ = 1e-6
+    EPS_ = 1e-9
+    EPS2_ = 1e-3
 
     # Hard in-between constrain
-    k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
-    k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
-    k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
-    PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
+    with torch.no_grad():
+        k_hu = (label <= pred_upper).type(torch.float)  # 1 if label <= upper; else 0
+        k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower <= label; else 0
+        k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
+        PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
 
     # Softened in-between constrain (same as before but differentiable)
-    k_su = nn.Sigmoid()((pred_upper - label)*softening_factor)
-    k_sl = nn.Sigmoid()((label - pred_lower)*softening_factor)
+    k_su = nn.Sigmoid()((pred_upper - label + EPS2_)*softening_factor)
+    k_sl = nn.Sigmoid()((label - pred_lower + EPS2_)*softening_factor)
     k_s = torch.einsum("be,be->be", k_sl, k_su)
     PICP_s = torch.mean(k_s)  # Soft Prediction Interval Coverage Probability
 
@@ -156,20 +158,21 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1e-
 if __name__ == "__main__":
     torch.seed = 0
 
-    u_s = [u/100. for u in range(100)]
     losses = []
     mpiws = []
     picps = []
+    lower = torch.tensor([[0.1]])
+    label = torch.tensor([[0.25]])
+    u_s = [u/100. for u in range(100)]
     for u in u_s:
-        lower = torch.tensor([[0.0]])
-        label = torch.tensor([[0.25]])
         upper = torch.tensor([[u]])
 
         # in_prop, mean_interval_width = get_pi_metrics(label, lower, upper)
         # print("in_prop", in_prop)
         # print("mean_interval_width", mean_interval_width)
 
-        loss, picp, mpiw = get_soft_qd_loss(label, lower, upper)
+        # loss, picp, mpiw = get_soft_qd_loss(label, lower, upper, conf=0.05, lagrange_mult=0.5, softening_factor=10)
+        loss, picp, mpiw = distance_to_interval(label, lower, upper, lagrange_mult=1.0)
         # print("loss", loss)
         losses.append(loss)
         picps.append(picp)
