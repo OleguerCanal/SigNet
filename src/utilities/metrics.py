@@ -106,15 +106,15 @@ def get_pi_metrics(label, pred_lower, pred_upper):
         in_prop [float]: Proportion of labels in (pred_lower, pred_upper)
         mean_interval_width [float]: Mean width of the intervals
     """
-    k_hu = (label < pred_upper).type(torch.float)  # 1 if label < upper; else 0
-    k_hl = (pred_lower < label).type(torch.float)  # 1 if lower < label; else 0
+    k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
+    k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
     in_prop = torch.mean(k_h)  # Hard Prediction Interval Coverage Probability
     mean_interval_width = torch.mean(torch.max(torch.zeros_like(label), pred_upper - pred_lower))
     return in_prop, mean_interval_width
 
 
-def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5, softening_factor=100.0):
+def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1e-4, softening_factor=100.0):
     """Used to optimize:
     
     min pred_upper - pred_lower
@@ -131,8 +131,8 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5
     EPS_ = 1e-6
 
     # Hard in-between constrain
-    k_hu = (label < pred_upper).type(torch.float)  # 1 if label < upper; else 0
-    k_hl = (pred_lower < label).type(torch.float)  # 1 if lower < label; else 0
+    k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
+    k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
     PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
 
@@ -151,7 +151,7 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=0.5
     
     # Compute and return loss
     loss = MPIW + lagrange_mult*constrain
-    return loss, PICP_s, MPIW
+    return loss, PICP_h, MPIW
 
 if __name__ == "__main__":
     torch.seed = 0
