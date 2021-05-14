@@ -27,6 +27,9 @@ class SignedErrorFinder(nn.Module):
 
         # Activation function
         self.activation = nn.LeakyReLU(0.1)
+    
+    def __clamp(self, x, slope=1e-2):
+        return nn.LeakyReLU(slope)(1 - nn.LeakyReLU(slope)(1 - x))
 
     def forward(self, weights, num_mutations):
         # Baseline head
@@ -45,7 +48,7 @@ class SignedErrorFinder(nn.Module):
             comb = self.activation(layer(comb))
 
         # Apply output layer
-        res = self.output_layer(comb)
+        res = self.__clamp(self.output_layer(comb))
         return res
 
 
@@ -70,7 +73,8 @@ class ErrorFinder(nn.Module):
                                                num_units=num_units_neg,
                                                normalize_mut=normalize_mut)
 
+
     def forward(self, weights, num_mutations):
-        positive_error = self.positive_path(weights, num_mutations)
-        negative_error = self.negative_path(weights, num_mutations)
-        return positive_error, negative_error
+        pred_upper = self.positive_path(weights, num_mutations)
+        pred_lower = self.negative_path(weights, num_mutations)
+        return pred_upper, pred_lower

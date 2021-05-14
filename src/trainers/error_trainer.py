@@ -14,10 +14,10 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.train_dataset import TrainDataSet
-from utilities.metrics import get_MSE, distance_to_interval
-from models.error_finder import ErrorFinder
 from loggers.error_finder_logger import ErrorFinderLogger
+from models.error_finder import ErrorFinder
+from utilities.metrics import distance_to_interval, get_soft_qd_loss
+from utilities.train_dataset import TrainDataSet
 
 class ErrorTrainer:
     def __init__(self,
@@ -89,24 +89,35 @@ class ErrorTrainer:
                 train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()
-                train_prediction_pos, train_prediction_neg = model(weights=train_weight_guess,
+                train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
                                                                    num_mutations=num_mut)
 
                 # Compute loss
-                train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
+                # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
+                train_loss, train_in_prop, train_pi_width = get_soft_qd_loss(label=train_label,
+                                                                             pred_lower=train_pred_lower,
+                                                                             pred_upper=train_pred_upper)
                 train_loss.backward(retain_graph=True)
                 optimizer.step()
 
                 with torch.no_grad():
-                    val_prediction_pos, val_prediction_neg = model(
-                        self.val_weight_guess, self.val_num_mut)
-                    val_loss =  distance_to_interval(self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
+                    val_pred_upper, val_pred_lower = model(weights=self.val_weight_guess,
+                                                                   num_mutations=self.val_num_mut)
+                    # val_loss = distance_to_interval(
+                    #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
+                    val_loss, val_in_prop, val_pi_width = get_soft_qd_loss(label=self.val_label,
+                                                                           pred_lower=val_pred_lower,
+                                                                           pred_upper=val_pred_upper)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot:
                     self.logger.log(train_loss=train_loss,
+                                    train_in_prop=train_in_prop,
+                                    train_pi_width=train_pi_width,
                                     val_loss=val_loss,
+                                    val_in_prop=val_in_prop,
+                                    val_pi_width=val_pi_width,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
                     torch.save(model.state_dict(), os.path.join(

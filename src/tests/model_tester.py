@@ -75,12 +75,19 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_3"
+    experiment_id_error_learner = "error_learner_model_bayesian"
     num_hidden_layers_pos = 1
-    num_neurons_pos = 500
-    num_hidden_layers_neg = 1
-    num_neurons_neg = 500
-    normalize_mut = 2e4
+    num_neurons_pos = 278
+    num_hidden_layers_neg = 2
+    num_neurons_neg = 20
+    normalize_mut = 1e4
+
+    # experiment_id_error_learner = "error_finder_model_new_loss"
+    # num_hidden_layers_pos = 5
+    # num_neurons_pos = 1000
+    # num_hidden_layers_neg = 5
+    # num_neurons_neg = 1000
+    # normalize_mut = 2e4
 
     # Generate data
     data = pd.read_excel("../../data/data.xlsx")
@@ -118,7 +125,7 @@ if __name__ == "__main__":
     model_error.load_state_dict(torch.load(os.path.join(
         "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
     model_error.eval()
-    guessed_error_pos, guessed_error_neg = model_error(guessed_labels, num_mut)
+    pred_upper, pred_lower = model_error(guessed_labels, num_mut)
 
     # # Get metrics
     # model_tester = ModelTester(num_classes=num_classes)
@@ -136,11 +143,16 @@ if __name__ == "__main__":
 
     # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    ), guessed_error_pos[0, :].detach().numpy(), guessed_error_neg[0, :].detach().numpy(), list(data.columns)[2:])
+    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
-    ), guessed_error_pos[9, :].detach().numpy(), guessed_error_neg[9, :].detach().numpy(), list(data.columns)[2:])
+    ), pred_upper[9, :].detach().numpy(),pred_lower[9, :].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
-    ), guessed_error_pos[22, :].detach().numpy(), guessed_error_neg[22, :].detach().numpy(), list(data.columns)[2:])
+    ), pred_upper[22, :].detach().numpy(),pred_lower[22, :].detach().numpy(), list(data.columns)[2:])
 
     # Plot interval performance
-    plot_interval_performance(label_batch, guessed_labels, guessed_error_pos, guessed_error_neg, list(data.columns)[2:])
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+
+    # Print metrics
+    in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
+    print("In proportion:", in_prop.detach().numpy())
+    print("Mean length:", mean_length.detach().numpy())
