@@ -28,9 +28,11 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
     plt.show()
     return conf_mat
 
-def plot_weights(guessed_labels, guessed_error_pos, guessed_error_neg, sigs_names):
+def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
+    guessed_error_neg = guessed_labels - pred_lower
+    guessed_error_pos = pred_upper - guessed_labels
     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', alpha=0.5, ecolor='black', capsize=10)
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
@@ -44,7 +46,7 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
-    ax.bar(range(num_classes),guessed_labels, yerr=[guessed_error_neg, guessed_error_pos], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
@@ -65,9 +67,11 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
 #     plt.tight_layout()
 #     plt.show()
 
-def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, guessed_error_pos, guessed_error_neg, sigs_names):
+def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
+    guessed_error_neg = guessed_labels - pred_lower
+    guessed_error_pos = pred_upper - guessed_labels
     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
     ax.bar(np.array(range(num_classes))-0.2,deconstructSigs_labels, width=0.2, align='center')
@@ -79,11 +83,9 @@ def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels,
     plt.tight_layout()
     plt.show()
      
-def plot_interval_performance(label_batch, train_weight_guess, prediction_pos, prediction_neg, sigs_names):
-    lower_bound = train_weight_guess - abs(prediction_neg)
-    upper_bound = train_weight_guess + abs(prediction_pos)
-    lower = label_batch - lower_bound
-    upper = prediction_pos - label_batch
+def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
     num_error = torch.sum(lower<0, dim=0)
     num_error += torch.sum(upper<0, dim=0)
     num_error = num_error / label_batch.shape[0]
