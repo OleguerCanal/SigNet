@@ -29,19 +29,19 @@ class SignatureFinder:
             return np.sum(w) - 1
         self.constraints = [{"type": "eq", "fun": constrain}]
 
-    def __objective(self, w):
+    def __objective(self, w, normalized_mutations):
         with torch.no_grad():
             guess = np.dot(self.signatures, w)
             guess_tensor = torch.from_numpy(guess).unsqueeze(0)
-            error = self.metric(guess_tensor, self.normalized_mutations)
+            error = self.metric(guess_tensor, normalized_mutations)
         return error.numpy() + self.lagrange_mult*(np.sum(w) - 1)**2
 
     def get_weights(self, normalized_mutations):
         w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
-        self.normalized_mutations = torch.from_numpy(
-            np.array(normalized_mutations)).unsqueeze(0)
+        normalized_mutations = torch.from_numpy(np.array(normalized_mutations)).unsqueeze(0)
         res = minimize(fun=self.__objective,
                        x0=w,
+                       args=(normalized_mutations,),
                        bounds=self.__bounds)
         return res.x
 
