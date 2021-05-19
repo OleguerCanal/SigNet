@@ -27,6 +27,7 @@ class SignedErrorFinder(nn.Module):
 
         # Activation function
         self.activation = nn.LeakyReLU(0.1)
+        # self.activation = nn.ELU(0.1)
     
     def __clamp(self, x, slope=1e-2):
         return nn.LeakyReLU(slope)(1 - nn.LeakyReLU(slope)(1 - x))
@@ -48,7 +49,8 @@ class SignedErrorFinder(nn.Module):
             comb = self.activation(layer(comb))
 
         # Apply output layer
-        res = self.__clamp(self.output_layer(comb))
+        # res = self.__clamp(self.output_layer(comb))
+        res = self.output_layer(comb)
         return res
 
 

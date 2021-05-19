@@ -27,7 +27,7 @@ input_file = None
 output_file = "search_results_" + experiment_id + ".csv"
 
 # Finetuner params
-finetuner_model_name = "finetuner_model_2"
+finetuner_model_name = "finetuner_model_1"
 num_hidden_layers = 1
 num_units = 1500
 model_path = "../../trained_models"
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data(dev, data_folder="../../data")
+    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu", data_folder="../../data")
 
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,

@@ -53,7 +53,19 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
-    plt.show()
+    plt.show() 
+
+# def plot_weights_comparison(true_labels, guessed_labels, guessed_error_pos, guessed_error_neg, sigs_names):
+#     num_classes = len(guessed_labels)
+#     fig, ax = plt.subplots()
+#     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+#     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
+#     ax.set_ylabel('Weights')
+#     ax.set_xticks(range(num_classes))
+#     ax.set_xticklabels(sigs_names, rotation='vertical')
+#     ax.set_title('Signature decomposition')
+#     plt.tight_layout()
+#     plt.show()
 
 def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)

@@ -90,14 +90,14 @@ class ErrorTrainer:
 
                 optimizer.zero_grad()
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
-                                                                   num_mutations=num_mut)
+                                                           num_mutations=num_mut)
 
                 # Compute loss
                 # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
-                train_loss, train_in_prop, train_pi_width = get_soft_qd_loss(label=train_label,
+                train_loss, train_in_prop, train_pi_width = distance_to_interval(label=train_label,
                                                                              pred_lower=train_pred_lower,
                                                                              pred_upper=train_pred_upper)
-                train_loss.backward(retain_graph=True)
+                train_loss.backward()
                 optimizer.step()
 
                 with torch.no_grad():
@@ -105,7 +105,7 @@ class ErrorTrainer:
                                                                    num_mutations=self.val_num_mut)
                     # val_loss = distance_to_interval(
                     #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
-                    val_loss, val_in_prop, val_pi_width = get_soft_qd_loss(label=self.val_label,
+                    val_loss, val_in_prop, val_pi_width = distance_to_interval(label=self.val_label,
                                                                            pred_lower=val_pred_lower,
                                                                            pred_upper=val_pred_upper)
                     l_vals.append(val_loss.item())
@@ -118,6 +118,8 @@ class ErrorTrainer:
                                     val_loss=val_loss,
                                     val_in_prop=val_in_prop,
                                     val_pi_width=val_pi_width,
+                                    val_values_lower=val_pred_lower,
+                                    val_values_upper=val_pred_upper,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
                     torch.save(model.state_dict(), os.path.join(
