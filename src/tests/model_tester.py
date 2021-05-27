@@ -30,9 +30,9 @@ class ModelTester:
             guessed_labels, true_labels)
 
         print("mse:", np.round(mse.item(), decimals=5))
-        print("cross_entropy:", np.round(cross_entropy.item(), decimals=3))
-        print("kl_divergence:", np.round(kl_divergence.item(), decimals=3))
-        print("js_divergence:", np.round(js_divergence.item(), decimals=3))
+        print("cross_entropy:", np.round(cross_entropy.item(), decimals=5))
+        print("kl_divergence:", np.round(kl_divergence.item(), decimals=5))
+        print("js_divergence:", np.round(js_divergence.item(), decimals=5))
         print("cosine_similarity:", np.round(
             cosine_similarity.item(), decimals=3))
         print("wasserstein_distance:", np.round(
