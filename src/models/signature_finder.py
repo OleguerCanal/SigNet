@@ -49,7 +49,7 @@ class SignatureFinder:
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
-            for r in executor.map(self.get_weights, input_as_list):
+            for r in tqdm(executor.map(self.get_weights, input_as_list)):
                 result.append(torch.tensor(r, dtype=torch.float32))
         guessed_labels = torch.stack(result)
         return guessed_labels
