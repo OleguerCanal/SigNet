@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from error_finder import ErrorFinder
 from finetuner import FineTuner
 from signature_finder import SignatureFinder
