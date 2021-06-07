@@ -12,7 +12,7 @@ def plot_signature(signature, labels):
 
 
 def plot_confusion_matrix(label_list, predicted_list, class_names):
-    conf_mat = confusion_matrix(label_list.numpy(), predicted_list.numpy())
+    conf_mat = confusion_matrix(label_list.numpy(), predicted_list.numpy(), labels=class_names)
     plt.figure(figsize=(15, 10))
 
     df_cm = pd.DataFrame(conf_mat, index=class_names,

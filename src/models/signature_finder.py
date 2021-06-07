@@ -46,10 +46,19 @@ class SignatureFinder:
         return res.x
 
     def get_weights_batch(self, input_batch, n_workers=8):
+        """Get the approximated weights of a batch of inputs
+
+        Args:
+            input_batch (torch tensor): Mutation data (batch-first)
+            n_workers (int, optional): Number of cores to use. Defaults to 8.
+
+        Returns:
+            torch.tensor: Guessed approximate labels
+        """
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
-            for r in executor.map(self.get_weights, input_as_list):
+            for r in tqdm(executor.map(self.get_weights, input_as_list)):
                 result.append(torch.tensor(r, dtype=torch.float32))
         guessed_labels = torch.stack(result)
         return guessed_labels

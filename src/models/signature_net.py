@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from error_finder import ErrorFinder
 from finetuner import FineTuner
 from signature_finder import SignatureFinder
@@ -19,9 +20,9 @@ class SignatureNet:
                  signature_finder_params,
                  finetuner_params,
                  error_learner_params,
-                 path_opportunities,
                  finetuner_model_name,
                  error_finder_model_name,
+                 path_opportunities=None,
                  models_path="../../trained_models"):
         self.signature_finder = SignatureFinder(**signature_finder_params)
 
@@ -37,7 +38,9 @@ class SignatureNet:
             models_path, error_finder_model_name), map_location=torch.device('cpu')))
         self.error_finder.eval()
 
-        self.opp = create_opportunities(path_opportunities)
+        self.opp = None
+        if path_opportunities is not None:
+            self.opp = create_opportunities(path_opportunities)
 
     def __call__(self,
                  mutation_vec):
@@ -49,8 +52,9 @@ class SignatureNet:
         with torch.no_grad():
             # Normalize input data
             num_mutations = torch.sum(mutation_vec, dim=1)
-            normalized_mutation_vec = normalize_data(mutation_vec, self.opp)
-            normalized_mutation_vec = normalized_mutation_vec / torch.sum(normalized_mutation_vec, dim=1).reshape(-1,1)
+            if self.opp is not None:
+                mutation_vec = normalize_data(mutation_vec, self.opp)
+            normalized_mutation_vec = mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1,1)
 
             # Run signature_finder
             weight_guess_0 = self.signature_finder.get_weights_batch(
