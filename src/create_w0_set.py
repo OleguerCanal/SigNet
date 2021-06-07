@@ -19,16 +19,13 @@ if __name__ == "__main__":
                        for i in range(2, 74)]
 
     training_data = pd.read_csv(data_path, index_col=[0, 1])
-    print(len(training_data.columns))
-    training_data = torch.transpose(torch.from_numpy(
-        np.array(training_data.values, dtype=np.float32)), 0, 1).to("cpu")
-    training_data = training_data / \
-        torch.sum(training_data, dim=1).reshape(-1, 1)
+    training_data = torch.transpose(torch.from_numpy(np.array(training_data.values, dtype=np.float32)), 0, 1).to("cpu")
+    training_data = training_data / torch.sum(training_data, dim=1).reshape(-1, 1)
 
     sf = SignatureFinder(signatures_list, metric=get_jensen_shannon)
 
     dataset_size = training_data.shape[0]
-    batch_size = 1000  # How often to save
+    batch_size = 10  # How often to save
     for i in range(int(1 + int(dataset_size)/int(batch_size))):
         print("Progress:", 100*float(i)/float(1 + dataset_size/batch_size), "%")
         index_min = min(i*batch_size, dataset_size)
@@ -40,7 +37,6 @@ if __name__ == "__main__":
         sol = sol.detach().numpy()
         df = pd.DataFrame(sol)
         df.to_csv(output_file,
-                  header=signatures.columns.tolist()[2:][index_min:index_max],
+                  header=signatures.columns.tolist()[2:],
                   mode='a',
                   index=False)  # Append to csv
-        print("Training done!")
