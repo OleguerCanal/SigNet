@@ -25,7 +25,7 @@ if __name__ == "__main__":
     sf = SignatureFinder(signatures_list, metric=get_jensen_shannon)
 
     dataset_size = training_data.shape[0]
-    batch_size = 10  # How often to save
+    batch_size = 1000  # How often to save
     for i in range(int(1 + int(dataset_size)/int(batch_size))):
         print("Progress:", 100*float(i)/float(1 + dataset_size/batch_size), "%")
         index_min = min(i*batch_size, dataset_size)
