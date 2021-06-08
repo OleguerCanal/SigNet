@@ -77,12 +77,12 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_bayesian"
-    num_hidden_layers_pos = 1
-    num_neurons_pos = 278
+    experiment_id_error_learner = "realistic_data_error_finder_1"
+    num_hidden_layers_pos = 2
+    num_neurons_pos = 500
     num_hidden_layers_neg = 2
-    num_neurons_neg = 20
-    normalize_mut = 1e4
+    num_neurons_neg = 500
+    normalize_mut = 2e3
 
     # experiment_id_error_learner = "error_finder_model_new_loss"
     # num_hidden_layers_pos = 5
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # normalize_mut = 2e4
 
     # Generate data
-    # data = pd.read_excel("../../data/data.xlsx")
+    data = pd.read_excel("../../data/data.xlsx")
     # signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
     #               for i in range(2, 74)][:num_classes]
 
@@ -108,7 +108,9 @@ if __name__ == "__main__":
     #     "../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
 
     device = torch.device("cpu")
-    input_batch, baseline_batch, label_batch = read_test_data(device, data_folder="../../data", realistic_data = True, num_classes=72)
+    input_batch, baseline_batch, label_mut_batch = read_test_data(device, data_folder="../../data", realistic_data = True, num_classes=72)
+    num_mut = torch.reshape(label_mut_batch[:, num_classes], (list(label_mut_batch.size())[0], 1))
+    label_batch = label_mut_batch[:, :num_classes]
     
     # Instantiate model and do predictions for finetuner:
     model = FineTuner(num_classes=num_classes,
@@ -130,7 +132,7 @@ if __name__ == "__main__":
     model_error.load_state_dict(torch.load(os.path.join(
         "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
     model_error.eval()
-    pred_upper, pred_lower = model_error(guessed_labels, num_mut=label_batch[:,num_classes])
+    pred_upper, pred_lower = model_error(guessed_labels, num_mut)
 
     # Get metrics
     model_tester = ModelTester(num_classes=num_classes)
@@ -146,18 +148,18 @@ if __name__ == "__main__":
     FP = sum(label_sigs_list == num_classes)
     print('Number of FP:', FP)
 
-    # # Plot signatures
-    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
-    # ), pred_upper[9, :].detach().numpy(),pred_lower[9, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
-    # ), pred_upper[22, :].detach().numpy(),pred_lower[22, :].detach().numpy(), list(data.columns)[2:])
+    # Plot signatures
+    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
+    ), pred_upper[9, :].detach().numpy(),pred_lower[9, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
+    ), pred_upper[22, :].detach().numpy(),pred_lower[22, :].detach().numpy(), list(data.columns)[2:])
 
-    # # Plot interval performance
-    # plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    # Plot interval performance
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
 
-    # # Print metrics
-    # in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
-    # print("In proportion:", in_prop.detach().numpy())
-    # print("Mean length:", mean_length.detach().numpy())
+    # Print metrics
+    in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
+    print("In proportion:", in_prop.detach().numpy())
+    print("Mean length:", mean_length.detach().numpy())
