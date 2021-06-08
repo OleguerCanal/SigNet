@@ -47,3 +47,30 @@ def read_data(device, data_folder="../data", realistic_data = False, num_classes
         data_folder + "/validation_label_w01.csv", header=None).values, dtype=torch.float)
     val_label = val_label.to(device)
     return train_input, train_guess_0, train_label, val_input, val_guess_0, val_label
+
+def read_test_data(device, data_folder="../data", realistic_data = True, num_classes=72):
+    if realistic_data == True:
+        test_input = pd.read_csv(data_folder + "/realistic_data/ground.truth.syn.catalog_test.csv", index_col=[0, 1])
+        test_input = torch.transpose(torch.from_numpy(np.array(test_input.values, dtype=np.float32)), 0, 1).to("cpu")
+        test_input = test_input / torch.sum(test_input, dim=1).reshape(-1, 1)
+        test_input = test_input.to(device)
+
+        test_guess_0 = torch.tensor(pd.read_csv(
+            data_folder + "/realistic_data/w0_test.csv", header=0).values, dtype=torch.float)
+        test_guess_0 = test_guess_0.to(device)
+
+        test_label = pd.read_csv(data_folder + "/realistic_data/ground.truth.syn.exposures_test.csv", index_col=0)
+        test_label_full = pd.DataFrame(np.zeros((num_classes, test_label.shape[1])))
+        data = pd.read_excel(data_folder + "/data.xlsx")
+        test_label_full.index = data.columns[2:]
+        test_label_full.columns = test_label.columns
+        test_label_full.update(test_label)
+
+        test_label_full = torch.transpose(torch.from_numpy(np.array(test_label_full.values, dtype=np.float32)), 0, 1).to("cpu")
+        number_mutations = torch.sum(test_label_full, dim=1)
+        test_label_full = test_label_full / torch.sum(test_label_full, dim=1).reshape(-1, 1)
+        test_label_full = torch.cat((test_label_full, number_mutations.reshape(-1,1)), dim=1)
+        test_label_full = test_label_full.to(device)
+        test_label = test_label_full
+
+        return test_input, test_guess_0, test_label
