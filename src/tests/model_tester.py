@@ -10,9 +10,11 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utilities.io import read_test_data
 from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 from utilities.metrics import *
 from utilities.dataloader import DataLoader
+from models.signature_finder import SignatureFinder
 from models.finetuner import FineTuner
 from models.error_finder import ErrorFinder
 
@@ -69,7 +71,7 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params finetuner
-    experiment_id_finetune = "finetuner_model_2"
+    experiment_id_finetune = "realistic_data_finetuner_1"
     num_hidden_layers = 1
     num_neurons = 1500
     num_classes = 72
@@ -90,21 +92,24 @@ if __name__ == "__main__":
     # normalize_mut = 2e4
 
     # Generate data
-    data = pd.read_excel("../../data/data.xlsx")
-    signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:num_classes]
+    # data = pd.read_excel("../../data/data.xlsx")
+    # signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
+    #               for i in range(2, 74)][:num_classes]
 
-    input_batch = torch.tensor(pd.read_csv(
-        "../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    label_mut_batch = torch.tensor(pd.read_csv(
-        "../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
-    label_batch = label_mut_batch[:, :num_classes]
-    num_mut = torch.reshape(
-        label_mut_batch[:, num_classes], (list(label_mut_batch.size())[0], 1))
+    # input_batch = torch.tensor(pd.read_csv(
+    #     "../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    # label_mut_batch = torch.tensor(pd.read_csv(
+    #     "../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
+    # label_batch = label_mut_batch[:, :num_classes]
+    # num_mut = torch.reshape(
+    #     label_mut_batch[:, num_classes], (list(label_mut_batch.size())[0], 1))
 
-    baseline_batch = torch.tensor(pd.read_csv(
-        "../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    # baseline_batch = torch.tensor(pd.read_csv(
+    #     "../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
 
+    device = torch.device("cpu")
+    input_batch, baseline_batch, label_batch = read_test_data(device, data_folder="../../data", realistic_data = True, num_classes=72)
+    
     # Instantiate model and do predictions for finetuner:
     model = FineTuner(num_classes=num_classes,
                       num_hidden_layers=num_hidden_layers,
@@ -125,34 +130,34 @@ if __name__ == "__main__":
     model_error.load_state_dict(torch.load(os.path.join(
         "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
     model_error.eval()
-    pred_upper, pred_lower = model_error(guessed_labels, num_mut)
+    pred_upper, pred_lower = model_error(guessed_labels, num_mut=label_batch[:,num_classes])
 
-    # # Get metrics
-    # model_tester = ModelTester(num_classes=num_classes)
-    # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+    # Get metrics
+    model_tester = ModelTester(num_classes=num_classes)
+    model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
-    # # False negatives:
-    # label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
-    #     label_batch[:, :72], guessed_labels, 0.05, num_classes)
-    # FN = sum(predicted_sigs_list == num_classes)
-    # print('Number of FN:', FN)
+    # False negatives:
+    label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
+        label_batch[:, :72], guessed_labels, 0.05, num_classes)
+    FN = sum(predicted_sigs_list == num_classes)
+    print('Number of FN:', FN)
 
-    # # False positives:
-    # FP = sum(label_sigs_list == num_classes)
-    # print('Number of FP:', FP)
+    # False positives:
+    FP = sum(label_sigs_list == num_classes)
+    print('Number of FP:', FP)
 
-    # Plot signatures
-    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
-    ), pred_upper[9, :].detach().numpy(),pred_lower[9, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
-    ), pred_upper[22, :].detach().numpy(),pred_lower[22, :].detach().numpy(), list(data.columns)[2:])
+    # # Plot signatures
+    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
+    # ), pred_upper[9, :].detach().numpy(),pred_lower[9, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
+    # ), pred_upper[22, :].detach().numpy(),pred_lower[22, :].detach().numpy(), list(data.columns)[2:])
 
-    # Plot interval performance
-    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    # # Plot interval performance
+    # plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
 
-    # Print metrics
-    in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
-    print("In proportion:", in_prop.detach().numpy())
-    print("Mean length:", mean_length.detach().numpy())
+    # # Print metrics
+    # in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
+    # print("In proportion:", in_prop.detach().numpy())
+    # print("Mean length:", mean_length.detach().numpy())
