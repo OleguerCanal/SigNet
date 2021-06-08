@@ -11,19 +11,19 @@ from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
 
-experiment_id = "error_finder_model_new_loss"
+experiment_id = "realistic_data_error_finder_1"
 model_path = "../trained_models"
-finetuner_model_name = "finetuner_model_1"
-iterations = 20
+finetuner_model_name = "realistic_data_finetuner_1"
+iterations = 5
 num_classes = 72
 
 # Error finder params
 batch_size = 500
-lr = 0.0001
-num_hidden_layers_pos = 5
-num_neurons_pos = 1000
-num_hidden_layers_neg = 5
-num_neurons_neg = 1000
+lr = 0.001
+num_hidden_layers_pos = 2
+num_neurons_pos = 500
+num_hidden_layers_neg = 2
+num_neurons_neg = 500
 normalize_mut = 2e4
 
 # Finetuner params
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu")
+    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu", realistic_data=True)
     
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
