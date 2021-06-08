@@ -1,16 +1,41 @@
+import numpy as np
 import pandas as pd
 import torch
 
-def read_data(device, data_folder="../data"):
-    train_input = torch.tensor(pd.read_csv(
+
+def read_data(device, data_folder="../data", realistic_data = False, num_classes=72):
+    if realistic_data == False:
+        train_input = torch.tensor(pd.read_csv(
         data_folder + "/train_input_w01.csv", header=None).values, dtype=torch.float)
-    train_input = train_input.to(device)
-    train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
-    train_guess_0 = train_guess_0.to(device)
-    train_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_label_w01.csv", header=None).values, dtype=torch.float)
-    train_label = train_label.to(device)
+        train_input = train_input.to(device)
+        train_guess_0 = torch.tensor(pd.read_csv(
+            data_folder + "/train_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+        train_guess_0 = train_guess_0.to(device)
+        train_label = torch.tensor(pd.read_csv(
+            data_folder + "/train_label_w01.csv", header=None).values, dtype=torch.float)
+        train_label = train_label.to(device)
+    else:
+        train_input = pd.read_csv(data_folder + "/realistic_data/ground.truth.syn.catalog_train.csv", index_col=[0, 1])
+        train_input = torch.transpose(torch.from_numpy(np.array(train_input.values, dtype=np.float32)), 0, 1).to("cpu")
+        train_input = train_input / torch.sum(train_input, dim=1).reshape(-1, 1)
+        train_input = train_input.to(device)
+        train_guess_0 = torch.tensor(pd.read_csv(
+            data_folder + "/realistic_data/w0_train_fixed.csv", header=0).values, dtype=torch.float)
+        train_guess_0 = train_guess_0.to(device)
+
+        train_label = pd.read_csv(data_folder + "/realistic_data/ground.truth.syn.exposures_train.csv", index_col=0)
+        train_label_full = pd.DataFrame(np.zeros((num_classes, train_label.shape[1])))
+        data = pd.read_excel(data_folder + "/data.xlsx")
+        train_label_full.index = data.columns[2:]
+        train_label_full.columns = train_label.columns
+        train_label_full.update(train_label)
+
+        train_label_full = torch.transpose(torch.from_numpy(np.array(train_label_full.values, dtype=np.float32)), 0, 1).to("cpu")
+        number_mutations = torch.sum(train_label_full, dim=1)
+        train_label_full = train_label_full / torch.sum(train_label_full, dim=1).reshape(-1, 1)
+        train_label_full = torch.cat((train_label_full, number_mutations.reshape(-1,1)), dim=1)
+        train_label_full = train_label_full.to(device)
+        train_label = train_label_full
 
     val_input = torch.tensor(pd.read_csv(
         data_folder + "/validation_input_w01.csv", header=None).values, dtype=torch.float)
