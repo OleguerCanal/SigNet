@@ -11,8 +11,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 if __name__ == "__main__":
     signatures_path = "../data/data.xlsx"
-    data_path = "../data/realistic_data/ground.truth.syn.catalog_train.csv"
-    output_file = "../data/realistic_data/w0_train.csv"
+    data_path = "../data/realistic_data/ground.truth.syn.catalog_test.csv"
+    output_file = "../data/realistic_data/w0_test.csv"
 
     signatures = pd.read_excel(signatures_path)
     signatures_list = [torch.tensor(signatures.iloc[:, i]).type(torch.float32)
