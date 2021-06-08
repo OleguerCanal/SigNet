@@ -22,7 +22,7 @@ def read_data(device, data_folder="../data", realistic_data = False, num_classes
         train_guess_0 = torch.tensor(pd.read_csv(
             data_folder + "/realistic_data/w0_train_fixed.csv", header=0).values, dtype=torch.float)
         train_guess_0 = train_guess_0.to(device)
-
+        
         train_label = pd.read_csv(data_folder + "/realistic_data/ground.truth.syn.exposures_train.csv", index_col=0)
         train_label_full = pd.DataFrame(np.zeros((num_classes, train_label.shape[1])))
         data = pd.read_excel(data_folder + "/data.xlsx")
