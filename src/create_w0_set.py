@@ -36,7 +36,10 @@ if __name__ == "__main__":
         sol = sf.get_weights_batch(input_batch=input_batch, n_workers=10)
         sol = sol.detach().numpy()
         df = pd.DataFrame(sol)
+        header = None
+        if i == 0:
+            header = signatures.columns.tolist()[2:]
         df.to_csv(output_file,
-                  header=signatures.columns.tolist()[2:],
+                  header=header,
                   mode='a',
                   index=False)  # Append to csv
