@@ -140,3 +140,4 @@ parameters.txt
 signatures-nets.e*
 results/
 plots/*
+runs_old/
