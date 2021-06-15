@@ -47,8 +47,8 @@ class FinetunerLogger:
             self.writer.add_scalar("metrics/" + metric_name, metric(train_prediction, train_label).item(), step)
             self.val_writer.add_scalar("metrics/" + metric_name, metric(val_prediction, val_label).item(), step)
 
-        self.writer.add_scalar("metrics/FP", train_FP.item(), step)
-        self.val_writer.add_scalar("metrics/FP", val_FP.item(), step)
+        self.writer.add_scalar("metrics/FP", train_FP.item()/train_prediction.shape[0], step)
+        self.val_writer.add_scalar("metrics/FP", val_FP.item()/val_prediction.shape[0], step)
 
-        self.writer.add_scalar("metrics/FN", train_FN.item(), step)
-        self.val_writer.add_scalar("metrics/FN", val_FN.item(), step)
+        self.writer.add_scalar("metrics/FN", train_FN.item()/train_prediction.shape[0], step)
+        self.val_writer.add_scalar("metrics/FN", val_FN.item()/val_prediction.shape[0], step)
