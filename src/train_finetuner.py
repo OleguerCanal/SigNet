@@ -11,8 +11,8 @@ experiment_id = "finetuner_model_2"
 model_path = "../trained_models"
 iterations = 7
 num_classes = 72
-fp_param = 1
-fn_param = 1
+fp_param = 0
+fn_param = 1000
 
 batch_size = 336
 lr = 0.001
@@ -20,8 +20,8 @@ num_hidden_layers = 1
 num_neurons = 1500
 
 if __name__ == "__main__":
-    dev = "cuda" if torch.cuda.is_available() else "cpu"
-    # dev = "cpu"
+    # dev = "cuda" if torch.cuda.is_available() else "cpu"
+    dev = "cpu"
     device = torch.device(dev)
     print("Using device:", dev)
 
