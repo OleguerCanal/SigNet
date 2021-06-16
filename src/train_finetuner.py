@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data
 from trainers.finetuner_trainer import FinetunerTrainer
 
-experiment_id = "finetuner_model_2"
+experiment_id = "finetuner_model"
 model_path = "../trained_models"
 iterations = 7
 num_classes = 72
