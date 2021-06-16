@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loggers.finetuner_logger import FinetunerLogger
-from utilities.metrics import get_kl_divergence, get_fp_fn
+from utilities.metrics import get_kl_divergence, get_fp_fn, get_fp_fn_soft
 from utilities.train_dataset import TrainDataSet
 from models.finetuner import FineTuner
 
@@ -79,7 +79,7 @@ class FinetunerTrainer:
 
                 optimizer.zero_grad()
                 train_prediction = model(train_input, train_weight_guess)
-                train_FP, train_FN = get_fp_fn(label_batch=train_label,
+                train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                             prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
                                 label=train_label,
@@ -91,7 +91,7 @@ class FinetunerTrainer:
                 with torch.no_grad():
                     val_prediction = model(
                         self.val_input, self.val_weight_guess)
-                    val_FP, val_FN = get_fp_fn(label_batch=self.val_label,
+                    val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_label,
                                             prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_label,
