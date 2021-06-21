@@ -86,9 +86,15 @@ def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels,
 def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
     lower = label_batch - pred_lower
     upper = pred_upper - label_batch
+    
+    interval = pred_upper - pred_lower
+    print(torch.sum(interval<0, dim=0))
+
+
     num_error = torch.sum(lower<0, dim=0)
     num_error += torch.sum(upper<0, dim=0)
     num_error = num_error / label_batch.shape[0]
+    print(num_error)
     num_classes = 72
     plt.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
     plt.ylabel("Percentage of error (%)")
