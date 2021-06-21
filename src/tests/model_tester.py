@@ -69,17 +69,17 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params finetuner
-    experiment_id_finetune = "finetuner_model_2_good"
+    experiment_id_finetune = "finetuner_model_1"
     num_hidden_layers = 1
     num_neurons = 1500
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_1"
-    num_hidden_layers_pos = 1
-    num_neurons_pos = 1500
-    num_hidden_layers_neg = 1
-    num_neurons_neg = 1500
+    experiment_id_error_learner = "error_finder_model_4"
+    num_hidden_layers_pos = 3
+    num_neurons_pos = 1000
+    num_hidden_layers_neg = 3
+    num_neurons_neg = 1000
     normalize_mut = 2e4
 
     # experiment_id_error_learner = "error_finder_model_new_loss"

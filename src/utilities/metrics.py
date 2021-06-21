@@ -114,7 +114,7 @@ def get_pi_metrics(label, pred_lower, pred_upper):
     return in_prop, mean_interval_width
 
 
-def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-4, softening_factor=500.0):
+def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.05, lagrange_mult=1e-4, softening_factor=160):
     """Used to optimize:
     
     min pred_upper - pred_lower
@@ -128,31 +128,34 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
     softening_factor [float]: The bigger the closer it is to the real function
                               This means better guesses but harder optimization (less differentiable)
     """
-    EPS_ = 1e-9
-    EPS2_ = 1e-3
 
     # Hard in-between constrain
-    with torch.no_grad():
-        k_hu = (label <= pred_upper).type(torch.float)  # 1 if label <= upper; else 0
-        k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower <= label; else 0
-        k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
-        PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
+    # with torch.no_grad():
+    k_hu = (label <= pred_upper).type(torch.float)  # 1 if label <= upper; else 0
+    k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower <= label; else 0
+    k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
+    PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
 
     # Softened in-between constrain (same as before but differentiable)
-    k_su = nn.Sigmoid()((pred_upper - label + EPS2_)*softening_factor)
-    k_sl = nn.Sigmoid()((label - pred_lower + EPS2_)*softening_factor)
+    k_su = nn.Sigmoid()((pred_upper - label)*softening_factor)
+    k_sl = nn.Sigmoid()((label - pred_lower)*softening_factor)
     k_s = torch.einsum("be,be->be", k_sl, k_su)
     PICP_s = torch.mean(k_s)  # Soft Prediction Interval Coverage Probability
 
+    # Penalization for being less than 0 or more than 1
+    #bound_0 = nn.Sigmoid()(-pred_lower*softening_factor)
+    #bound_1 = nn.Sigmoid()((pred_upper - 1)*softening_factor)
+    #bounds = torch.mean(bound_0) + torch.mean(bound_1)
+
     # Compute Mean Prediction Interval Width (MPIW)
-    MPIW = torch.sum(torch.einsum("be,be->be", (pred_upper - pred_lower), k_h))/(torch.sum(k_h) + EPS_)
+    MPIW = torch.sum(torch.einsum("be,be->be", pred_upper - pred_lower, k_h))/(torch.sum(k_h))
 
     # Compute constrain
     n = float(torch.numel(label))  # number elements in the input
     constrain = (n/(conf*(1.0 - conf)))*torch.max(torch.tensor(0).to(PICP_s), (1.0 - conf) - PICP_s)**2
     
     # Compute and return loss
-    loss = MPIW + lagrange_mult*constrain
+    loss = MPIW + lagrange_mult*constrain 
     return loss, PICP_h, MPIW
 
 if __name__ == "__main__":
@@ -171,8 +174,8 @@ if __name__ == "__main__":
         # print("in_prop", in_prop)
         # print("mean_interval_width", mean_interval_width)
 
-        # loss, picp, mpiw = get_soft_qd_loss(label, lower, upper, conf=0.05, lagrange_mult=0.5, softening_factor=10)
-        loss, picp, mpiw = distance_to_interval(label, lower, upper, lagrange_mult=1.0)
+        loss, picp, mpiw = get_soft_qd_loss(label, lower, upper, conf=0.05, lagrange_mult=0.5, softening_factor=200)
+        # loss, picp, mpiw = distance_to_interval(label, lower, upper, lagrange_mult=1.0)
         # print("loss", loss)
         losses.append(loss)
         picps.append(picp)
@@ -180,7 +183,7 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     plt.plot(u_s, losses, label="loss")
-    plt.plot(u_s, picps, label="in_prop")
-    plt.plot(u_s, mpiws, label="width")
+    # plt.plot(u_s, picps, label="in_prop")
+    # plt.plot(u_s, mpiws, label="width")
     plt.legend()
     plt.show()

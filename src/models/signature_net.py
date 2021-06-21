@@ -73,7 +73,7 @@ if __name__ == "__main__":
     signature_finder_params = {"signatures": signatures,
                                "metric": get_jensen_shannon}
 
-    finetuner_model_name = "finetuner_model_2"
+    finetuner_model_name = "finetuner_model_4"
     finetuner_params = {"num_hidden_layers": 1,
                         "num_units": 1500,
                         "num_classes": 72}
@@ -89,16 +89,18 @@ if __name__ == "__main__":
     signature_net = SignatureNet(signature_finder_params, finetuner_params, error_learner_params,
                                 path_opportunities, finetuner_model_name, error_finder_model_name)
 
-    mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_ACC_data_total.csv", header=None).values, dtype=torch.float)
+    mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_data_total.csv", header=None).values, dtype=torch.float)
     weight0, weight, pos, neg = signature_net(mutation_vec=mutation_data)
 
-    deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+    deconstructSigs_batch = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_deconstructSigs.csv", header=None).values, dtype=torch.float)
 
     plot_weights_comparison( deconstructSigs_batch[0,:].detach().numpy(), weight[0,:].detach().numpy(), pos[0,:].detach().numpy(),neg[0,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison( deconstructSigs_batch[1,:].detach().numpy(), weight[1,:].detach().numpy(), pos[1,:].detach().numpy(),neg[1,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison( deconstructSigs_batch[2,:].detach().numpy(), weight[2,:].detach().numpy(), pos[2,:].detach().numpy(),neg[2,:].detach().numpy(), list(data.columns)[2:])
     plot_weights_comparison(deconstructSigs_batch[22,:].detach().numpy(),weight[22,:].detach().numpy(), pos[22,:].detach().numpy(),neg[22,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[-3,:].detach().numpy(),weight[-3,:].detach().numpy(), pos[-3,:].detach().numpy(), neg[-3,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[-1,:].detach().numpy(),weight[-1,:].detach().numpy(), pos[-1,:].detach().numpy(),neg[-1,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[0, :].detach().numpy(), pos[0, :].detach().numpy(), neg[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight0[0, :].detach().numpy(),weight0[0, :].detach().numpy(), weight0[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[1, :].detach().numpy(), pos[1, :].detach().numpy(), neg[1, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[2, :].detach().numpy(), pos[2, :].detach().numpy(), neg[2, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(deconstructSigs_batch[3,:].detach().numpy(),weight[3,:].detach().numpy(), pos[3,:].detach().numpy(), neg[3,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(deconstructSigs_batch[-10,:].detach().numpy(),weight[-10,:].detach().numpy(), pos[-10,:].detach().numpy(),neg[-10,:].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[0, :].detach().numpy(), pos[0, :].detach().numpy(), neg[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight0[0, :].detach().numpy(),weight0[0, :].detach().numpy(), weight0[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[1, :].detach().numpy(), pos[1, :].detach().numpy(), neg[1, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[2, :].detach().numpy(), pos[2, :].detach().numpy(), neg[2, :].detach().numpy(), list(data.columns)[2:])
