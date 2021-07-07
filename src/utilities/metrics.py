@@ -73,15 +73,16 @@ def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     fn = torch.sum(nn.ReLU()(label_mask - prediction_mask))  # only count when label ~= 1 and pred ~= 0
     return fp, fn
 
-def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=1.0):
+def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5.0):
+    batch_size = float(pred_lower.shape[0])
     lower = label - pred_lower
     upper = pred_upper - label
-    lower = nn.ELU(0.1)(-lower)
-    upper = nn.ELU(0.1)(-upper)
-    interval_length = (pred_upper - pred_lower)**2
+    lower = nn.ReLU()(-lower)
+    upper = nn.ReLU()(-upper)
+    interval_length = ((pred_upper - pred_lower)**2)/batch_size
     with torch.no_grad():
         in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
-    return torch.sum(interval_length) + lagrange_mult*(torch.sum(lower) + torch.sum(upper)), in_prop, mean_interval_width
+    return torch.sum(interval_length) + lagrange_mult*(torch.sum(lower) + torch.sum(upper))/batch_size, in_prop, mean_interval_width
 
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)

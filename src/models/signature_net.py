@@ -11,7 +11,7 @@ from finetuner import FineTuner
 from signature_finder import SignatureFinder
 from utilities.normalize_data import create_opportunities, normalize_data
 from utilities.metrics import get_jensen_shannon
-from utilities.plotting import plot_weights
+from utilities.plotting import plot_weights, plot_weights_comparison
 
 
 class SignatureNet:
@@ -78,11 +78,11 @@ if __name__ == "__main__":
                         "num_units": 1500,
                         "num_classes": 72}
 
-    error_finder_model_name = "error_finder_model_new_loss_bayesian_1"
-    error_learner_params = {"num_hidden_layers_pos": 3,
+    error_finder_model_name = "error_finder_model_1"
+    error_learner_params = {"num_hidden_layers_pos": 1,
                             "num_units_pos": 1500,
                             "num_hidden_layers_neg": 1,
-                            "num_units_neg": 700,
+                            "num_units_neg": 1500,
                             "normalize_mut": 2e4}
 
     path_opportunities = "../../data/data_donors/abundances_trinucleotides.txt"
@@ -92,6 +92,12 @@ if __name__ == "__main__":
     mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_ACC_data_total.csv", header=None).values, dtype=torch.float)
     weight0, weight, pos, neg = signature_net(mutation_vec=mutation_data)
 
+    deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+
+    plot_weights_comparison( deconstructSigs_batch[0,:].detach().numpy(), weight[0,:].detach().numpy(), pos[0,:].detach().numpy(),neg[0,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(deconstructSigs_batch[22,:].detach().numpy(),weight[22,:].detach().numpy(), pos[22,:].detach().numpy(),neg[22,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(deconstructSigs_batch[-3,:].detach().numpy(),weight[-3,:].detach().numpy(), pos[-3,:].detach().numpy(), neg[-3,:].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(deconstructSigs_batch[-1,:].detach().numpy(),weight[-1,:].detach().numpy(), pos[-1,:].detach().numpy(),neg[-1,:].detach().numpy(), list(data.columns)[2:])
     plot_weights(weight[0, :].detach().numpy(), pos[0, :].detach().numpy(), neg[0, :].detach().numpy(), list(data.columns)[2:])
     plot_weights(weight0[0, :].detach().numpy(),weight0[0, :].detach().numpy(), weight0[0, :].detach().numpy(), list(data.columns)[2:])
     plot_weights(weight[1, :].detach().numpy(), pos[1, :].detach().numpy(), neg[1, :].detach().numpy(), list(data.columns)[2:])

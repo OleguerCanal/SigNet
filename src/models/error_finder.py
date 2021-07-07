@@ -9,15 +9,15 @@ class SignedErrorFinder(nn.Module):
                  normalize_mut=2e4):
         super(SignedErrorFinder, self).__init__()
         self.normalize_mut = normalize_mut
-        num_units = int(num_units/2)*2
-        num_units_branch = int(num_units/2)
+        num_units_branch_1 = int(num_units*0.9)                 # Num units of the weights path
+        num_units_branch_2 = num_units - num_units_branch_1     # Num units of the mutations path   
 
         # Weights path
-        self.layer1_1 = nn.Linear(num_classes, num_units_branch)
-        self.layer2_1 = nn.Linear(num_units_branch, num_units_branch)
+        self.layer1_1 = nn.Linear(num_classes, num_units_branch_1)
+        self.layer2_1 = nn.Linear(num_units_branch_1, num_units_branch_1)
 
         # Mutations path
-        self.layer1_2 = nn.Linear(1, num_units_branch)
+        self.layer1_2 = nn.Linear(1, num_units_branch_2)
 
         # Combined layers
         self.hidden_layers = nn.ModuleList(
