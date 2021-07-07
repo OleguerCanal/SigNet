@@ -75,19 +75,17 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_learner_model_1"
+    experiment_id_error_learner = "error_finder_model_2"
     num_hidden_layers_pos = 1
     num_neurons_pos = 1500
     num_hidden_layers_neg = 1
     num_neurons_neg = 1500
-    normalize_mut = 2e4
 
     # experiment_id_error_learner = "error_finder_model_new_loss"
     # num_hidden_layers_pos = 5
     # num_neurons_pos = 1000
     # num_hidden_layers_neg = 5
     # num_neurons_neg = 1000
-    # normalize_mut = 2e4
 
     # Generate data
     data = pd.read_excel("../../data/data.xlsx")
@@ -119,8 +117,7 @@ if __name__ == "__main__":
                               num_hidden_layers_pos=num_hidden_layers_pos,
                               num_units_pos=num_neurons_pos,
                               num_hidden_layers_neg=num_hidden_layers_neg,
-                              num_units_neg=num_neurons_neg,
-                              normalize_mut=normalize_mut)
+                              num_units_neg=num_neurons_neg)
 
     model_error.load_state_dict(torch.load(os.path.join(
         "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
@@ -140,6 +137,9 @@ if __name__ == "__main__":
     # # False positives:
     # FP = sum(label_sigs_list == num_classes)
     # print('Number of FP:', FP)
+
+    a = torch.sum(pred_lower>pred_upper)
+    print(a)
 
     # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
