@@ -59,11 +59,18 @@ def get_wasserstein_distance(predicted_label, true_label):
             predicted_label[i, :].cpu().detach().numpy(), true_label[i, :].cpu().detach().numpy())
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
-def get_fp_fn(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
+def get_fp_fn(label_batch, prediction_batch, cutoff=0.05):
     label_mask = (label_batch > cutoff).type(torch.int)
     prediction_mask = (prediction_batch > cutoff).type(torch.int)
     fp = torch.sum(label_mask - prediction_mask < 0)
     fn = torch.sum(label_mask - prediction_mask > 0)
+    return fp, fn
+
+def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
+    label_mask = nn.Sigmoid()((label_batch - cutoff)*softness)  # ~0 if under cutoff, ~1 if over cutoff (element-wise)
+    prediction_mask = nn.Sigmoid()((prediction_batch - cutoff)*softness)  # ~0 if under cutoff, ~1 if over cutoff (element-wise)
+    fp = torch.sum(nn.ReLU()(prediction_mask - label_mask))  # only count when pred ~= 1 and label ~= 0
+    fn = torch.sum(nn.ReLU()(label_mask - prediction_mask))  # only count when label ~= 1 and pred ~= 0
     return fp, fn
 
 def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5.0):
