@@ -63,10 +63,9 @@ class ErrorTrainer:
                   num_neurons_neg,
                   num_hidden_layers_pos,
                   num_hidden_layers_neg,
-                  normalize_mut,
                   plot=False):
         print(batch_size, lr, num_neurons_pos, num_hidden_layers_pos,
-              num_neurons_neg, num_hidden_layers_neg, normalize_mut)
+              num_neurons_neg, num_hidden_layers_neg)
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
                                 shuffle=True)
@@ -74,8 +73,7 @@ class ErrorTrainer:
                             num_hidden_layers_pos=int(num_hidden_layers_pos),
                             num_units_pos=int(num_neurons_pos),
                             num_hidden_layers_neg=int(num_hidden_layers_neg),
-                            num_units_neg=int(num_neurons_neg),
-                            normalize_mut=int(normalize_mut))
+                            num_units_neg=int(num_neurons_neg))
         model.to(self.device)
         optimizer = optim.Adam(model.parameters(),
                                lr=lr)

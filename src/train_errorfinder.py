@@ -11,7 +11,7 @@ from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
 
-experiment_id = "error_finder_model_1"
+experiment_id = "error_finder_model_2"
 model_path = "../trained_models"
 finetuner_model_name = "finetuner_model_2_good"
 iterations = 5
@@ -24,7 +24,6 @@ num_hidden_layers_pos = 1
 num_neurons_pos = 1500
 num_hidden_layers_neg = 1
 num_neurons_neg = 1500
-normalize_mut = 2e4
 
 # Finetuner params
 num_hidden_layers = 1
@@ -87,5 +86,4 @@ if __name__ == "__main__":
                                 num_neurons_neg=num_neurons_neg,
                                 num_hidden_layers_pos=num_hidden_layers_pos,
                                 num_hidden_layers_neg=num_hidden_layers_neg,
-                                normalize_mut=normalize_mut,
                                 plot=True)
