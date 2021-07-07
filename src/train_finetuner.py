@@ -11,8 +11,8 @@ experiment_id = "finetuner_model"
 model_path = "../trained_models"
 iterations = 7
 num_classes = 72
-fp_param = 0
-fn_param = 1000
+fp_param = 1
+fn_param = 1
 
 batch_size = 336
 lr = 0.001
