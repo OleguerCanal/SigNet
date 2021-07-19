@@ -83,7 +83,10 @@ def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5.0):
     interval_length = ((pred_upper - pred_lower)**2)/batch_size
     with torch.no_grad():
         in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
-    return torch.sum(interval_length) + lagrange_mult*(torch.sum(lower) + torch.sum(upper))/batch_size + torch.sum(inverse_interval)/batch_size, in_prop, mean_interval_width
+    loss_by_mutation_signature = interval_length + lagrange_mult*(lower + upper) + inverse_interval
+    loss_by_mutation = torch.linalg.norm(loss_by_mutation_signature, ord=5, axis=1)
+    loss = torch.mean(loss_by_mutation)
+    return loss, in_prop, mean_interval_width
 
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)
