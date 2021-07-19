@@ -16,7 +16,7 @@ from tqdm import tqdm
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loggers.error_finder_logger import ErrorFinderLogger
 from models.error_finder import ErrorFinder
-from utilities.metrics import distance_to_interval, get_soft_qd_loss
+from utilities.metrics import distance_to_interval
 from utilities.train_dataset import TrainDataSet
 
 class ErrorTrainer:
