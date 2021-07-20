@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loggers.finetuner_logger import FinetunerLogger
-from utilities.metrics import get_kl_divergence, get_fp_fn, get_fp_fn_soft
+from utilities.metrics import get_kl_divergence, get_fp_fn_soft
 from utilities.train_dataset import TrainDataSet
 from models.finetuner import FineTuner
 
