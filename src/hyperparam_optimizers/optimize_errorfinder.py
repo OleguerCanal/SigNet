@@ -11,12 +11,12 @@ from models.finetuner import FineTuner
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-experiment_id = "error_finder"
+experiment_id = str(sys.argv[1])
 iterations = 8
 num_classes = 72
 
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
-learning_rates = Real(name='lr', low=0.00001, high=0.05)
+learning_rates = Real(name='lr', low=0.000001, high=0.01)
 neurons_pos = Integer(name='num_neurons_pos', low=20, high=1500)
 layers_pos = Integer(name='num_hidden_layers_pos', low=1, high=10)
 neurons_neg = Integer(name='num_neurons_neg', low=20, high=1500)
@@ -24,12 +24,12 @@ layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=10)
 normalize_mut_param = Integer(name='normalize_mut', low=1e4, high=1e6)
 
 input_file = None
-output_file = "search_results_" + experiment_id + ".csv"
+output_file = "errorfinder_opt/search_results_" + experiment_id + ".csv"
 
 # Finetuner params
-finetuner_model_name = "finetuner_model_1"
+finetuner_model_name = "finetuner_model_optimized"
 num_hidden_layers = 1
-num_units = 1500
+num_units = 1300
 model_path = "../../trained_models"
 
 if __name__ == "__main__":
@@ -90,8 +90,8 @@ if __name__ == "__main__":
                                       output_file=output_file)  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=1000,
-        n_random_starts=100,
+        n_calls=5,
+        n_random_starts=5,
         noise=0.01,
         verbose=True,
         plot_results=True)
