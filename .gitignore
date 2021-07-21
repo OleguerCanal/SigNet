@@ -136,7 +136,7 @@ trained_models/
 *.png
 cluster/
 parameters.txt
-*.sh
+# *.sh
 signatures-nets.e*
 results/
 plots/*
