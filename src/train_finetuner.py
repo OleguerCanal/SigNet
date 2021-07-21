@@ -7,17 +7,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data
 from trainers.finetuner_trainer import FinetunerTrainer
 
-experiment_id = "finetuner_model"
+experiment_id = "finetuner_model_optimized"
 model_path = "../trained_models"
-iterations = 7
+iterations = 10
 num_classes = 72
 fp_param = 1
 fn_param = 1
 
-batch_size = 336
-lr = 0.001
+batch_size = 100
+lr = 0.00086
 num_hidden_layers = 1
-num_neurons = 1500
+num_neurons = 1300
 
 if __name__ == "__main__":
     # dev = "cuda" if torch.cuda.is_available() else "cpu"

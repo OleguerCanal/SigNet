@@ -69,23 +69,18 @@ class ModelTester:
 
 if __name__ == "__main__":
     # Model params finetuner
-    experiment_id_finetune = "finetuner_model_2_good"
+    experiment_id_finetune = "finetuner_model_optimized"
     num_hidden_layers = 1
-    num_neurons = 1500
+    num_neurons = 1300
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_finder_model_2"
+    experiment_id_error_learner = "error_finder_1"
     num_hidden_layers_pos = 1
     num_neurons_pos = 1500
     num_hidden_layers_neg = 1
     num_neurons_neg = 1500
 
-    # experiment_id_error_learner = "error_finder_model_new_loss"
-    # num_hidden_layers_pos = 5
-    # num_neurons_pos = 1000
-    # num_hidden_layers_neg = 5
-    # num_neurons_neg = 1000
 
     # Generate data
     data = pd.read_excel("../../data/data.xlsx")
@@ -125,21 +120,21 @@ if __name__ == "__main__":
     pred_upper, pred_lower = model_error(guessed_labels, num_mut)
 
     # # Get metrics
-    # model_tester = ModelTester(num_classes=num_classes)
+    model_tester = ModelTester(num_classes=num_classes)
     # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
-    # # False negatives:
+    # False negatives:
     # label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
     #     label_batch[:, :72], guessed_labels, 0.05, num_classes)
     # FN = sum(predicted_sigs_list == num_classes)
-    # print('Number of FN:', FN)
+    # print('Number of FN:', FN/float(torch.numel(label_batch))*100)
 
     # # False positives:
     # FP = sum(label_sigs_list == num_classes)
-    # print('Number of FP:', FP)
+    # print('Number of FP:', FP/float(torch.numel(label_batch))*100)
 
-    a = torch.sum(pred_lower>pred_upper)
-    print(a)
+    # a = torch.sum(pred_lower>pred_upper)
+    # print(a)
 
     # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
