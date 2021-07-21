@@ -15,16 +15,25 @@ class SignedErrorFinder(nn.Module):
 
         # Weights path
         self.layer1_1 = nn.Linear(num_classes, num_units_branch_1)
+        nn.init.kaiming_uniform_(self.layer1_1.weight)
         self.layer2_1 = nn.Linear(num_units_branch_1, num_units_branch_1)
+        nn.init.kaiming_uniform_(self.layer2_1.weight)
 
         # Mutations path
         self.layer1_2 = nn.Linear(1, num_units_branch_2)
+        nn.init.kaiming_uniform_(self.layer1_2.weight)
 
         # Combined layers
         self.hidden_layers = nn.ModuleList(
             modules=[nn.Linear(num_units, num_units)
                      for _ in range(num_hidden_layers)])
         self.output_layer = nn.Linear(num_units, num_classes)
+        nn.init.kaiming_uniform_(self.output_layer.weight)
+        for hidden_layer in self.hidden_layers:
+            nn.init.kaiming_uniform_(hidden_layer.weight)
+
+        
+
 
         # Activation function
         self.activation = nn.LeakyReLU(0.1)
