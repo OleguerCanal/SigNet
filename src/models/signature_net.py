@@ -19,9 +19,9 @@ class SignatureNet:
                  signature_finder_params,
                  finetuner_params,
                  error_learner_params,
-                 path_opportunities,
                  finetuner_model_name,
                  error_finder_model_name,
+                 path_opportunities = None,
                  models_path="../../trained_models"):
         self.signature_finder = SignatureFinder(**signature_finder_params)
 
@@ -37,7 +37,10 @@ class SignatureNet:
             models_path, error_finder_model_name), map_location=torch.device('cpu')))
         self.error_finder.eval()
 
-        self.opp = create_opportunities(path_opportunities)
+        if path_opportunities != None:
+            self.opp = create_opportunities(path_opportunities)
+        else:
+            self.opp = None
 
     def __call__(self,
                  mutation_vec):
@@ -49,8 +52,12 @@ class SignatureNet:
         with torch.no_grad():
             # Normalize input data
             num_mutations = torch.sum(mutation_vec, dim=1)
-            normalized_mutation_vec = normalize_data(mutation_vec, self.opp)
-            normalized_mutation_vec = normalized_mutation_vec / torch.sum(normalized_mutation_vec, dim=1).reshape(-1,1)
+
+            if self.opp != None:
+                normalized_mutation_vec = normalize_data(mutation_vec, self.opp)
+                normalized_mutation_vec = normalized_mutation_vec / torch.sum(normalized_mutation_vec, dim=1).reshape(-1,1)
+            else:
+                normalized_mutation_vec = mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1,1)
 
             # Run signature_finder
             weight_guess_0 = self.signature_finder.get_weights_batch(
@@ -73,32 +80,75 @@ if __name__ == "__main__":
     signature_finder_params = {"signatures": signatures,
                                "metric": get_jensen_shannon}
 
-    finetuner_model_name = "finetuner_model_2"
+    finetuner_model_name = "finetuner_model_optimized"
     finetuner_params = {"num_hidden_layers": 1,
-                        "num_units": 1500,
+                        "num_units": 1300,
                         "num_classes": 72}
 
-    error_finder_model_name = "error_finder_model_1"
+    error_finder_model_name = "error_finder_1"
     error_learner_params = {"num_hidden_layers_pos": 1,
                             "num_units_pos": 1500,
                             "num_hidden_layers_neg": 1,
-                            "num_units_neg": 1500,
-                            "normalize_mut": 2e4}
+                            "num_units_neg": 1500}
 
-    path_opportunities = "../../data/data_donors/abundances_trinucleotides.txt"
+    # Things with realistic dataset:
+    input_batch = torch.tensor(pd.read_csv(
+        "../../data/realistic_data/realistic_test_input.csv", header=None).values, dtype=torch.float)
     signature_net = SignatureNet(signature_finder_params, finetuner_params, error_learner_params,
-                                path_opportunities, finetuner_model_name, error_finder_model_name)
+                                 finetuner_model_name, error_finder_model_name)
 
-    mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_ACC_data_total.csv", header=None).values, dtype=torch.float)
-    weight0, weight, pos, neg = signature_net(mutation_vec=mutation_data)
+    weight0, weight, pos, neg = signature_net(mutation_vec=input_batch)
 
-    deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+    df = weight.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv", header=False, index=False)
 
-    plot_weights_comparison( deconstructSigs_batch[0,:].detach().numpy(), weight[0,:].detach().numpy(), pos[0,:].detach().numpy(),neg[0,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[22,:].detach().numpy(),weight[22,:].detach().numpy(), pos[22,:].detach().numpy(),neg[22,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[-3,:].detach().numpy(),weight[-3,:].detach().numpy(), pos[-3,:].detach().numpy(), neg[-3,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(deconstructSigs_batch[-1,:].detach().numpy(),weight[-1,:].detach().numpy(), pos[-1,:].detach().numpy(),neg[-1,:].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[0, :].detach().numpy(), pos[0, :].detach().numpy(), neg[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight0[0, :].detach().numpy(),weight0[0, :].detach().numpy(), weight0[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[1, :].detach().numpy(), pos[1, :].detach().numpy(), neg[1, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights(weight[2, :].detach().numpy(), pos[2, :].detach().numpy(), neg[2, :].detach().numpy(), list(data.columns)[2:])
+    df = pos.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_pos_guess.csv", header=False, index=False)
+
+    df = neg.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_neg_guess.csv", header=False, index=False)
+
+    # Things with random dataset:
+    input_batch = torch.tensor(pd.read_csv(
+        "../../data/random_data/test_input_w01.csv", header=None).values, dtype=torch.float)
+    path_opportunities = None
+    signature_net = SignatureNet(signature_finder_params, finetuner_params, error_learner_params,
+                                 finetuner_model_name, error_finder_model_name)
+
+    weight0, weight, pos, neg = signature_net(mutation_vec=input_batch)
+
+    df = weight.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/random_data/methods/signatures-net_random_test_guess.csv", header=False, index=False)
+
+    df = pos.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/random_data/methods/signatures-net_random_test_pos_guess.csv", header=False, index=False)
+
+    df = neg.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv("../../data/random_data/methods/signatures-net_random_test_neg_guess.csv", header=False, index=False)
+
+
+
+    # Things with real data:
+    # path_opportunities = "../../data/data_donors/abundances_trinucleotides.txt"
+    # signature_net = SignatureNet(signature_finder_params, finetuner_params, error_learner_params,
+    #                             path_opportunities, finetuner_model_name, error_finder_model_name)
+
+    # mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_ACC_data_total.csv", header=None).values, dtype=torch.float)
+    # weight0, weight, pos, neg = signature_net(mutation_vec=mutation_data)
+
+    # deconstructSigs_batch = torch.tensor(pd.read_csv("data/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+
+    # plot_weights_comparison( deconstructSigs_batch[0,:].detach().numpy(), weight[0,:].detach().numpy(), pos[0,:].detach().numpy(),neg[0,:].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(deconstructSigs_batch[22,:].detach().numpy(),weight[22,:].detach().numpy(), pos[22,:].detach().numpy(),neg[22,:].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(deconstructSigs_batch[-3,:].detach().numpy(),weight[-3,:].detach().numpy(), pos[-3,:].detach().numpy(), neg[-3,:].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(deconstructSigs_batch[-1,:].detach().numpy(),weight[-1,:].detach().numpy(), pos[-1,:].detach().numpy(),neg[-1,:].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[0, :].detach().numpy(), pos[0, :].detach().numpy(), neg[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight0[0, :].detach().numpy(),weight0[0, :].detach().numpy(), weight0[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[1, :].detach().numpy(), pos[1, :].detach().numpy(), neg[1, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights(weight[2, :].detach().numpy(), pos[2, :].detach().numpy(), neg[2, :].detach().numpy(), list(data.columns)[2:])
