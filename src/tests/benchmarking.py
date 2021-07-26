@@ -22,10 +22,6 @@ def compute_mean_distance_by_sig_interval(label_batch, pred_upper, pred_lower):
 
 def plot_distance(label_batch, list_of_paths, list_of_names):
     # list_of_paths to the guessed_batch of the different algorithms
-    #dist_signatures_net = compute_mean_distance_by_sig_interval(label_batch, pred_upper, pred_lower)
-    guessed_batch = torch.tensor(pd.read_csv("../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv", header=None).values, dtype=torch.float)
-    dist_signatures_net = compute_mean_distance_by_sig(label_batch, guessed_batch)
-    plt.plot(dist_signatures_net, label="signatures-net")
     for i in range(len(list_of_paths)):
         guessed_batch = torch.tensor(pd.read_csv(list_of_paths[i], header=None).values, dtype=torch.float)
         dist_method = compute_mean_distance_by_sig(label_batch, guessed_batch)
@@ -38,12 +34,12 @@ def plot_distance(label_batch, list_of_paths, list_of_names):
 
 def plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper, pred_lower):
     # list_of_paths to the guessed_batch of the different algorithms
-    dist_signatures_net = compute_mean_distance_by_sig_interval(label_batch, pred_upper, pred_lower)
-    plt.plot(dist_signatures_net, label="signatures-net")
     for i in range(len(list_of_paths)):
         guessed_batch = torch.tensor(pd.read_csv(list_of_paths[i], header=None).values, dtype=torch.float)
         dist_method = compute_mean_distance_by_sig(label_batch, guessed_batch)
         plt.plot(dist_method, label=list_of_names[i])
+    dist_signatures_net = compute_mean_distance_by_sig_interval(label_batch, pred_upper, pred_lower)
+    plt.plot(dist_signatures_net, label="signatures-net intervals")
     plt.legend()
     data = pd.read_excel("../../data/data.xlsx")
     plt.xticks(range(72), list(data.columns)[2:], rotation='vertical')
@@ -64,8 +60,9 @@ perd_lower = torch.tensor(pd.read_csv(
 
 list_of_paths = ["../../data/realistic_data/methods/decompTumor2Sig_realistic_test_guess.csv", "../../data/realistic_data/methods/mutSignatures_realistic_test_guess.csv", 
     "../../data/realistic_data/methods/SignatureEstimationQP_realistic_test_guess.csv", "../../data/realistic_data/methods/MutationalPatterns_realistic_test_guess.csv", 
-    "../../data/realistic_data/methods/YAPSA_realistic_test_guess.csv"]
-list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA"]
+    "../../data/realistic_data/methods/YAPSA_realistic_test_guess.csv", "../../data/realistic_data/methods/deconstructSigs_realistic_test_guess.csv",
+    "../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv"]
+list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
         
 plot_distance(label_batch, list_of_paths, list_of_names)
 plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper, perd_lower)
@@ -84,8 +81,9 @@ perd_lower = torch.tensor(pd.read_csv(
 
 list_of_paths = ["../../data/random_data/methods/decompTumor2Sig_random_test_guess.csv", "../../data/random_data/methods/mutSignatures_random_test_guess.csv", 
     "../../data/random_data/methods/SignatureEstimationQP_random_test_guess.csv", "../../data/random_data/methods/MutationalPatterns_random_test_guess.csv", 
-    "../../data/random_data/methods/YAPSA_random_test_guess.csv"]
-list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA"]
+    "../../data/random_data/methods/YAPSA_random_test_guess.csv", "../../data/random_data/methods/deconstructSigs_random_test_guess.csv",
+    "../../data/random_data/methods/signatures-net_random_test_guess.csv"]
+list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
         
 plot_distance(label_batch, list_of_paths, list_of_names)
 plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper, perd_lower)
