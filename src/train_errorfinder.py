@@ -11,19 +11,19 @@ from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
 
-experiment_id = "error_finder_1"
+experiment_id = "error_finder_optimized"
 model_path = "../trained_models"
 finetuner_model_name = "finetuner_model_optimized"
 iterations = 8
 num_classes = 72
 
 # Error finder params
-batch_size = 500
-lr = 0.00001
-num_hidden_layers_pos = 1
-num_neurons_pos = 1500
-num_hidden_layers_neg = 1
-num_neurons_neg = 1500
+batch_size = 1000
+lr = 0.001
+num_hidden_layers_pos = 3
+num_neurons_pos = 700
+num_hidden_layers_neg = 2
+num_neurons_neg = 800
 
 # Finetuner params
 num_hidden_layers = 1
