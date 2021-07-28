@@ -8,22 +8,22 @@ from torchsummary import summary
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from trainers.error_trainer import ErrorTrainer
-from utilities.io import read_data
+from utilities.io import read_data, read_data_realistic
 
 
-experiment_id = "error_finder_1"
+experiment_id = "error_finder_realistic"
 model_path = "../trained_models"
-finetuner_model_name = "finetuner_model_optimized"
-iterations = 8
+finetuner_model_name = "finetuner_model_realistic"
+iterations = 50
 num_classes = 72
 
 # Error finder params
-batch_size = 500
+batch_size = 1000
 lr = 0.00001
-num_hidden_layers_pos = 1
-num_neurons_pos = 1500
-num_hidden_layers_neg = 1
-num_neurons_neg = 1500
+num_hidden_layers_pos = 3
+num_neurons_pos = 700
+num_hidden_layers_neg = 2
+num_neurons_neg = 800
 
 # Finetuner params
 num_hidden_layers = 1
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu")
+    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data_realistic("cpu")
     
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
