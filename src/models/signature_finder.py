@@ -45,7 +45,7 @@ class SignatureFinder:
                        bounds=self.__bounds)
         return res.x
 
-    def get_weights_batch(self, input_batch, n_workers=8):
+    def get_weights_batch(self, input_batch, n_workers=12):
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
@@ -58,27 +58,31 @@ class SignatureFinder:
 if __name__ == "__main__":
     num_classes = 72
     training_data = torch.tensor(pd.read_csv(
-        "data/training_input.csv", header=None).values, dtype=torch.float)
-    validation_data = torch.tensor(pd.read_csv(
-        "data/validation_input.csv", header=None).values, dtype=torch.float)
-    test_data = torch.tensor(pd.read_csv(
-        "data/test_input.csv", header=None).values, dtype=torch.float)
-    signatures_data = pd.read_excel("data/data.xlsx")
+        "../../data/realistic_data/train_more_sigs/larger_realistic_train_input.csv", header=None).values, dtype=torch.float)
+    # validation_data = torch.tensor(pd.read_csv(
+    #     "../../data/realistic_data/train_default/realistic_validation_input.csv", header=None).values, dtype=torch.float)
+    # test_data = torch.tensor(pd.read_csv(
+        # "data/test_input.csv", header=None).values, dtype=torch.float)
+    signatures_data = pd.read_excel("../../data/data.xlsx")
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
 
     sf = SignatureFinder(signatures, metric=get_jensen_shannon)
 
-    # sol = sf.get_weights_batch(training_data)
-    # sol = sol.detach().numpy()
-    # df = pd.DataFrame(sol)
-    # df.to_csv("data/training_baseline_JS.csv", header=False, index=False)
-    # print("Training done!")
-    sol = sf.get_weights_batch(validation_data)
+    print("Computing...")
+    sol = sf.get_weights_batch(training_data)
     sol = sol.detach().numpy()
     df = pd.DataFrame(sol)
-    df.to_csv("data/validation_baseline_JS.csv", header=False, index=False)
-    print("Validation done!")
+    df.to_csv("../../data/realistic_data/train_more_sigs/larger_realistic_train_baseline_JS.csv", header=False, index=False)
+    print("Training done!")
+
+    # print("Computing...")
+    # sol = sf.get_weights_batch(validation_data)
+    # sol = sol.detach().numpy()
+    # df = pd.DataFrame(sol)
+    # df.to_csv("../../data/realistic_data/train_default/validation_baseline_JS.csv", header=False, index=False)
+    # print("Validation done!")
+    
     # sol = sf.get_weights_batch(test_data)
     # sol = sol.detach().numpy()
     # df = pd.DataFrame(sol)
