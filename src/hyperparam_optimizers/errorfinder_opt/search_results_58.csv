@@ -1,0 +1,3 @@
+batch_size,lr,num_neurons_pos,num_hidden_layers_pos,num_neurons_neg,num_hidden_layers_neg,value
+70.0,0.008010105373153192,910.0,4.0,435.0,9.0,-0.025935220010578634
+898.0,0.009585942102737928,996.0,1.0,569.0,1.0,-0.0009685867110965774

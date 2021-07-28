@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/nfs/users2/dweghorn/cserranocolome/signatures-net/src/hyperparam_optimizers/optimize_errorfinder.py", line 14, in <module>
+    experiment_id = all_final
+NameError: name 'all_final' is not defined

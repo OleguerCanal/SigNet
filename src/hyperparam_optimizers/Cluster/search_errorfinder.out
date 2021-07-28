@@ -1,0 +1,98 @@
+Using device: cpu
+Iteration No: 1 started. Evaluating function at random point.
+Iteration No: 1 ended. Evaluation done at random point.
+Time taken: 0.1571
+Function value obtained: 0.0031
+Current minimum: 0.0008
+Iteration No: 2 started. Evaluating function at random point.
+716 0.0070806771779447445 1077 2 658 5
+Iteration No: 2 ended. Evaluation done at random point.
+Time taken: 4423.0968
+Function value obtained: 0.0026
+Current minimum: 0.0008
+Iteration No: 3 started. Evaluating function at random point.
+50 1e-06 1500 1 1500 1
+Iteration No: 3 ended. Evaluation done at random point.
+Time taken: 71332.3900
+Function value obtained: 0.0079
+Current minimum: 0.0008
+Iteration No: 4 started. Evaluating function at random point.
+910 0.01 548 2 789 10
+Iteration No: 4 ended. Evaluation done at random point.
+Time taken: 4434.6510
+Function value obtained: 15958.5293
+Current minimum: 0.0008
+Iteration No: 5 started. Evaluating function at random point.
+996 1e-06 1259 1 1500 1
+Iteration No: 5 ended. Evaluation done at random point.
+Time taken: 3952.4323
+Function value obtained: 0.0331
+Current minimum: 0.0008
+Iteration No: 6 started. Evaluating function at random point.
+991 1e-06 1419 2 1500 9
+Iteration No: 6 ended. Evaluation done at random point.
+Time taken: 14214.5083
+Function value obtained: 0.0072
+Current minimum: 0.0008
+Iteration No: 7 started. Evaluating function at random point.
+339 1e-06 1284 6 939 1
+Iteration No: 7 ended. Evaluation done at random point.
+Time taken: 17465.4882
+Function value obtained: 0.0105
+Current minimum: 0.0008
+Iteration No: 8 started. Evaluating function at random point.
+1000 1e-06 1500 1 1339 10
+Iteration No: 8 ended. Evaluation done at random point.
+Time taken: 12279.8746
+Function value obtained: 0.0125
+Current minimum: 0.0008
+Iteration No: 9 started. Evaluating function at random point.
+685 1e-06 1344 1 1500 1
+Iteration No: 9 ended. Evaluation done at random point.
+Time taken: 5585.6651
+Function value obtained: 0.0144
+Current minimum: 0.0008
+Iteration No: 10 started. Evaluating function at random point.
+1000 1e-06 1261 1 1500 10
+Iteration No: 10 ended. Evaluation done at random point.
+Time taken: 13884.0508
+Function value obtained: 0.0217
+Current minimum: 0.0008
+Iteration No: 11 started. Evaluating function at random point.
+1000 1e-06 1500 1 20 1
+Iteration No: 11 ended. Evaluation done at random point.
+Time taken: 2362.5425
+Function value obtained: 0.0605
+Current minimum: 0.0008
+Iteration No: 12 started. Evaluating function at random point.
+50 1e-06 1426 1 1500 1
+Iteration No: 12 ended. Evaluation done at random point.
+Time taken: 71429.5179
+Function value obtained: 0.0082
+Current minimum: 0.0008
+Iteration No: 13 started. Evaluating function at random point.
+50 0.01 743 1 1238 8
+Iteration No: 13 ended. Evaluation done at random point.
+Time taken: 127987.6275
+Function value obtained: 84027.0000
+Current minimum: 0.0008
+Iteration No: 14 started. Evaluating function at random point.
+526 1e-06 1347 4 840 9
+Iteration No: 14 ended. Evaluation done at random point.
+Time taken: 13048.4678
+Function value obtained: 0.0054
+Current minimum: 0.0008
+Iteration No: 15 started. Evaluating function at random point.
+50 1e-06 1208 1 643 9
+Iteration No: 15 ended. Evaluation done at random point.
+Time taken: 58910.1451
+Function value obtained: 0.0110
+Current minimum: 0.0008
+Iteration No: 16 started. Evaluating function at random point.
+1000 1e-06 1500 1 655 10
+Iteration No: 16 ended. Evaluation done at random point.
+Time taken: 4855.2757
+Function value obtained: 0.0136
+Current minimum: 0.0008
+Iteration No: 17 started. Evaluating function at random point.
+980 1e-06 1443 9 1076 3

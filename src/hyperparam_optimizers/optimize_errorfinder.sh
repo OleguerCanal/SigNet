@@ -15,4 +15,5 @@ echo ${input}
 ID=$(echo ${input} | awk -F " " '{print $1}')
 echo ${ID}
 
+conda activate sigs_env
 python optimize_errorfinder.py ${ID}

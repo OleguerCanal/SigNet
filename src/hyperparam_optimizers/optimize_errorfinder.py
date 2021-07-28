@@ -11,7 +11,7 @@ from models.finetuner import FineTuner
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-experiment_id = str(sys.argv[1])
+experiment_id = "all_final"
 iterations = 8
 num_classes = 72
 
@@ -21,9 +21,8 @@ neurons_pos = Integer(name='num_neurons_pos', low=20, high=1500)
 layers_pos = Integer(name='num_hidden_layers_pos', low=1, high=10)
 neurons_neg = Integer(name='num_neurons_neg', low=20, high=1500)
 layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=10)
-normalize_mut_param = Integer(name='normalize_mut', low=1e4, high=1e6)
 
-input_file = None
+input_file = "errorfinder_opt/search_results_all.csv"
 output_file = "errorfinder_opt/search_results_" + experiment_id + ".csv"
 
 # Finetuner params
@@ -80,7 +79,7 @@ if __name__ == "__main__":
 
 
     search_space = [batch_sizes, learning_rates, neurons_pos,
-                    layers_pos, neurons_neg, layers_neg, normalize_mut_param]
+                    layers_pos, neurons_neg, layers_neg]
     fixed_space = {"plot": False}
 
     gp_search = GaussianProcessSearch(search_space=search_space,
@@ -90,8 +89,8 @@ if __name__ == "__main__":
                                       output_file=output_file)  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=5,
-        n_random_starts=5,
+        n_calls=500,
+        n_random_starts=1,
         noise=0.01,
         verbose=True,
         plot_results=True)
