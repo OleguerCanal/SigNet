@@ -85,11 +85,11 @@ if __name__ == "__main__":
                         "num_units": 1300,
                         "num_classes": 72}
 
-    error_finder_model_name = "error_finder_1"
-    error_learner_params = {"num_hidden_layers_pos": 1,
-                            "num_units_pos": 1500,
-                            "num_hidden_layers_neg": 1,
-                            "num_units_neg": 1500}
+    error_finder_model_name = "error_finder_realistic"
+    error_learner_params = {"num_hidden_layers_pos": 3,
+                            "num_units_pos": 700,
+                            "num_hidden_layers_neg": 2,
+                            "num_units_neg": 800}
 
     # Things with realistic dataset:
     input_batch = torch.tensor(pd.read_csv(
