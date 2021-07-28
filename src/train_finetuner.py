@@ -4,10 +4,10 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import read_data
+from utilities.io import read_data, read_data_realistic, read_data_realistic_larger
 from trainers.finetuner_trainer import FinetunerTrainer
 
-experiment_id = "finetuner_model_optimized"
+experiment_id = "finetuner_model_realistic_larger"
 model_path = "../trained_models"
 iterations = 10
 num_classes = 72
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data(
+    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data_realistic_larger(
         dev)
 
     trainer = FinetunerTrainer(iterations=iterations,  # Passes through all dataset
