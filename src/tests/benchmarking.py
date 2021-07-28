@@ -47,6 +47,50 @@ def plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper
     plt.close()
 
 
+# Random training set:
+# Everything with realistic dataset
+# num_classes = 72
+# label_mut_batch = torch.tensor(pd.read_csv(
+#         "../../data/realistic_data/realistic_test_label.csv", header=None).values, dtype=torch.float)
+# label_batch = label_mut_batch[:, :num_classes]
+
+# pred_upper = torch.tensor(pd.read_csv(
+#         "../../data/realistic_data/methods/signatures-net_realistic_test_pos_guess.csv", header=None).values, dtype=torch.float)
+# perd_lower = torch.tensor(pd.read_csv(
+#         "../../data/realistic_data/methods/signatures-net_realistic_test_neg_guess.csv", header=None).values, dtype=torch.float)
+
+# list_of_paths = ["../../data/realistic_data/methods/decompTumor2Sig_realistic_test_guess.csv", "../../data/realistic_data/methods/mutSignatures_realistic_test_guess.csv", 
+#     "../../data/realistic_data/methods/SignatureEstimationQP_realistic_test_guess.csv", "../../data/realistic_data/methods/MutationalPatterns_realistic_test_guess.csv", 
+#     "../../data/realistic_data/methods/YAPSA_realistic_test_guess.csv", "../../data/realistic_data/methods/deconstructSigs_realistic_test_guess.csv",
+#     "../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv"]
+# list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
+        
+# plot_distance(label_batch, list_of_paths, list_of_names)
+# plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper, perd_lower)
+
+
+# # Everything with random dataset
+# num_classes = 72
+# label_mut_batch = torch.tensor(pd.read_csv(
+#         "../../data/random_data/test_label_w01.csv", header=None).values, dtype=torch.float)
+# label_batch = label_mut_batch[:, :num_classes]
+
+# pred_upper = torch.tensor(pd.read_csv(
+#         "../../data/random_data/methods/signatures-net_random_test_pos_guess.csv", header=None).values, dtype=torch.float)
+# perd_lower = torch.tensor(pd.read_csv(
+#         "../../data/random_data/methods/signatures-net_random_test_neg_guess.csv", header=None).values, dtype=torch.float)
+
+# list_of_paths = ["../../data/random_data/methods/decompTumor2Sig_random_test_guess.csv", "../../data/random_data/methods/mutSignatures_random_test_guess.csv", 
+#     "../../data/random_data/methods/SignatureEstimationQP_random_test_guess.csv", "../../data/random_data/methods/MutationalPatterns_random_test_guess.csv", 
+#     "../../data/random_data/methods/YAPSA_random_test_guess.csv", "../../data/random_data/methods/deconstructSigs_random_test_guess.csv",
+#     "../../data/random_data/methods/signatures-net_random_test_guess.csv"]
+# list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
+        
+# plot_distance(label_batch, list_of_paths, list_of_names)
+# plot_distance_interval(label_batch, list_of_paths, list_of_names, pred_upper, perd_lower)
+
+
+# Realistic training set:
 # Everything with realistic dataset
 num_classes = 72
 label_mut_batch = torch.tensor(pd.read_csv(
@@ -54,14 +98,14 @@ label_mut_batch = torch.tensor(pd.read_csv(
 label_batch = label_mut_batch[:, :num_classes]
 
 pred_upper = torch.tensor(pd.read_csv(
-        "../../data/realistic_data/methods/signatures-net_realistic_test_pos_guess.csv", header=None).values, dtype=torch.float)
+        "../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_pos_guess.csv", header=None).values, dtype=torch.float)
 perd_lower = torch.tensor(pd.read_csv(
-        "../../data/realistic_data/methods/signatures-net_realistic_test_neg_guess.csv", header=None).values, dtype=torch.float)
+        "../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_neg_guess.csv", header=None).values, dtype=torch.float)
 
 list_of_paths = ["../../data/realistic_data/methods/decompTumor2Sig_realistic_test_guess.csv", "../../data/realistic_data/methods/mutSignatures_realistic_test_guess.csv", 
     "../../data/realistic_data/methods/SignatureEstimationQP_realistic_test_guess.csv", "../../data/realistic_data/methods/MutationalPatterns_realistic_test_guess.csv", 
     "../../data/realistic_data/methods/YAPSA_realistic_test_guess.csv", "../../data/realistic_data/methods/deconstructSigs_realistic_test_guess.csv",
-    "../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv"]
+    "../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_guess.csv"]
 list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
         
 plot_distance(label_batch, list_of_paths, list_of_names)
@@ -75,14 +119,14 @@ label_mut_batch = torch.tensor(pd.read_csv(
 label_batch = label_mut_batch[:, :num_classes]
 
 pred_upper = torch.tensor(pd.read_csv(
-        "../../data/random_data/methods/signatures-net_random_test_pos_guess.csv", header=None).values, dtype=torch.float)
+        "../../data/random_data/methods/realistic_trained_signatures-net_random_test_pos_guess.csv", header=None).values, dtype=torch.float)
 perd_lower = torch.tensor(pd.read_csv(
-        "../../data/random_data/methods/signatures-net_random_test_neg_guess.csv", header=None).values, dtype=torch.float)
+        "../../data/random_data/methods/realistic_trained_signatures-net_random_test_neg_guess.csv", header=None).values, dtype=torch.float)
 
 list_of_paths = ["../../data/random_data/methods/decompTumor2Sig_random_test_guess.csv", "../../data/random_data/methods/mutSignatures_random_test_guess.csv", 
     "../../data/random_data/methods/SignatureEstimationQP_random_test_guess.csv", "../../data/random_data/methods/MutationalPatterns_random_test_guess.csv", 
     "../../data/random_data/methods/YAPSA_random_test_guess.csv", "../../data/random_data/methods/deconstructSigs_random_test_guess.csv",
-    "../../data/random_data/methods/signatures-net_random_test_guess.csv"]
+    "../../data/random_data/methods/realistic_trained_signatures-net_random_test_guess.csv"]
 list_of_names = ["decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "MutationalPatterns", "YAPSA", "deconstructSigs", "signatures-net"]
         
 plot_distance(label_batch, list_of_paths, list_of_names)

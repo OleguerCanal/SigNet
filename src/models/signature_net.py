@@ -80,7 +80,7 @@ if __name__ == "__main__":
     signature_finder_params = {"signatures": signatures,
                                "metric": get_jensen_shannon}
 
-    finetuner_model_name = "finetuner_model_optimized"
+    finetuner_model_name = "finetuner_model_realistic"
     finetuner_params = {"num_hidden_layers": 1,
                         "num_units": 1300,
                         "num_classes": 72}
@@ -101,15 +101,15 @@ if __name__ == "__main__":
 
     df = weight.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_guess.csv", header=False, index=False)
+    df.to_csv("../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_guess.csv", header=False, index=False)
 
     df = pos.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_pos_guess.csv", header=False, index=False)
+    df.to_csv("../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_pos_guess.csv", header=False, index=False)
 
     df = neg.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/realistic_data/methods/signatures-net_realistic_test_neg_guess.csv", header=False, index=False)
+    df.to_csv("../../data/realistic_data/methods/realistic_trained_signatures-net_realistic_test_neg_guess.csv", header=False, index=False)
 
     # Things with random dataset:
     input_batch = torch.tensor(pd.read_csv(
@@ -122,15 +122,15 @@ if __name__ == "__main__":
 
     df = weight.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/random_data/methods/signatures-net_random_test_guess.csv", header=False, index=False)
+    df.to_csv("../../data/random_data/methods/realistic_trained_signatures-net_random_test_guess.csv", header=False, index=False)
 
     df = pos.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/random_data/methods/signatures-net_random_test_pos_guess.csv", header=False, index=False)
+    df.to_csv("../../data/random_data/methods/realistic_trained_signatures-net_random_test_pos_guess.csv", header=False, index=False)
 
     df = neg.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/random_data/methods/signatures-net_random_test_neg_guess.csv", header=False, index=False)
+    df.to_csv("../../data/random_data/methods/realistic_trained_signatures-net_random_test_neg_guess.csv", header=False, index=False)
 
 
 
