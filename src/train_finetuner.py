@@ -4,18 +4,18 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import read_data
+from utilities.io import read_data, read_data_yapsa
 from trainers.finetuner_trainer import FinetunerTrainer
 
-experiment_id = "finetuner_model_optimized"
+experiment_id = "finetuner_model_yapsa"
 model_path = "../trained_models"
-iterations = 10
+iterations = 20
 num_classes = 72
-fp_param = 1
-fn_param = 1
+fp_param = 0.01
+fn_param = 0.01
 
-batch_size = 100
-lr = 0.00086
+batch_size = 500
+lr = 0.001
 num_hidden_layers = 1
 num_neurons = 1300
 
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data(
+    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data_yapsa(
         dev)
 
     trainer = FinetunerTrainer(iterations=iterations,  # Passes through all dataset
