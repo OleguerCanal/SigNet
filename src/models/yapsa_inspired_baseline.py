@@ -23,7 +23,7 @@ class YapsaInspiredBaseline:
         self.__weight_len = self.signatures.shape[1]
 
     def get_weights(self, normalized_mutations):
-        h, rnorm = nnls(self.signatures, normalized_mutations, maxiter=5*self.signatures.shape[1])
+        h, rnorm = nnls(self.signatures, normalized_mutations, maxiter=5*self.__weight_len)
         return torch.from_numpy(h).float()
 
     def get_weights_batch(self, input_batch, n_workers=8):
@@ -31,7 +31,7 @@ class YapsaInspiredBaseline:
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
             for r in executor.map(self.get_weights, input_as_list):
-                result.append(torch.tensor(r, dtype=torch.float32))
+                result.append(r)
         guessed_labels = torch.stack(result)
         return guessed_labels
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # h = torch.from_numpy(sf.get_weights(validation_data[:10, ...])).float()
     # import time
     # t = time.time()
-    # h = sf.get_weights_batch(validation_data)#[:50, ...])
+    # h = sf.get_weights_batch(validation_data[:50, ...])
     # elapsed = time.time() - t
     # print("elapsed", elapsed)
 
