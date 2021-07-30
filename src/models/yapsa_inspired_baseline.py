@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 import scipy
 from scipy.optimize import minimize
+from scipy.optimize import nnls
 import torch
 from tqdm import tqdm
-from scipy.optimize import nnls
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
