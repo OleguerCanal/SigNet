@@ -64,12 +64,13 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     sensitivity = tp/torch.sum(label_mask)
     specificity = tn/torch.sum(1 - label_mask)
     accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
-    square_errors = torch.pow(label_batch-prediction_batch, 2)
-    MSE_p = torch.sum(torch.einsum("bi,bi->b", square_errors, label_mask))/batch_size
-    MSE_n = torch.sum(torch.einsum("bi,bi->b", square_errors, 1 - label_mask))/batch_size
+    mae = torch.abs(label_batch - prediction_batch)
+    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/batch_size
+    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/batch_size
+    # Q95_p = torch.quantile(mae[label])
     return {"fp": fp, "fn": fn,
-            "sens-tp_prop": sensitivity, "spec-tn_prop": specificity, "accuracy": accuracy,
-            "MSE_p": MSE_p, "MSE_n": MSE_n}
+            "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100.,
+            "MAE_p": MAE_p, "MAE_n": MAE_n}
 
 def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     label_mask = nn.Sigmoid()((label_batch - cutoff)*softness)  # ~0 if under cutoff, ~1 if over cutoff (element-wise)
