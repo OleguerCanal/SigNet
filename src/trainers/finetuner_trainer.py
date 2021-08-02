@@ -1,3 +1,7 @@
+from models.finetuner import FineTuner
+from utilities.train_dataset import TrainDataSet
+from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
+from loggers.finetuner_logger import FinetunerLogger
 import collections
 import copy
 import os
@@ -11,10 +15,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from loggers.finetuner_logger import FinetunerLogger
-from utilities.metrics import get_kl_divergence, get_fp_fn_soft
-from utilities.train_dataset import TrainDataSet
-from models.finetuner import FineTuner
+
 
 class FinetunerTrainer:
     def __init__(self,
@@ -45,12 +46,19 @@ class FinetunerTrainer:
         self.val_input = val_input
         self.val_weight_guess = val_weight_guess
         self.val_label = val_label[:, :self.num_classes]
-        self.logger = FinetunerLogger(path=loging_path, experiment_id=experiment_id)
+        self.logger = FinetunerLogger(
+            path=loging_path, experiment_id=experiment_id)
 
     def __loss(self, prediction, label, FP, FN):
         l = get_kl_divergence(prediction, label)
-        l += self.fp_param*FP/prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
+        l += self.fp_param*FP / \
+            prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
         return l
+
+    # def __loss(self, prediction, label):
+    #     batch_size = prediction.shape[0]
+    #     weight_loss = torch.nn.MSELoss()(prediction, label)
+    #     return weight_loss
 
     def objective(self,
                   batch_size,
@@ -75,24 +83,28 @@ class FinetunerTrainer:
         step = 0
         for iteration in range(self.iterations):
             for train_input, train_label, train_weight_guess in tqdm(dataloader):
+                model.train()
                 train_label = train_label[:, :self.num_classes]
 
-                optimizer.zero_grad()
+                optimizer.zero_grad()                
                 train_prediction = model(train_input, train_weight_guess)
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                                            prediction_batch=train_prediction)
+                                                prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
-                                label=train_label,
-                                FP=train_FP,
-                                FN=train_FN)
+                                         label=train_label,
+                                         FP=train_FP,
+                                         FN=train_FN)
                 train_loss.backward()
                 optimizer.step()
 
+                model.eval()
                 with torch.no_grad():
+                    train_classification_metrics = get_classification_metrics(label_batch=train_label,
+                                                                              prediction_batch=train_prediction)
                     val_prediction = model(
                         self.val_input, self.val_weight_guess)
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_label,
-                                            prediction_batch=val_prediction)
+                                                    prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_label,
                                            FP=val_FP,
@@ -100,21 +112,24 @@ class FinetunerTrainer:
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
+                    val_classification_metrics = get_classification_metrics(label_batch=self.val_label,
+                                                                            prediction_batch=val_prediction)
+
                 if plot:
                     self.logger.log(train_loss=train_loss,
                                     train_prediction=train_prediction,
                                     train_label=train_label,
-                                    train_FP=train_FP,
-                                    train_FN=train_FN,
+                                    train_classification_metrics=train_classification_metrics,
                                     val_loss=val_loss,
                                     val_prediction=val_prediction,
                                     val_label=self.val_label,
-                                    val_FP=val_FP,
-                                    val_FN=val_FN,
+                                    val_classification_metrics=val_classification_metrics,
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:
-                    pathlib.Path(self.model_path).mkdir(parents=True, exist_ok=True)
-                    torch.save(model.state_dict(), os.path.join(self.model_path, self.experiment_id))
+                    pathlib.Path(self.model_path).mkdir(
+                        parents=True, exist_ok=True)
+                    torch.save(model.state_dict(), os.path.join(
+                        self.model_path, self.experiment_id))
                 step += 1
         return max_found

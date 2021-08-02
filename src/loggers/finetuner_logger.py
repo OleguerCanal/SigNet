@@ -18,25 +18,23 @@ class FinetunerLogger:
             log_dir=os.path.join("runs/val", experiment_id))
 
         self.metrics = {
-            "mse": get_MSE,
-            "cos": get_negative_cosine_similarity,
-            "cross_ent": get_cross_entropy2,
-            "KL": get_kl_divergence,
-            "JS": get_jensen_shannon,
-            "W": get_wasserstein_distance,
+            # "mse": get_MSE,
+            # "cos": get_negative_cosine_similarity,
+            # "cross_ent": get_cross_entropy2,
+            # "KL": get_kl_divergence,
+            # "JS": get_jensen_shannon,
+            # "W": get_wasserstein_distance,
         }
 
     def log(self,
             train_loss,
             train_prediction,
             train_label,
-            train_FP,
-            train_FN,
+            train_classification_metrics,
             val_loss,
             val_prediction,
             val_label,
-            val_FP,
-            val_FN,
+            val_classification_metrics,
             step):
 
         self.writer.add_scalar("metrics/Loss", train_loss.item(), step)
@@ -47,8 +45,8 @@ class FinetunerLogger:
             self.writer.add_scalar("metrics/" + metric_name, metric(train_prediction, train_label).item(), step)
             self.val_writer.add_scalar("metrics/" + metric_name, metric(val_prediction, val_label).item(), step)
 
-        self.writer.add_scalar("metrics/FP", train_FP.item()/train_prediction.shape[0], step)
-        self.val_writer.add_scalar("metrics/FP", val_FP.item()/val_prediction.shape[0], step)
+        for metric_name in train_classification_metrics.keys():
+            self.writer.add_scalar("metrics/" + metric_name, train_classification_metrics[metric_name].item(), step)
 
-        self.writer.add_scalar("metrics/FN", train_FN.item()/train_prediction.shape[0], step)
-        self.val_writer.add_scalar("metrics/FN", val_FN.item()/val_prediction.shape[0], step)
+        for metric_name in val_classification_metrics.keys():
+            self.val_writer.add_scalar("metrics/" + metric_name, val_classification_metrics[metric_name].item(), step)
