@@ -76,6 +76,7 @@ class FinetunerTrainer:
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_units))
         model.to(self.device)
+        # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.00001)
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
         l_vals = collections.deque(maxlen=100)
