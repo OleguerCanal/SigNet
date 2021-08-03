@@ -1,7 +1,8 @@
-
 from concurrent.futures import ProcessPoolExecutor
+import copy
 import os
 import sys
+import gc
 
 import numpy as np
 import pandas as pd
@@ -23,66 +24,73 @@ class YapsaInspiredBaseline:
         self.__weight_len = self.signatures.shape[1]
 
     def get_weights(self, normalized_mutations):
-        h, rnorm = nnls(self.signatures, normalized_mutations, maxiter=5*self.__weight_len)
+        h, rnorm = nnls(self.signatures, normalized_mutations,
+                        maxiter=5*self.__weight_len)
         return torch.from_numpy(h).float()
 
-    def get_weights_batch(self, input_batch, n_workers=8):
+    def get_weights_batch(self, input_batch, n_workers=10):
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
             for r in executor.map(self.get_weights, input_as_list):
-                result.append(r)
+                result.append(copy.deepcopy(r))
+                del r
         guessed_labels = torch.stack(result)
         return guessed_labels
 
 
-if __name__ == "__main__":
+def create_baseline_dataset(input_file, output_file):
     num_classes = 72
-    training_data = torch.tensor(pd.read_csv(
-        "../../data/train_input_w01.csv", header=None).values, dtype=torch.float)
-    validation_data = torch.tensor(pd.read_csv(
-        "../../data/validation_input_w01.csv", header=None).values, dtype=torch.float)
-    test_data = torch.tensor(pd.read_csv(
-        "../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    
-    signatures_data = pd.read_excel("../../data/data.xlsx")
+    data_path = "../../data/"
+
+    signatures_data = pd.read_excel(data_path + "data.xlsx")
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
 
     sf = YapsaInspiredBaseline(signatures)
 
-
-    # h = torch.from_numpy(sf.get_weights(validation_data[:10, ...])).float()
-    # import time
-    # t = time.time()
-    # h = sf.get_weights_batch(validation_data[:50, ...])
-    # elapsed = time.time() - t
-    # print("elapsed", elapsed)
-
-    # validation_labels = torch.tensor(pd.read_csv(
-    #     "../../data/validation_label_w01.csv", header=None).values, dtype=torch.float)[:, :-1]
-
-    # print("mse:", get_MSE(h, validation_labels))
-    # print("js:", get_jensen_shannon(h, validation_labels))
-
-    print("Computing...")
-    x = np.linspace(0, training_data.shape[0], num=10, dtype=int)
-    sol = torch.empty((1,72))
-    for i in range(len(x)-1):
-        sol_i = sf.get_weights_batch(training_data[x[i]:x[i+1],:])
-        sol = torch.cat((sol, sol_i), 0)
-    sol = sol[1:, :]
+    input_data = torch.tensor(pd.read_csv(
+        data_path + input_file, header=None).values, dtype=torch.float)
+    sol = sf.get_weights_batch(input_data)
     sol = sol.detach().numpy()
-    df = pd.DataFrame(sol)
-    df.to_csv("../../data/training_baseline_yapsa.csv", header=False, index=False)
-    print("Training done!")
-    # sol = sf.get_weights_batch(validation_data)
-    # sol = sol.detach().numpy()
-    # df = pd.DataFrame(sol)
-    # df.to_csv("../../data/validation_baseline_yapsa.csv", header=False, index=False)
-    # print("Validation done!")
-    # sol = sf.get_weights_batch(test_data)
-    # sol = sol.detach().numpy()
-    # df = pd.DataFrame(sol)
-    # df.to_csv("../../data/test_baseline_yapsa.csv", header=False, index=False)
-    # print("Test done!")
+
+    print("done")
+
+
+def create_huge_baseline_dataset(input_file, output_file):
+    num_classes = 72
+    data_path = "../../data/"
+
+    signatures_data = pd.read_excel(data_path + "data.xlsx")
+    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
+                  for i in range(2, 74)][:num_classes]
+
+    sf = YapsaInspiredBaseline(signatures)
+
+    x = np.linspace(0, int(1e7), num=1000, dtype=int)
+    for i in tqdm(range(len(x)-1)):
+        input_data = torch.tensor(pd.read_csv(
+            data_path + input_file, header=None, skiprows=x[i], nrows=x[i+1] - x[i]).values, dtype=torch.float)
+        sol_i = sf.get_weights_batch(input_data)
+        df = pd.DataFrame(sol_i)
+        df.to_csv(data_path + output_file, header=False, index=False, mode='a')
+        del sol_i
+        gc.collect()
+        
+    print("Done!")
+
+
+if __name__ == "__main__":
+    training_data_in_file = "train_input_w01.csv"
+    # training_data_in_file = "train_input_huge.csv"
+    # validation_data_in_file = "validation_input_w01.csv"
+    # test_data_in_file = "test_input_w01.csv"
+
+    training_data_out_file = "train_baseline_yapsa.csv"
+    # training_data_out_file = "train_baseline_yapsa_huge.csv"
+    # validation_data_out_file = "validation_baseline_yapsa.csv"
+    # test_data_out_file = "test_baseline_yapsa.csv"
+
+    create_baseline_dataset(training_data_in_file, training_data_out_file)
+    # create_baseline_dataset(validation_data_in_file, validation_data_out_file)
+    # create_baseline_dataset(test_data_in_file, test_data_out_file)
