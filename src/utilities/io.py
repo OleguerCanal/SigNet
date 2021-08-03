@@ -28,7 +28,7 @@ def read_data_yapsa(device, data_folder="../data"):
         data_folder + "/train_input_w01.csv", header=None).values, dtype=torch.float)
     train_input = train_input.to(device)
     train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/training_baseline_yapsa.csv", header=None).values, dtype=torch.float)
+        data_folder + "/train_baseline_yapsa.csv", header=None).values, dtype=torch.float)
     train_guess_0 = train_guess_0.to(device)
     train_label = torch.tensor(pd.read_csv(
         data_folder + "/train_label_w01.csv", header=None).values, dtype=torch.float)
