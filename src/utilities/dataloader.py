@@ -20,8 +20,8 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
         self.max_n_signatures = max_n_signatures  # Inclusive
 
     def get_batch(self, normalize=True):
-        input_batch = torch.empty(self.batch_size, 96)
-        label_batch = torch.empty(self.batch_size, self.__total_signatures + 1)
+        input_batch = torch.empty((self.batch_size, 96))
+        label_batch = torch.empty((self.batch_size, self.__total_signatures + 1))
 
         for i in range(self.batch_size):
             # Pick the number of involved signatures
