@@ -35,12 +35,6 @@ def get_cross_entropy2(predicted_label, true_label):
 
 
 def get_kl_divergence(predicted_label, true_label):
-    #predicted_label += 1e-6
-    #true_label_local = copy.deepcopy(true_label)
-    #true_label_local += 1e-6
-    #predicted_label_local = copy.deepcopy(predicted_label)
-    #predicted_label_local += 1e-6
-    #true_label += 1e-6
     return get_cross_entropy2(predicted_label, true_label) - get_entropy(true_label)
 
 
@@ -59,12 +53,24 @@ def get_wasserstein_distance(predicted_label, true_label):
             predicted_label[i, :].cpu().detach().numpy(), true_label[i, :].cpu().detach().numpy())
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
-def get_fp_fn(label_batch, prediction_batch, cutoff=0.05):
-    label_mask = (label_batch > cutoff).type(torch.int)
-    prediction_mask = (prediction_batch > cutoff).type(torch.int)
-    fp = torch.sum(label_mask - prediction_mask < 0)
-    fn = torch.sum(label_mask - prediction_mask > 0)
-    return fp, fn
+def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
+    batch_size = label_batch.shape[0]
+    label_mask = (label_batch > cutoff).type(torch.int).float()
+    prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
+    fp = torch.sum(label_mask - prediction_mask < -0.1)/batch_size
+    fn = torch.sum(label_mask - prediction_mask > 0.1)/batch_size
+    tp = torch.sum(torch.einsum("bi,bi->b", prediction_mask, label_mask))
+    tn = torch.sum(torch.einsum("bi,bi->b", 1 - prediction_mask, 1 - label_mask))
+    sensitivity = tp/torch.sum(label_mask)
+    specificity = tn/torch.sum(1 - label_mask)
+    accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
+    mae = torch.abs(label_batch - prediction_batch)
+    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/batch_size
+    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/batch_size
+    # Q95_p = torch.quantile(mae[label])
+    return {"fp": fp, "fn": fn,
+            "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100.,
+            "MAE_p": MAE_p, "MAE_n": MAE_n}
 
 def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     label_mask = nn.Sigmoid()((label_batch - cutoff)*softness)  # ~0 if under cutoff, ~1 if over cutoff (element-wise)

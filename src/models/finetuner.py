@@ -27,17 +27,22 @@ class FineTuner(nn.Module):
         self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
+        self.dropout = nn.Dropout(p=0.0001)
 
     def forward(self,
                 mutation_dist,
                 weights):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
+        mutation_dist = self.dropout(mutation_dist)
         mutation_dist = self.activation(self.layer2_2(mutation_dist))
+        mutation_dist = self.dropout(mutation_dist)
 
         # Baseline head
         weights = self.activation(self.layer1_1(weights))
+        weights = self.dropout(weights)
         weights = self.activation(self.layer2_1(weights))
+        weights = self.dropout(weights)
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights], dim=1)
@@ -45,6 +50,7 @@ class FineTuner(nn.Module):
         # Apply shared layers
         for layer in self.hidden_layers:
             comb = self.activation(layer(comb))
+            comb = self.dropout(comb)
 
         # Apply output layer
         comb = self.output_layer(comb)
