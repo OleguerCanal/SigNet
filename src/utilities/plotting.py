@@ -4,6 +4,9 @@ import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
+from utilities.io import read_methods_realistic_data, read_realistic_test_methods
+
+from utilities.metrics import get_classification_metrics
 
 def plot_signature(signature, labels):
     plt.bar(range(96), signature, tick_label=labels)
@@ -95,7 +98,30 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
     plt.xticks(range(num_classes), sigs_names, rotation='vertical')
     plt.title('Confidence intervals performance')
     plt.show()
-        
+
+def plot_metric_vs_mutations(metric, list_of_methods, baseline_guess, finetuner_guess):
+    label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_realistic_test_methods(torch.device("cpu"))
+    values = np.zeros((len(list_of_methods)+2, 10))
+    k = -1
+    for method in list_of_methods:
+        k += 1
+        for i in range(10):
+            metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=locals()[method + "_guess_realistic"][1000*i:1000*(i+1),:])
+            values[k,i] = metrics[metric]
+    for i in range(10):
+        metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=baseline_guess[1000*i:1000*(i+1),:])
+        values[k+1,i] = metrics[metric]
+        metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=finetuner_guess[1000*i:1000*(i+1),:])
+        values[k+2,i] = metrics[metric]
+    
+    print(np.transpose(values))
+    plt.plot(np.transpose(values))
+    plt.ylabel(metric)
+    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
+    plt.title(metric + " vs number of mutations")
+    plt.legend(list_of_methods + ["Baseline", "Finetuner"])
+    plt.show()
+
 if __name__ == "__main__":
     deconstructSigs_labels = [0.1, 0.7, 0.2]
     real_labels = [0.2, 0.5, 0.3]
