@@ -28,7 +28,7 @@ class YapsaInspiredBaseline:
                         maxiter=5*self.__weight_len)
         return torch.from_numpy(h).float()
 
-    def get_weights_batch(self, input_batch, n_workers=10):
+    def get_weights_batch(self, input_batch, n_workers=8):
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
