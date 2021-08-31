@@ -25,13 +25,13 @@ def read_data(device, data_folder="../data"):
 
 def read_data_yapsa(device, data_folder="../data"):
     train_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_input_w01.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_input.csv", header=None).values, dtype=torch.float)
     train_input = train_input.to(device)
     train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_baseline_yapsa.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_baseline_yapsa.csv", header=None).values, dtype=torch.float)
     train_guess_0 = train_guess_0.to(device)
     train_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_label_w01.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_label.csv", header=None).values, dtype=torch.float)
     train_label = train_label.to(device)
 
     val_input = torch.tensor(pd.read_csv(
@@ -66,6 +66,30 @@ def read_methods_random_data(device, data_folder="../data"):
     SignatureEstimationQP_guess = SignatureEstimationQP_guess.to(device)
     YAPSA_guess = torch.tensor(pd.read_csv(
         data_folder + "/random_data/methods/YAPSA_random_test_guess.csv", header=None).values, dtype=torch.float)
+    YAPSA_guess = YAPSA_guess.to(device)
+    return label, decompTumor2Sig_guess, deconstructSigs_guess, MutationalPatterns_guess, mutSignatures_guess, SignatureEstimationQP_guess, YAPSA_guess
+
+def read_realistic_test_methods(device, data_folder="../data"):
+    label = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/test_realistic_label.csv", header=None).values, dtype=torch.float)
+    label = label.to(device)
+    decompTumor2Sig_guess = torch.tensor(pd.read_csv(   
+        data_folder + "/realistic_test/methods/decompTumor2Sig_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
+    decompTumor2Sig_guess = decompTumor2Sig_guess.to(device)
+    deconstructSigs_guess = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/methods/deconstructSigs_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
+    deconstructSigs_guess = deconstructSigs_guess.to(device)
+    MutationalPatterns_guess = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/methods/MutationalPatterns_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
+    MutationalPatterns_guess = MutationalPatterns_guess.to(device)
+    mutSignatures_guess = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/methods/mutSignatures_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
+    mutSignatures_guess = mutSignatures_guess.to(device)
+    SignatureEstimationQP_guess = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/methods/SignatureEstimationQP_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
+    SignatureEstimationQP_guess = SignatureEstimationQP_guess.to(device)
+    YAPSA_guess = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/methods/YAPSA_realistic_larger_test_guess.csv", header=None).values, dtype=torch.float)
     YAPSA_guess = YAPSA_guess.to(device)
     return label, decompTumor2Sig_guess, deconstructSigs_guess, MutationalPatterns_guess, mutSignatures_guess, SignatureEstimationQP_guess, YAPSA_guess
 
