@@ -8,13 +8,13 @@ import numpy as np
 from utilities.plotting import plot_metric_vs_mutations
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import read_data, read_data_yapsa, read_methods_random_data, read_methods_realistic_data
+from utilities.io import read_data, read_data_random_yapsa, read_methods_random_data, read_methods_realistic_data
 from utilities.metrics import get_classification_metrics
 from models.yapsa_inspired_baseline import YapsaInspiredBaseline
 from models.finetuner import FineTuner
 
 dev = torch.device("cpu")
-_, _, _, _, val_guess_0, val_label = read_data_yapsa(dev)
+_, _, _, _, val_guess_0, val_label = read_data_random_yapsa(dev)
 
 label_random, decompTumor2Sig_guess_random, deconstructSigs_guess_random, MutationalPatterns_guess_random, mutSignatures_guess_random, SignatureEstimationQP_guess_random, YAPSA_guess_random = read_methods_random_data(dev)
 label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_methods_realistic_data(dev)
@@ -39,7 +39,7 @@ input_batch = torch.tensor(pd.read_csv(
 sf = YapsaInspiredBaseline(signatures)
 baseline_guess = sf.get_weights_batch(input_batch)
 
-finetuner_model_name = "finetuner_model_yapsa_new"
+finetuner_model_name = "finetuner_model_yapsa_random"
 finetuner_params = {"num_hidden_layers": 1,
                         "num_units": 1300,
                         "num_classes": 72}
