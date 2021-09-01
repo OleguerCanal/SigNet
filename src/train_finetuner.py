@@ -15,7 +15,7 @@ fp_param = 0.01
 fn_param = 0.01
 
 batch_size = 500
-lr = 0.001
+lr = 0.0001
 num_hidden_layers = 1
 num_neurons = 1300
 

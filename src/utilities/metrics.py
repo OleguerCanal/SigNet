@@ -79,7 +79,7 @@ def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     fn = torch.sum(nn.ReLU()(label_mask - prediction_mask))  # only count when label ~= 1 and pred ~= 0
     return fp, fn
 
-def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=1e-2):
+def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
     batch_size = float(pred_lower.shape[0])
     lower = label - pred_lower
     upper = pred_upper - label
@@ -90,7 +90,7 @@ def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=1e-2):
     with torch.no_grad():
         in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
     loss_by_mutation_signature = interval_length + lagrange_mult*(lower + upper)
-    loss_by_mutation = torch.linalg.norm(10*loss_by_mutation_signature, ord=5, axis=1)
+    loss_by_mutation = torch.linalg.norm(1e4*loss_by_mutation_signature, ord=5, axis=1)
     loss = torch.mean(loss_by_mutation)
     return loss, in_prop, mean_interval_width
 
