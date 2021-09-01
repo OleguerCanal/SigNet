@@ -92,6 +92,15 @@ def read_methods_random_data(device, data_folder="../data"):
     YAPSA_guess = YAPSA_guess.to(device)
     return label, decompTumor2Sig_guess, deconstructSigs_guess, MutationalPatterns_guess, mutSignatures_guess, SignatureEstimationQP_guess, YAPSA_guess
 
+def read_realistic_test(device, data_folder="../data"):
+    label = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/test_realistic_label.csv", header=None).values, dtype=torch.float)
+    label = label.to(device)
+    input = torch.tensor(pd.read_csv(
+        data_folder + "/realistic_test/test_realistic_input.csv", header=None).values, dtype=torch.float)
+    input = input.to(device)
+    return label, input
+
 def read_realistic_test_methods(device, data_folder="../data"):
     label = torch.tensor(pd.read_csv(
         data_folder + "/realistic_test/test_realistic_label.csv", header=None).values, dtype=torch.float)
