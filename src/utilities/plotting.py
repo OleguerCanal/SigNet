@@ -99,6 +99,32 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
     plt.title('Confidence intervals performance')
     plt.show()
 
+def plot_interval_width_vs_mutations(upper, lower, sigs_names):
+    mean_width = np.zeros((10))
+    for i in range(10):
+        # Mean across signatures and across samples
+        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:]).detach().numpy()
+    plt.plot(mean_width)
+    plt.ylabel("Mean interval width")
+    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
+    plt.title("Mean interval width vs number of mutations")
+    plt.show()
+
+    mean_width = np.zeros((10,72))
+    for i in range(10):
+        # Mean across signatures and across samples
+        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:], 0).detach().numpy()
+    fig = plt.figure(figsize=(13, 13))
+    plt.plot(mean_width)
+    plt.ylabel("Mean interval width")
+    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
+    plt.title("Mean interval width vs number of mutations")
+    plt.legend(sigs_names, title='Signatures', bbox_to_anchor=(1.05, 1), loc='upper left', ncol=2)
+    plt.show()
+
+
+
+
 def plot_metric_vs_mutations(metric, list_of_methods, baseline_guess, finetuner_guess):
     label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_realistic_test_methods(torch.device("cpu"))
     values = np.zeros((len(list_of_methods)+2, 10))
