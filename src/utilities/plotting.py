@@ -101,14 +101,14 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
 
 def plot_metric_vs_mutations(metric, list_of_methods, baseline_guess, finetuner_guess):
     label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_realistic_test_methods(torch.device("cpu"))
-    values = np.zeros((len(list_of_methods)+2, 10))
+    values = np.zeros((len(list_of_methods)+2, 20))
     k = -1
     for method in list_of_methods:
         k += 1
-        for i in range(10):
+        for i in range(20):
             metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=locals()[method + "_guess_realistic"][1000*i:1000*(i+1),:])
             values[k,i] = metrics[metric]
-    for i in range(10):
+    for i in range(20):
         metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=baseline_guess[1000*i:1000*(i+1),:])
         values[k+1,i] = metrics[metric]
         metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=finetuner_guess[1000*i:1000*(i+1),:])
@@ -117,7 +117,7 @@ def plot_metric_vs_mutations(metric, list_of_methods, baseline_guess, finetuner_
     print(np.transpose(values))
     plt.plot(np.transpose(values))
     plt.ylabel(metric)
-    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
+    plt.xticks(range(20), [25,50,100,150,200,250,500,1000,2000,5000,10000,20000,50000,100000,500000,1000000,5000000,10000000,50000000,100000000], rotation='vertical')
     plt.title(metric + " vs number of mutations")
     plt.legend(list_of_methods + ["Baseline", "Finetuner"])
     plt.show()
