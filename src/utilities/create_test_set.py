@@ -15,7 +15,7 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Generate data
-    data = pd.read_excel("../data/data.xlsx")
+    data = pd.read_excel("../../data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                 for i in range(2, 74)][:num_classes]
     dataloader = DataLoader(signatures=signatures,
@@ -24,12 +24,13 @@ if __name__ == "__main__":
                             min_n_signatures=1,
                             max_n_signatures=10,
                             seed=0)
-    input_batch, label_batch = dataloader.get_batch(normalize=True)
+    #input_batch, label_batch = dataloader.get_batch(normalize=True)
+    input_batch, label_batch = dataloader.make_random_train_set(normalize=True)
     df = input_batch.detach().numpy()
     #df = np.array(df, dtype=int)
     df = pd.DataFrame(df)
-    df.to_csv("../data/test_input_w01.csv", header=False, index=False)
+    df.to_csv("../../data/train_random/train_random_input.csv", header=False, index=False)
 
     df = label_batch.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../data/test_label_w01.csv", header=False, index=False)
+    df.to_csv("../../data/train_random/train_random_label.csv", header=False, index=False)

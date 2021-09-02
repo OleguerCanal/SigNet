@@ -28,7 +28,7 @@ class YapsaInspiredBaseline:
                         maxiter=5*self.__weight_len)
         return torch.from_numpy(h).float()
 
-    def get_weights_batch(self, input_batch, n_workers=8):
+    def get_weights_batch(self, input_batch, n_workers=4):
         result = []
         input_as_list = input_batch.tolist()
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
@@ -81,16 +81,18 @@ def create_huge_baseline_dataset(input_file, output_file):
 
 
 if __name__ == "__main__":
-    training_data_in_file = "train_input_w01.csv"
-    # training_data_in_file = "train_input_huge.csv"
+    training_data_in_file = "/random_train/train_random_input.csv"
+    training_data_in_file_2 = "/realistic_train/train_realistic_input.csv"
     # validation_data_in_file = "validation_input_w01.csv"
     # test_data_in_file = "test_input_w01.csv"
 
-    training_data_out_file = "train_baseline_yapsa.csv"
+    training_data_out_file = "/random_train/train_random_baseline_yapsa.csv"
+    training_data_out_file_2 = "/realistic_train/train_realistic_baseline_yapsa.csv"
     # training_data_out_file = "train_baseline_yapsa_huge.csv"
     # validation_data_out_file = "validation_baseline_yapsa.csv"
     # test_data_out_file = "test_baseline_yapsa.csv"
 
-    create_baseline_dataset(training_data_in_file, training_data_out_file)
+    # create_baseline_dataset(training_data_in_file, training_data_out_file)
+    create_baseline_dataset(training_data_in_file_2, training_data_out_file_2)
     # create_baseline_dataset(validation_data_in_file, validation_data_out_file)
     # create_baseline_dataset(test_data_in_file, test_data_out_file)
