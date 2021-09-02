@@ -80,8 +80,7 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
         label_batch = torch.empty((batch_size, self.__total_signatures + 1))
 
         range_muts = [15, 100, 500, 5000, 50000, 500000, 50000000]
-        num_samples = [30000,30000,20000,20000,25000,25000]
-        ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3]*20000 + [5]*25000 + [5]*25000
+        ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3]*20000 + [4]*25000 + [5]*25000
         for i in range(batch_size):
             # Pick the number of involved signatures
             n_signatures = np.random.randint(self.min_n_signatures, self.max_n_signatures + 1)
