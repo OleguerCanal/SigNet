@@ -84,7 +84,7 @@ class FinetunerTrainer:
         step = 0
         for iteration in range(self.iterations):
             for train_input, train_label, train_weight_guess in tqdm(dataloader):
-                model.train()
+                model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()                

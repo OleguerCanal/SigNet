@@ -6,8 +6,10 @@ class FineTuner(nn.Module):
     def __init__(self,
                  num_classes=72,
                  num_hidden_layers=2,
-                 num_units=400):
+                 num_units=400,
+                 cutoff=0.05):
         super(FineTuner, self).__init__()
+        self._cutoff = cutoff
 
         num_units = int(num_units/2)*2  # To have an even number of units
         num_units_branch = int(num_units/2)
@@ -55,4 +57,9 @@ class FineTuner(nn.Module):
         # Apply output layer
         comb = self.output_layer(comb)
         comb = self.softmax(comb)
+
+        # If in eval mode, send small values to 0
+        if not self.training:
+            mask = (comb > self._cutoff).type(torch.int).float()
+            comb = self.softmax(comb*mask)
         return comb
