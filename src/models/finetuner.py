@@ -61,5 +61,6 @@ class FineTuner(nn.Module):
         # If in eval mode, send small values to 0
         if not self.training:
             mask = (comb > self._cutoff).type(torch.int).float()
-            comb = self.softmax(comb*mask)
+            comb = comb*mask
+            comb = comb/torch.sum(comb, axis=1)
         return comb
