@@ -19,7 +19,7 @@ _, _, _, _, val_guess_0, val_label = read_data_random_yapsa(dev)
 label_random, decompTumor2Sig_guess_random, deconstructSigs_guess_random, MutationalPatterns_guess_random, mutSignatures_guess_random, SignatureEstimationQP_guess_random, YAPSA_guess_random = read_methods_random_data(dev)
 label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_methods_realistic_data(dev)
 
-list_of_methods = ["decompTumor2Sig", "deconstructSigs", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]
+list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"] # "deconstructSigs"
 
 for method in list_of_methods:
     print(method)
