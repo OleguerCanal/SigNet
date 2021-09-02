@@ -62,5 +62,5 @@ class FineTuner(nn.Module):
         if not self.training:
             mask = (comb > self._cutoff).type(torch.int).float()
             comb = comb*mask
-            comb = comb/torch.sum(comb, axis=1)
+            comb = torch.div(comb, torch.sum(comb, axis=1).reshape((-1,1)))
         return comb
