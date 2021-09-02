@@ -47,7 +47,7 @@ finetuner_params = {"num_hidden_layers": 1,
 finetuner = FineTuner(**finetuner_params)
 finetuner.load_state_dict(torch.load(os.path.join(
             "../trained_models", finetuner_model_name), map_location=torch.device('cpu')))
-finetuner.eval()
+finetuner.eval() # NOTE: Important! Otherwise we don't zero small values
 finetuner_guess = finetuner(mutation_dist=input_batch, weights=baseline_guess)
 
 print(finetuner_guess)

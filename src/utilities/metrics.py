@@ -87,11 +87,11 @@ def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=1e-2):
     upper = nn.ReLU()(-upper)
     # inverse_interval = nn.ReLU()(pred_lower - pred_upper)       # Penalize if the interval is inverted
     interval_length = ((pred_upper - pred_lower)**2)/batch_size
-    with torch.no_grad():
-        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
     loss_by_mutation_signature = interval_length + lagrange_mult*(lower + upper)
     loss_by_mutation = torch.linalg.norm(10*loss_by_mutation_signature, ord=5, axis=1)
     loss = torch.mean(loss_by_mutation)
+    with torch.no_grad():
+        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
     return loss, in_prop, mean_interval_width
 
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
