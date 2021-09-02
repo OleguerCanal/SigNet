@@ -25,13 +25,13 @@ def read_data(device, data_folder="../data"):
 
 def read_data_realistic_yapsa(device, data_folder="../data"):
     train_input = torch.tensor(pd.read_csv(
-        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_input.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_train/train_realistic_input.csv", header=None).values, dtype=torch.float)
     train_input = train_input.to(device)
     train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_baseline_yapsa.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_train/train_realistic_baseline_yapsa.csv", header=None).values, dtype=torch.float)
     train_guess_0 = train_guess_0.to(device)
     train_label = torch.tensor(pd.read_csv(
-        data_folder + "/realistic_data/train_more_sigs/larger_realistic_train_label.csv", header=None).values, dtype=torch.float)
+        data_folder + "/realistic_train/train_realistic_label.csv", header=None).values, dtype=torch.float)
     train_label = train_label.to(device)
 
     val_input = torch.tensor(pd.read_csv(
