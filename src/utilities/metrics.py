@@ -35,8 +35,9 @@ def get_cross_entropy2(predicted_label, true_label):
 
 
 def get_kl_divergence(predicted_label, true_label):
+    _EPS = 1e-9
+    predicted_label = predicted_label + _EPS
     return get_cross_entropy2(predicted_label, true_label) - get_entropy(true_label)
-
 
 def get_jensen_shannon(predicted_label, true_label):
     _EPS = 1e-6
