@@ -73,14 +73,24 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
         return input_batch, label_batch, baseline_batch, last_ind
 
 
-    def make_random_train_set(self, normalize=True):
-        batch_size = 150000
+    def make_random_set(self, set, normalize=True):
+
+        if set == "train":
+            batch_size = 120000
+            range_muts = [15, 100, 500, 5000, 50000]
+            ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3]*20000 + [-1]*20000     # The -1 means real distribution
+        elif set == "val":
+            batch_size = 12000
+            range_muts = [15, 100, 500, 5000, 50000]
+            ind_range_muts = [0]*3000 + [1]*3000 + [2]*2000 + [3]*2000 + [-1]*2000          # The -1 means real distribution
+        elif set == "test":
+            batch_size = 15000
+            num_muts = [25]*1000 + [50]*1000 + [100]*1000 + [150]*1000 + [200]*1000 + [250]*1000 + [500]*1000 + \
+                        [1000]*1000 + [2000]*1000 + [5000]*1000 + [10000]*1000 + [20000]*1000 + [50000]*1000 + [-1]*2000    # The -1 means real distribution
 
         input_batch = torch.empty((batch_size, 96))
         label_batch = torch.empty((batch_size, self.__total_signatures + 1))
 
-        range_muts = [15, 100, 500, 5000, 50000, 500000, 50000000]
-        ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3]*20000 + [4]*25000 + [5]*25000
         for i in range(batch_size):
             # Pick the number of involved signatures
             n_signatures = np.random.randint(self.min_n_signatures, self.max_n_signatures + 1)
@@ -103,14 +113,41 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
             signature = torch.einsum("ij,j->i", (self.signatures, label))
             
             # Sample
-            num_mut = np.random.randint(range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i]+1])
-            c = torch.distributions.categorical.Categorical(probs=signature)
-            samples = c.sample(sample_shape=torch.Size([num_mut,])).type(torch.float32)
-            sample = torch.histc(samples, bins=96, min=0, max=95)
-            if normalize:
-                sample = sample/float(num_mut)
+            if set == "train" or set == "val":
+                if ind_range_muts[i] != -1:
+                    num_mut = np.random.randint(range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i]+1])
+                    c = torch.distributions.categorical.Categorical(probs=signature)
+                    samples = c.sample(sample_shape=torch.Size([num_mut,])).type(torch.float32)
+                    sample = torch.histc(samples, bins=96, min=0, max=95)
+                    if normalize:
+                        sample = sample/float(num_mut)
+                    
+                    # Store
+                    input_batch[i, :] = sample
+                    label_batch[i, :] = torch.cat([label, torch.tensor([num_mut])])
+                else:
+                    # Store
+                    input_batch[i, :] = signature
+                    label_batch[i, :] = torch.cat([label, torch.tensor([1e5])]) # For the real distribution we say we have 1e5 mutations
+
+            else:
+                if num_muts[i] != -1:
+                    num_mut = num_muts[i]
+                    c = torch.distributions.categorical.Categorical(probs=signature)
+                    samples = c.sample(sample_shape=torch.Size([num_mut,])).type(torch.float32)
+                    sample = torch.histc(samples, bins=96, min=0, max=95)
+                    if normalize:
+                        sample = sample/float(num_mut)
+                    
+                    # Store
+                    input_batch[i, :] = sample
+                    label_batch[i, :] = torch.cat([label, torch.tensor([num_mut])])
+                else:
+                    # Store
+                    input_batch[i, :] = signature
+                    label_batch[i, :] = torch.cat([label, torch.tensor([1e5])]) # For the real distribution we say we have 1e5 mutations
             
-            # Store
-            input_batch[i, :] = sample
-            label_batch[i, :] = torch.cat([label, torch.tensor([num_mut])])
+
+            if i%1000 == 0:
+                print(i)
         return input_batch, label_batch
