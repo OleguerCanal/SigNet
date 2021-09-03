@@ -11,12 +11,12 @@ experiment_id = "finetuner_model_yapsa_random"
 model_path = "../trained_models"
 iterations = 20
 num_classes = 72
-fp_param = 0.01
-fn_param = 0.01
+fp_param = 0.001
+fn_param = 0.001
 
 batch_size = 500
-lr = 0.001
-num_hidden_layers = 1
+lr = 0.0001
+num_hidden_layers = 3
 num_neurons = 1300
 
 if __name__ == "__main__":
