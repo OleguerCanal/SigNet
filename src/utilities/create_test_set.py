@@ -25,12 +25,12 @@ if __name__ == "__main__":
                             max_n_signatures=10,
                             seed=0)
     #input_batch, label_batch = dataloader.get_batch(normalize=True)
-    input_batch, label_batch = dataloader.make_random_train_set(normalize=True)
+    input_batch, label_batch = dataloader.make_random_set("train", normalize=True)
     df = input_batch.detach().numpy()
     #df = np.array(df, dtype=int)
     df = pd.DataFrame(df)
-    df.to_csv("../../data/train_random/train_random_input.csv", header=False, index=False)
+    df.to_csv("../../data/train_val_test_sets/train_random_input.csv", header=False, index=False)
 
     df = label_batch.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/train_random/train_random_label.csv", header=False, index=False)
+    df.to_csv("../../data/train_val_test_sets/train_random_label.csv", header=False, index=False)
