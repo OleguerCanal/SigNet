@@ -128,7 +128,7 @@ class DataLoader:  #TODO(oleguer): Inherit from torch.utils.data.Dataset
                 else:
                     # Store
                     input_batch[i, :] = signature
-                    label_batch[i, :] = torch.cat([label, torch.tensor([1e5])]) # For the real distribution we say we have 1e5 mutations
+                    label_batch[i, :] = torch.cat([label, torch.tensor([np.random.randint(1e5, 1e6)])]) # For the real distribution we say we have more than 1e5 mutations
 
             else:
                 if num_muts[i] != -1:
