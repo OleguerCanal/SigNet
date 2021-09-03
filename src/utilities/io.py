@@ -1,72 +1,35 @@
+import os
+
 import pandas as pd
 import torch
 
-def read_data(device, data_folder="../data"):
-    train_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_input_w01.csv", header=None).values, dtype=torch.float)
-    train_input = train_input.to(device)
-    train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
-    train_guess_0 = train_guess_0.to(device)
-    train_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_label_w01.csv", header=None).values, dtype=torch.float)
-    train_label = train_label.to(device)
+def read_data(device, experiment_id, source, data_folder="../data"):
+    """Read data from disk
 
-    val_input = torch.tensor(pd.read_csv(
-        data_folder + "/validation_input_w01.csv", header=None).values, dtype=torch.float)
-    val_input = val_input.to(device)
-    val_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/validation_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
-    val_guess_0 = val_guess_0.to(device)
-    val_label = torch.tensor(pd.read_csv(
-        data_folder + "/validation_label_w01.csv", header=None).values, dtype=torch.float)
-    val_label = val_label.to(device)
-    return train_input, train_guess_0, train_label, val_input, val_guess_0, val_label
+    Args:
+        device (string): Device to train on
+        experiment_id (string): Full name of the experiment folder
+        source (string): Type of generated data: random or realistic
+        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+    """
+    assert(source in ["random", "realistic"])
+    path = os.path.join(data_folder, experiment_id)
 
-def read_data_realistic_yapsa(device, data_folder="../data"):
-    train_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_realistic_input.csv", header=None).values, dtype=torch.float)
-    train_input = train_input.to(device)
-    train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_realistic_baseline_yapsa.csv", header=None).values, dtype=torch.float)
-    train_guess_0 = train_guess_0.to(device)
-    train_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_realistic_label.csv", header=None).values, dtype=torch.float)
-    train_label = train_label.to(device)
+    def csv_to_tensor(file):
+        input_tensor = torch.tensor(pd.read_csv(file, header=None).values, dtype=torch.float)
+        assert(not torch.isnan(input_tensor).any())
+        assert(torch.count_nonzero(torch.sum(input_tensor, axis=1)) == input_tensor.shape[0])
+        return input_tensor.to(device)
 
-    val_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_realistic_input.csv", header=None).values, dtype=torch.float)
-    val_input = val_input.to(device)
-    val_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_realistic_baseline_yapsa.csv", header=None).values, dtype=torch.float)
-    val_guess_0 = val_guess_0.to(device)
-    val_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_realistic_label.csv", header=None).values, dtype=torch.float)
-    val_label = val_label.to(device)
-    return train_input, train_guess_0, train_label, val_input, val_guess_0, val_label
-    
-def read_data_random_yapsa(device, data_folder="../data"):
-    train_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_random_input.csv", header=None).values, dtype=torch.float)
-    train_input = train_input.to(device)
-    train_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_random_baseline_yapsa.csv", header=None).values, dtype=torch.float)
-    train_guess_0 = train_guess_0.to(device)
-    train_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/train_random_label.csv", header=None).values, dtype=torch.float)
-    train_label = train_label.to(device)
+    train_input = csv_to_tensor(path + "/train_%s_input.csv"%source)
+    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv"%source)
+    train_label = csv_to_tensor(path + "/train_%s_label.csv"%source)
 
-    val_input = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_random_input.csv", header=None).values, dtype=torch.float)
-    val_input = val_input.to(device)
-    val_guess_0 = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_random_baseline_yapsa.csv", header=None).values, dtype=torch.float)
-    val_guess_0 = val_guess_0.to(device)
-    val_label = torch.tensor(pd.read_csv(
-        data_folder + "/train_val_test_sets/val_random_label.csv", header=None).values, dtype=torch.float)
-    val_label = val_label.to(device)
-    return train_input, train_guess_0, train_label, val_input, val_guess_0, val_label
+    val_input = csv_to_tensor(path + "/val_%s_input.csv"%source)
+    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv"%source)
+    val_label = csv_to_tensor(path + "/val_%s_label.csv"%source)
 
+    return train_input, train_baseline, train_label, val_input, val_baseline, val_label
 
 def read_methods_random_data(device, data_folder="../data"):
     label = torch.tensor(pd.read_csv(
