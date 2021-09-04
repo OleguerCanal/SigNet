@@ -140,7 +140,6 @@ def get_pi_metrics(label, pred_lower, pred_upper):
     mean_interval_width = torch.mean(mean_interval_width)
     mean_interval_width_present = torch.mean(mean_interval_width_present)
     mean_interval_width_absent = torch.mean(mean_interval_width_absent)
-
     return {"in_prop": in_prop, "mean_interval_width": mean_interval_width, "mean_interval_width_present": mean_interval_width_present, "mean_interval_width_absent":mean_interval_width_absent}
 
 
