@@ -6,7 +6,7 @@ from snorkel import classification
 import torch
 import torch.nn as nn
 
-
+# USED IN FINE TUNER
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
 
@@ -33,7 +33,6 @@ def get_cross_entropy2(predicted_label, true_label):
     #predicted_label_local += 1e-6
     return torch.mean(-torch.einsum("ij,ij->i",(true_label, torch.log(predicted_label))))
 
-
 def get_kl_divergence(predicted_label, true_label):
     _EPS = 1e-9
     predicted_label = predicted_label + _EPS
@@ -45,7 +44,6 @@ def get_jensen_shannon(predicted_label, true_label):
     term1 = torch.mean(torch.einsum("ij,ij->i",(predicted_label, torch.log(torch.div(predicted_label + _EPS, r)))))
     term2 = torch.mean(torch.einsum("ij,ij->i",(true_label, torch.log(torch.div(true_label + _EPS, r)))))
     return 0.5 * (term1 + term2) 
-
 
 def get_wasserstein_distance(predicted_label, true_label):
     dist = 0
@@ -80,21 +78,6 @@ def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     fn = torch.sum(nn.ReLU()(label_mask - prediction_mask))  # only count when label ~= 1 and pred ~= 0
     return fp, fn
 
-def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
-    batch_size = float(pred_lower.shape[0])
-    lower = label - pred_lower
-    upper = pred_upper - label
-    lower = nn.ReLU()(-lower)
-    upper = nn.ReLU()(-upper)
-    # inverse_interval = nn.ReLU()(pred_lower - pred_upper)       # Penalize if the interval is inverted
-    interval_length = ((pred_upper - pred_lower)**2)/batch_size
-    loss_by_mutation_signature = interval_length + lagrange_mult*(lower + upper)
-    loss_by_mutation = torch.linalg.norm(1e4*loss_by_mutation_signature, ord=5, axis=1)
-    loss = torch.mean(loss_by_mutation)
-    with torch.no_grad():
-        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
-    return loss, in_prop, mean_interval_width
-
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):
     label_sigs_list = torch.zeros(0, dtype=torch.long)
     predicted_sigs_list = torch.zeros(0, dtype=torch.long)
@@ -117,19 +100,48 @@ def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=
                     [predicted_sigs_list, torch.from_numpy(np.array([j]))])
     return label_sigs_list, predicted_sigs_list
 
-def get_pi_metrics(label, pred_lower, pred_upper):
+# USED IN ERROR FINDER 
+def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
+    batch_size = float(pred_lower.shape[0])
+    lower = label - pred_lower
+    upper = pred_upper - label
+    lower = nn.ReLU()(-lower)
+    upper = nn.ReLU()(-upper)
+    dist = lower + upper
+    return dist
+
+def interval_width(pred_lower, pred_upper):
+    return abs(pred_upper-pred_lower)
+
+def get_pi_metrics_by_sig(label, pred_lower, pred_upper):
     """Used to compare prediction interval guesses.
     
     Returns:
         in_prop [float]: Proportion of labels in (pred_lower, pred_upper)
         mean_interval_width [float]: Mean width of the intervals
     """
+    EPS = 1e-6
     k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
     k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
-    in_prop = torch.mean(k_h)  # Hard Prediction Interval Coverage Probability
-    mean_interval_width = torch.mean(torch.max(torch.zeros_like(label), pred_upper - pred_lower))
-    return in_prop, mean_interval_width
+    in_prop = torch.mean(k_h, 0)  # Hard Prediction Interval Coverage Probability
+    interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
+    mean_interval_width = torch.mean(interval_width, 0)
+
+    interval_width_present = torch.masked_select(interval_width, label > EPS)
+    interval_width_absent = torch.masked_select(interval_width, label <= EPS)
+    mean_interval_width_present = torch.mean(interval_width_present, 0)
+    mean_interval_width_absent = torch.mean(interval_width_absent, 0)
+    return in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent
+
+def get_pi_metrics(label, pred_lower, pred_upper):
+    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper)
+    in_prop = torch.mean(in_prop)
+    mean_interval_width = torch.mean(mean_interval_width)
+    mean_interval_width_present = torch.mean(mean_interval_width_present)
+    mean_interval_width_absent = torch.mean(mean_interval_width_absent)
+
+    return {"in_prop": in_prop, "mean_interval_width": mean_interval_width, "mean_interval_width_present": mean_interval_width_present, "mean_interval_width_absent":mean_interval_width_absent}
 
 
 def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-4, softening_factor=500.0):
