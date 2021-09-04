@@ -10,11 +10,11 @@ from models.finetuner import FineTuner
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-
-experiment_id = "error_finder_random_3"
-model_path = "../trained_models"
-finetuner_model_name = "finetuner_model_yapsa_random"
-iterations = 5
+source = "realistic"
+experiment_id = "exp_0"
+model_path = "../trained_models/" + experiment_id
+finetuner_model_name = "finetuner_" + source
+iterations = 30
 num_classes = 72
 
 # Error finder params
@@ -26,12 +26,9 @@ num_hidden_layers_neg = 1
 num_neurons_neg = 1000
 
 # Finetuner params
-num_hidden_layers = 1
+num_hidden_layers = 2
 num_units = 1300
 
-def print_size(name, tensor):
-    size = tensor.element_size() * tensor.nelement() * 1e-6
-    print(name, "has size:", size, "MB (", tensor.type(), ")")
 
 if __name__ == "__main__":
     # dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -39,7 +36,10 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu")
+    train_input, train_baseline, train_label,\
+        val_input, val_baseline, val_label = read_data(device=dev,
+                                                       experiment_id=experiment_id,
+                                                       source=source)
     
     finetuner = FineTuner(num_classes=72,
                           num_hidden_layers=num_hidden_layers,
@@ -50,14 +50,16 @@ if __name__ == "__main__":
     
     with torch.no_grad():
         train_guess_1 = finetuner(mutation_dist=train_input,
-                                weights=train_guess_0)
+                                weights=train_baseline,
+                                num_mut=train_label[:, -1].reshape(-1, 1))
 
         val_guess_1 = finetuner(mutation_dist=val_input,
-                                weights=val_guess_0)
+                                weights=val_baseline,
+                                num_mut=val_label[:, -1].reshape(-1, 1))
 
     del finetuner
-    del train_guess_0
-    del val_guess_0
+    del train_baseline
+    del val_baseline
     gc.collect()
     torch.cuda.empty_cache()
 

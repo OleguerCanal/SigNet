@@ -28,4 +28,4 @@ class ErrorFinderLogger:
 
         for key in pi_metrics_val.keys():
             self.writer.add_scalar("metrics/%s"%key, pi_metrics_train[key].item(), step)
-            self.writer.add_scalar("metrics/%s"%key, pi_metrics_val[key].item(), step)
+            self.val_writer.add_scalar("metrics/%s"%key, pi_metrics_val[key].item(), step)
