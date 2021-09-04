@@ -29,7 +29,7 @@ class SignatureNet:
         self.finetuner = FineTuner(**finetuner_params)
         self.finetuner.load_state_dict(torch.load(os.path.join(
             models_path, finetuner_model_name), map_location=torch.device('cpu')))
-        self.finetuner.eval()
+        self.finetuner.eval()  #NOTE: Careful! SignatureNet model is only for evaluation (train submodels individually)
 
         # Instantiate errorfinder and read params
         self.error_finder = ErrorFinder(**error_learner_params)

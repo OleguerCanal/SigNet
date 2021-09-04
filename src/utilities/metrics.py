@@ -35,8 +35,9 @@ def get_cross_entropy2(predicted_label, true_label):
 
 
 def get_kl_divergence(predicted_label, true_label):
+    _EPS = 1e-9
+    predicted_label = predicted_label + _EPS
     return get_cross_entropy2(predicted_label, true_label) - get_entropy(true_label)
-
 
 def get_jensen_shannon(predicted_label, true_label):
     _EPS = 1e-6
@@ -87,11 +88,11 @@ def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
     upper = nn.ReLU()(-upper)
     # inverse_interval = nn.ReLU()(pred_lower - pred_upper)       # Penalize if the interval is inverted
     interval_length = ((pred_upper - pred_lower)**2)/batch_size
-    with torch.no_grad():
-        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
     loss_by_mutation_signature = interval_length + lagrange_mult*(lower + upper)
     loss_by_mutation = torch.linalg.norm(1e4*loss_by_mutation_signature, ord=5, axis=1)
     loss = torch.mean(loss_by_mutation)
+    with torch.no_grad():
+        in_prop, mean_interval_width = get_pi_metrics(label, pred_lower, pred_upper)
     return loss, in_prop, mean_interval_width
 
 def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=72):

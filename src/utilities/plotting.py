@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
-from utilities.io import read_methods_realistic_data, read_realistic_test_methods
+# from utilities.io import read_methods_realistic_data, read_realistic_test_methods
 
 from utilities.metrics import get_classification_metrics
 
@@ -122,31 +122,35 @@ def plot_interval_width_vs_mutations(upper, lower, sigs_names):
     plt.legend(sigs_names, title='Signatures', bbox_to_anchor=(1.05, 1), loc='upper left', ncol=2)
     plt.show()
 
-
-
-
-def plot_metric_vs_mutations(metric, list_of_methods, baseline_guess, finetuner_guess):
-    label_realistic, decompTumor2Sig_guess_realistic, deconstructSigs_guess_realistic, MutationalPatterns_guess_realistic, mutSignatures_guess_realistic, SignatureEstimationQP_guess_realistic, YAPSA_guess_realistic = read_realistic_test_methods(torch.device("cpu"))
-    values = np.zeros((len(list_of_methods)+2, 10))
-    k = -1
-    for method in list_of_methods:
-        k += 1
-        for i in range(10):
-            metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=locals()[method + "_guess_realistic"][1000*i:1000*(i+1),:])
-            values[k,i] = metrics[metric]
-    for i in range(10):
-        metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=baseline_guess[1000*i:1000*(i+1),:])
-        values[k+1,i] = metrics[metric]
-        metrics = get_classification_metrics(label_batch=label_realistic[1000*i:1000*(i+1), :-1], prediction_batch=finetuner_guess[1000*i:1000*(i+1),:])
-        values[k+2,i] = metrics[metric]
+def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
+    m = -1
+    fig, axs = plt.subplots(len(list_of_metrics))
+    fig.suptitle("Metrics vs Number of Mutations")
     
-    print(np.transpose(values))
-    plt.plot(np.transpose(values))
-    plt.ylabel(metric)
-    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
-    plt.title(metric + " vs number of mutations")
-    plt.legend(list_of_methods + ["Baseline", "Finetuner"])
+    for metric in list_of_metrics:
+        m += 1
+        num_muts = np.unique(label[:,-1].detach().numpy())
+        values = np.zeros((len(list_of_methods), len(num_muts)))
+
+        for k in range(len(list_of_methods)):
+            for i in range(len(num_muts)):
+                metrics = get_classification_metrics(label_batch=label[1000*i:1000*(i+1), :-1], prediction_batch=list_of_guesses[k][1000*i:1000*(i+1),:])
+                values[k,i] = metrics[metric]
+        
+        handles = axs[m].plot(np.log10(num_muts), np.transpose(values))
+        axs[m].set_ylabel(metric)
+        if m == len(list_of_metrics)-1:
+            axs[m].set_xlabel("log(N)")
+
+        # Shrink current axis by 3%
+        box = axs[m].get_position()
+        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+    fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
     plt.show()
+    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+
 
 if __name__ == "__main__":
     deconstructSigs_labels = [0.1, 0.7, 0.2]

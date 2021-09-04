@@ -54,6 +54,8 @@ def create_baseline_dataset(input_file, output_file):
     sol = sf.get_weights_batch(input_data)
     sol = sol.detach().numpy()
 
+    df = pd.DataFrame(sol)
+    df.to_csv(data_path + output_file, header=False, index=False)
     print("done")
 
 
@@ -81,16 +83,14 @@ def create_huge_baseline_dataset(input_file, output_file):
 
 
 if __name__ == "__main__":
-    training_data_in_file = "train_input_w01.csv"
-    # training_data_in_file = "train_input_huge.csv"
-    # validation_data_in_file = "validation_input_w01.csv"
-    # test_data_in_file = "test_input_w01.csv"
+    training_data_in_file = "/train_val_test_sets/train_random_input.csv"
+    validation_data_in_file = "/train_val_test_sets/val_random_input.csv"
+    test_data_in_file = "/train_val_test_sets/test_random_input.csv"
 
-    training_data_out_file = "train_baseline_yapsa.csv"
-    # training_data_out_file = "train_baseline_yapsa_huge.csv"
-    # validation_data_out_file = "validation_baseline_yapsa.csv"
-    # test_data_out_file = "test_baseline_yapsa.csv"
+    training_data_out_file = "/train_val_test_sets/train_random_baseline_yapsa.csv"
+    validation_data_out_file = "/train_val_test_sets/val_random_baseline_yapsa.csv"
+    test_data_out_file = "/train_val_test_sets/test_random_baseline_yapsa.csv"
 
     create_baseline_dataset(training_data_in_file, training_data_out_file)
-    # create_baseline_dataset(validation_data_in_file, validation_data_out_file)
-    # create_baseline_dataset(test_data_in_file, test_data_out_file)
+    create_baseline_dataset(validation_data_in_file, validation_data_out_file)
+    create_baseline_dataset(test_data_in_file, test_data_out_file)

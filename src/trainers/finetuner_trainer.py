@@ -45,6 +45,7 @@ class FinetunerTrainer:
                                           train_baseline=train_weight_guess)
         self.val_input = val_input
         self.val_weight_guess = val_weight_guess
+        self.val_num_mut = val_label[:, -1].reshape(-1,1)
         self.val_label = val_label[:, :self.num_classes]
         self.logger = FinetunerLogger(
             path=loging_path, experiment_id=experiment_id)
@@ -84,11 +85,12 @@ class FinetunerTrainer:
         step = 0
         for iteration in range(self.iterations):
             for train_input, train_label, train_weight_guess in tqdm(dataloader):
-                model.train()
+                model.train()  # NOTE: Very important! Otherwise we zero the gradient
+                num_mut = train_label[:, -1].reshape(-1,1)
                 train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()                
-                train_prediction = model(train_input, train_weight_guess)
+                train_prediction = model(train_input, train_weight_guess, num_mut)
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                                 prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
@@ -103,7 +105,7 @@ class FinetunerTrainer:
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
                                                                               prediction_batch=train_prediction)
                     val_prediction = model(
-                        self.val_input, self.val_weight_guess)
+                        self.val_input, self.val_weight_guess, self.val_num_mut)
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_label,
                                                     prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
