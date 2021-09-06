@@ -6,14 +6,136 @@ from sklearn.metrics import confusion_matrix
 import torch
 # from utilities.io import read_methods_realistic_data, read_realistic_test_methods
 
-from utilities.metrics import get_classification_metrics
+from utilities.metrics import get_classification_metrics, get_pi_metrics
 
+# SIGNATURE PLOTS:
 def plot_signature(signature, labels):
     plt.bar(range(96), signature, tick_label=labels)
     plt.xticks(rotation=90)
     plt.show()
 
+# FINETUNER PLOTS:
+def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
+    m = -1
+    fig, axs = plt.subplots(len(list_of_metrics))
+    fig.suptitle("Metrics vs Number of Mutations")
+    
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    for metric in list_of_metrics:
+        m += 1
+        values = np.zeros((len(list_of_methods), len(num_muts)))
 
+        for k in range(len(list_of_methods)):
+            for i in range(len(num_muts)):
+                metrics = get_classification_metrics(label_batch=label[1000*i:1000*(i+1), :-1], prediction_batch=list_of_guesses[k][1000*i:1000*(i+1),:])
+                values[k,i] = metrics[metric]
+        
+        handles = axs[m].plot(np.log10(num_muts), np.transpose(values))
+        axs[m].set_ylabel(metric)
+        if m == len(list_of_metrics)-1:
+            axs[m].set_xlabel("log(N)")
+
+        # Shrink current axis by 3%
+        box = axs[m].get_position()
+        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+    fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+
+# ERRORLEARNER PLOTS:
+def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_name):
+    fig, axs = plt.subplots(2,2)
+    fig.suptitle("Interval metrics vs Number of Mutations")
+
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    values = np.zeros((4,len(num_muts)))
+    for i in range(len(num_muts)):
+        k = -1
+        metrics = get_pi_metrics(label[1000*i:1000*(i+1), :-1], pred_lower[1000*i:1000*(i+1), :], pred_upper[1000*i:1000*(i+1), :])
+        for metric in metrics.keys():
+            k += 1
+            values[k,i] = metrics[metric]
+        
+    axs[0,0].plot(np.log10(num_muts), values[0])
+    axs[0,0].set_ylabel("Proportion in")
+    axs[0,0].set_xlabel("log(N)")
+
+    axs[0,1].plot(np.log10(num_muts), values[1])
+    axs[0,1].set_ylabel("Interval width")
+    axs[0,1].set_xlabel("log(N)")
+
+    axs[1,0].plot(np.log10(num_muts), values[2])
+    axs[1,0].set_ylabel("Interval width present")
+    axs[1,0].set_xlabel("log(N)")
+
+    axs[1,1].plot(np.log10(num_muts), values[3])
+    axs[1,1].set_ylabel("Interval width absent")
+    axs[1,1].set_xlabel("log(N)")
+
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+
+def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names): # Returns x,y
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
+    num_error = torch.sum(lower<0, dim=0)
+    num_error += torch.sum(upper<0, dim=0)
+    num_error = num_error / label_batch.shape[0]
+    num_classes = 72
+    plt.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    plt.ylabel("Percentage of error (%)")
+    plt.xticks(range(num_classes), sigs_names, rotation='vertical')
+    plt.title('Confidence intervals performance')
+    plt.show()
+    return range(num_classes), 100*num_error
+
+def plot_interval_width_vs_mutations(label, upper, lower, plot = True): # Returns x,y
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    mean_width = np.zeros((len(num_muts)))
+    for i in range(len(num_muts)):
+        # Mean across signatures and across samples
+        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:]).detach().numpy()
+    
+    plt.plot(np.log10(num_muts), mean_width)
+    plt.ylabel("Mean interval width")
+    plt.title("Mean interval width vs number of mutations")
+    plt.show()
+    return np.log10(num_muts), mean_width
+
+def plot_interval_width_vs_mutations_some_sigs(label, upper, lower, list_of_sigs_ind, sigs_names, plot = True): # Returns x,y
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    mean_width = np.zeros((len(num_muts),72))
+    for i in range(len(num_muts)):
+        # Mean across signatures and across samples
+        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:], 0).detach().numpy()
+
+    plt.plot(np.log10(num_muts), mean_width[:,list_of_sigs_ind])
+    plt.ylabel("Mean interval width")
+    plt.xlabel("log(N)")
+    plt.title("Mean interval width vs number of mutations")
+    plt.legend(np.array(sigs_names)[list_of_sigs_ind], title='Signatures', bbox_to_anchor=(1.02, 0.5), ncol=2)
+    plt.show()
+    return np.log10(num_muts), mean_width[:,list_of_sigs_ind]
+
+def plot_propin_vs_mutations(label, upper, lower, plot = True): # Returns x,y
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    mean_width = np.zeros((len(num_muts)))
+    for i in range(len(num_muts)):
+        # Mean across signatures and across samples
+        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:]).detach().numpy()
+    
+    plt.plot(np.log10(num_muts), mean_width)
+    plt.ylabel("Mean interval width")
+    plt.title("Mean interval width vs number of mutations")
+    plt.show()
+    return np.log10(num_muts), mean_width
+
+
+# WHOLE SIGNATURES-NET PLOTS:
 def plot_confusion_matrix(label_list, predicted_list, class_names):
     conf_mat = confusion_matrix(label_list.numpy(), predicted_list.numpy())
     plt.figure(figsize=(15, 10))
@@ -58,18 +180,6 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     plt.tight_layout()
     plt.show() 
 
-# def plot_weights_comparison(true_labels, guessed_labels, guessed_error_pos, guessed_error_neg, sigs_names):
-#     num_classes = len(guessed_labels)
-#     fig, ax = plt.subplots()
-#     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-#     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
-#     ax.set_ylabel('Weights')
-#     ax.set_xticks(range(num_classes))
-#     ax.set_xticklabels(sigs_names, rotation='vertical')
-#     ax.set_title('Signature decomposition')
-#     plt.tight_layout()
-#     plt.show()
-
 def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
@@ -85,72 +195,6 @@ def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels,
     ax.set_title('Signature decomposition')
     plt.tight_layout()
     plt.show()
-     
-def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names):
-    lower = label_batch - pred_lower
-    upper = pred_upper - label_batch
-    num_error = torch.sum(lower<0, dim=0)
-    num_error += torch.sum(upper<0, dim=0)
-    num_error = num_error / label_batch.shape[0]
-    num_classes = 72
-    plt.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    plt.ylabel("Percentage of error (%)")
-    plt.xticks(range(num_classes), sigs_names, rotation='vertical')
-    plt.title('Confidence intervals performance')
-    plt.show()
-
-def plot_interval_width_vs_mutations(upper, lower, sigs_names):
-    mean_width = np.zeros((10))
-    for i in range(10):
-        # Mean across signatures and across samples
-        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:]).detach().numpy()
-    plt.plot(mean_width)
-    plt.ylabel("Mean interval width")
-    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
-    plt.title("Mean interval width vs number of mutations")
-    plt.show()
-
-    mean_width = np.zeros((10,72))
-    for i in range(10):
-        # Mean across signatures and across samples
-        mean_width[i] = torch.mean(upper[1000*i:1000*(i+1),:] - lower[1000*i:1000*(i+1),:], 0).detach().numpy()
-    fig = plt.figure(figsize=(13, 13))
-    plt.plot(mean_width)
-    plt.ylabel("Mean interval width")
-    plt.xticks(range(10), [25,50,100,150,200,250,500,1000,2000,5000], rotation='vertical')
-    plt.title("Mean interval width vs number of mutations")
-    plt.legend(sigs_names, title='Signatures', bbox_to_anchor=(1.05, 1), loc='upper left', ncol=2)
-    plt.show()
-
-def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
-    m = -1
-    fig, axs = plt.subplots(len(list_of_metrics))
-    fig.suptitle("Metrics vs Number of Mutations")
-    
-    for metric in list_of_metrics:
-        m += 1
-        num_muts = np.unique(label[:,-1].detach().numpy())
-        values = np.zeros((len(list_of_methods), len(num_muts)))
-
-        for k in range(len(list_of_methods)):
-            for i in range(len(num_muts)):
-                metrics = get_classification_metrics(label_batch=label[1000*i:1000*(i+1), :-1], prediction_batch=list_of_guesses[k][1000*i:1000*(i+1),:])
-                values[k,i] = metrics[metric]
-        
-        handles = axs[m].plot(np.log10(num_muts), np.transpose(values))
-        axs[m].set_ylabel(metric)
-        if m == len(list_of_metrics)-1:
-            axs[m].set_xlabel("log(N)")
-
-        # Shrink current axis by 3%
-        box = axs[m].get_position()
-        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
-    fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
-    manager = plt.get_current_fig_manager()
-    manager.resize(*manager.window.maxsize())
-    plt.show()
-    fig.savefig('../plots/exp_0/%s.png'%plot_name)
-
 
 if __name__ == "__main__":
     deconstructSigs_labels = [0.1, 0.7, 0.2]

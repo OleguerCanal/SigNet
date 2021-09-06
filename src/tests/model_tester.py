@@ -16,7 +16,7 @@ from models.error_finder import ErrorFinder
 from models.finetuner import FineTuner
 from utilities.dataloader import DataLoader
 from utilities.metrics import *
-from utilities.plotting import plot_interval_width_vs_mutations, plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
+from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 
 
 class ModelTester:
@@ -137,12 +137,17 @@ if __name__ == "__main__":
     # plot_weights_comparison(label_batch[9000, :].detach().numpy(), guessed_labels[9000, :].detach().numpy(
     # ), pred_upper[9000, :].detach().numpy(),pred_lower[9000, :].detach().numpy(), list(data.columns)[2:])
 
+
     # Plot interval performance
+    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
     plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
 
     # Plot interval width vs number of mutations
-    plot_interval_width_vs_mutations(
+    plot_interval_width_vs_mutations(label_mut_batch, 
         pred_upper, pred_lower, list(data.columns)[2:])
+    
+    list_of_sigs_ind = [0,4,5,44]
+    plot_interval_width_vs_mutations_some_sigs(label_mut_batch, pred_upper, pred_lower, list_of_sigs_ind, list(data.columns)[2:])
 
     # Print metrics
     # in_prop, mean_length = get_pi_metrics(
