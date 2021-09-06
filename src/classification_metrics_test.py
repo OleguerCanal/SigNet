@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import numpy as np
 
-from utilities.plotting import plot_metric_vs_mutations
+from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data, read_methods_guesses
@@ -29,7 +29,7 @@ label_batch = torch.tensor(pd.read_csv(
 sf = YapsaInspiredBaseline(signatures)
 baseline_guess = sf.get_weights_batch(input_batch)
 
-finetuner_model_name = "finetuner_realistic"
+finetuner_model_name = "finetuner_mixed"
 finetuner_params = {"num_hidden_layers": 2,
                         "num_units": 1300,
                         "num_classes": 72}
@@ -52,7 +52,8 @@ list_of_methods.append("Finetuner")
 
 list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "realistic_realistic")
+plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, "mixed_realistic_vs_sigs")
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "mixed_realistic")
 
 
 

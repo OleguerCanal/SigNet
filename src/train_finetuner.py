@@ -7,7 +7,7 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-experiment_id = "finetuner_random"
+experiment_id = "finetuner_mixed"
 model_path = "../trained_models/exp_0/"
 iterations = 20
 num_classes = 72
@@ -20,15 +20,15 @@ num_hidden_layers = 2
 num_neurons = 1300
 
 if __name__ == "__main__":
-    # dev = "cuda" if torch.cuda.is_available() else "cpu"
-    dev = "cuda"
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    # dev = "cuda"
     device = torch.device(dev)
     print("Using device:", dev)
 
     train_input, train_baseline, train_label,\
         val_input, val_baseline, val_label = read_data(device=dev,
                                                        experiment_id="exp_0",
-                                                       source="random")
+                                                       source="mixed")
 
     trainer = FinetunerTrainer(iterations=iterations,  # Passes through all dataset
                                train_input=train_input,
