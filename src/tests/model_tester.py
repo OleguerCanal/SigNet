@@ -10,12 +10,14 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.plotting import plot_signature, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
-from utilities.metrics import *
-from utilities.dataloader import DataLoader
-from models.finetuner import FineTuner
-from models.error_finder import ErrorFinder
 from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from utilities.io import read_test_data
+from models.error_finder import ErrorFinder
+from models.finetuner import FineTuner
+from utilities.dataloader import DataLoader
+from utilities.metrics import *
+from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
+
 
 class ModelTester:
     def __init__(self, num_classes):
@@ -69,90 +71,86 @@ class ModelTester:
 
 
 if __name__ == "__main__":
+    experiment_id = "exp_0"
+    test_id = "test_realistic"
+    device = "cpu"
+
     # Model params finetuner
-    experiment_id_finetune = "finetuner_model_yapsa"
-    num_hidden_layers = 1
+    model_id_finetuner = "finetuner_realistic"
+    num_hidden_layers = 2
     num_neurons = 1300
     num_classes = 72
 
     # Model params error
-    experiment_id_error_learner = "error_finder_1"
+    model_id_error_learner = "errorfinder_realistic"
     num_hidden_layers_pos = 1
-    num_neurons_pos = 1500
+    num_neurons_pos = 1000
     num_hidden_layers_neg = 1
-    num_neurons_neg = 1500
+    num_neurons_neg = 1000
 
-
-    # Generate data
+    # Open data
     data = pd.read_excel("../../data/data.xlsx")
     signatures = [torch.tensor(data.iloc[:, i]).type(torch.float32)
                   for i in range(2, 74)][:num_classes]
 
-    input_batch = torch.tensor(pd.read_csv(
-        "../../data/test_input_w01.csv", header=None).values, dtype=torch.float)
-    label_mut_batch = torch.tensor(pd.read_csv(
-        "../../data/test_label_w01.csv", header=None).values, dtype=torch.float)
-    label_batch = label_mut_batch[:, :num_classes]
-    num_mut = torch.reshape(
-        label_mut_batch[:, num_classes], (list(label_mut_batch.size())[0], 1))
-
-    # baseline_batch = torch.tensor(pd.read_csv(
-        # "../../data/test_w01_baseline_JS.csv", header=None).values, dtype=torch.float)
+    input_batch, label_mut_batch = read_test_data(device=device,
+                                                  experiment_id=experiment_id,
+                                                  test_id=test_id,
+                                                  data_folder="../../data")
+    label_batch = label_mut_batch[:, :-1]
+    num_mut = label_mut_batch[:, -1].reshape((-1, 1))
 
     # Baseline:
     sf = YapsaInspiredBaseline(signatures)
-    baseline_batch = sf.get_weights_batch(input_batch)#[:50, ...])
-    
+    baseline_batch = sf.get_weights_batch(input_batch)  # [:50, ...])
+
     # Instantiate model and do predictions for finetuner:
     model = FineTuner(num_classes=num_classes,
                       num_hidden_layers=num_hidden_layers,
                       num_units=num_neurons)
     model.load_state_dict(torch.load(os.path.join(
-        "../../trained_models", experiment_id_finetune), map_location=torch.device('cpu')))
+        "../../trained_models/" + experiment_id, model_id_finetuner), map_location=torch.device(device)))
     model.eval()
-    guessed_labels = model(input_batch, baseline_batch)
+    guessed_labels = model(input_batch, baseline_batch, num_mut)
 
-    # # Instantiate model and do predictions for error learner:
-    # model_error = ErrorFinder(num_classes=num_classes,
-    #                           num_hidden_layers_pos=num_hidden_layers_pos,
-    #                           num_units_pos=num_neurons_pos,
-    #                           num_hidden_layers_neg=num_hidden_layers_neg,
-    #                           num_units_neg=num_neurons_neg)
+    # Instantiate model and do predictions for error learner:
+    model_error = ErrorFinder(num_classes=num_classes,
+                              num_hidden_layers_pos=num_hidden_layers_pos,
+                              num_units_pos=num_neurons_pos,
+                              num_hidden_layers_neg=num_hidden_layers_neg,
+                              num_units_neg=num_neurons_neg)
 
-    # model_error.load_state_dict(torch.load(os.path.join(
-    #     "../../trained_models", experiment_id_error_learner), map_location=torch.device('cpu')))
-    # model_error.eval()
-    # pred_upper, pred_lower = model_error(guessed_labels, num_mut)
+    model_error.load_state_dict(torch.load(os.path.join(
+        "../../trained_models/" + experiment_id, model_id_error_learner), map_location=torch.device(device)))
+    model_error.eval()
+    pred_upper, pred_lower = model_error(guessed_labels, num_mut)
 
     # # Get metrics
     # model_tester = ModelTester(num_classes=num_classes)
     # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
-    # # False negatives:
-    # label_sigs_list, predicted_sigs_list = model_tester.probs_batch_to_sigs(
-    #     label_batch[:, :72], guessed_labels, 0.05, num_classes)
-    # FN = sum(predicted_sigs_list == num_classes)
-    # print('Number of FN:', FN/float(torch.numel(label_batch))*100)
+    # # Plot signatures
+    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
+    # ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:])
+    # plot_weights_comparison(label_batch[9000, :].detach().numpy(), guessed_labels[9000, :].detach().numpy(
+    # ), pred_upper[9000, :].detach().numpy(),pred_lower[9000, :].detach().numpy(), list(data.columns)[2:])
 
-    # # False positives:
-    # FP = sum(label_sigs_list == num_classes)
-    # print('Number of FP:', FP/float(torch.numel(label_batch))*100)
-
-    # a = torch.sum(pred_lower>pred_upper)
-    # print(a)
-
-    # Plot signatures
-    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    ), guessed_labels[0, :].detach().numpy(),guessed_labels[0, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[9, :].detach().numpy(), guessed_labels[9, :].detach().numpy(
-    ), guessed_labels[9, :].detach().numpy(),guessed_labels[9, :].detach().numpy(), list(data.columns)[2:])
-    plot_weights_comparison(label_batch[22, :].detach().numpy(), guessed_labels[22, :].detach().numpy(
-    ), guessed_labels[22, :].detach().numpy(),guessed_labels[22, :].detach().numpy(), list(data.columns)[2:])
 
     # Plot interval performance
-    # plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
 
-    # # Print metrics
-    # in_prop, mean_length = get_pi_metrics(label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
+    # Plot interval width vs number of mutations
+    plot_interval_width_vs_mutations(label_mut_batch, 
+        pred_upper, pred_lower, list(data.columns)[2:])
+    
+    list_of_sigs_ind = [0,4,5,44]
+    plot_interval_width_vs_mutations_some_sigs(label_mut_batch, pred_upper, pred_lower, list_of_sigs_ind, list(data.columns)[2:])
+
+    # Print metrics
+    # in_prop, mean_length = get_pi_metrics(
+    #     label_batch, pred_lower=pred_lower, pred_upper=pred_upper)
     # print("In proportion:", in_prop.detach().numpy())
     # print("Mean length:", mean_length.detach().numpy())

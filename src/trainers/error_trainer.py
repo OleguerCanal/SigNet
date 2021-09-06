@@ -1,3 +1,4 @@
+
 import collections
 import copy
 import os
@@ -13,11 +14,12 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from loggers.error_finder_logger import ErrorFinderLogger
-from models.error_finder import ErrorFinder
-from utilities.metrics import distance_to_interval
 from utilities.train_dataset import TrainDataSet
+from utilities.metrics import distance_to_interval, get_pi_metrics
+from models.error_finder import ErrorFinder
+from loggers.error_finder_logger import ErrorFinderLogger
 
 class ErrorTrainer:
     def __init__(self,
@@ -56,6 +58,21 @@ class ErrorTrainer:
             "be,be->be", real_error, (real_error < 0).type(torch.int))
         return real_error_pos, real_error_neg
 
+    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=5e-2):
+        batch_size = float(pred_lower.shape[0])
+        lower = label - pred_lower
+        upper = pred_upper - label
+        lower = nn.ReLU()(-lower)
+        upper = nn.ReLU()(-upper)
+        # inverse_interval = nn.ReLU()(pred_lower - pred_upper)       # Penalize if the interval is inverted
+        interval_length = ((pred_upper - pred_lower)**2)/batch_size
+        loss_by_mutation_signature = interval_length + \
+            lagrange_mult*(lower + upper)
+        loss_by_mutation = torch.linalg.norm(
+            1e4*loss_by_mutation_signature, ord=5, axis=1)
+        loss = torch.mean(loss_by_mutation)
+        return loss
+
     def objective(self,
                   batch_size,
                   lr,
@@ -92,30 +109,30 @@ class ErrorTrainer:
 
                 # Compute loss
                 # train_loss = distance_to_interval(train_label, train_weight_guess, train_prediction_pos, train_prediction_neg, penalization=0.1)
-                train_loss, train_in_prop, train_pi_width = distance_to_interval(label=train_label,
-                                                                             pred_lower=train_pred_lower,
-                                                                             pred_upper=train_pred_upper)
+                train_loss = self.__loss(label=train_label,
+                                         pred_lower=train_pred_lower,
+                                         pred_upper=train_pred_upper)
                 train_loss.backward()
                 optimizer.step()
 
                 with torch.no_grad():
                     val_pred_upper, val_pred_lower = model(weights=self.val_weight_guess,
-                                                                   num_mutations=self.val_num_mut)
+                                                           num_mutations=self.val_num_mut)
                     # val_loss = distance_to_interval(
                     #     self.val_label, self.val_weight_guess, val_prediction_pos, val_prediction_neg, penalization=0.1)
-                    val_loss, val_in_prop, val_pi_width = distance_to_interval(label=self.val_label,
-                                                                           pred_lower=val_pred_lower,
-                                                                           pred_upper=val_pred_upper)
+                    val_loss = self.__loss(label=self.val_label,
+                                           pred_lower=val_pred_lower,
+                                           pred_upper=val_pred_upper)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot:
+                    pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
+                    pi_metrics_val = get_pi_metrics(self.val_label, val_pred_lower, val_pred_upper)
                     self.logger.log(train_loss=train_loss,
-                                    train_in_prop=train_in_prop,
-                                    train_pi_width=train_pi_width,
+                                    pi_metrics_train=pi_metrics_train,
                                     val_loss=val_loss,
-                                    val_in_prop=val_in_prop,
-                                    val_pi_width=val_pi_width,
+                                    pi_metrics_val=pi_metrics_val,
                                     val_values_lower=val_pred_lower,
                                     val_values_upper=val_pred_upper,
                                     step=step)
