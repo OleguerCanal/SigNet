@@ -155,7 +155,10 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names): 
     plt.ylabel("Percentage of error (%)")
     plt.xticks(range(num_classes), sigs_names, rotation='vertical')
     plt.title('Confidence intervals performance')
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
     plt.show()
+    #plt.savefig('../../plots/exp_0/interval_performance.png')
     return range(num_classes), 100*num_error
 
 def plot_interval_width_vs_mutations(label, upper, lower, plot = True): # Returns x,y
@@ -183,7 +186,8 @@ def plot_interval_width_vs_mutations_some_sigs(label, upper, lower, list_of_sigs
     plt.xlabel("log(N)")
     plt.title("Mean interval width vs number of mutations")
     plt.legend(np.array(sigs_names)[list_of_sigs_ind], title='Signatures', bbox_to_anchor=(1.02, 0.5), ncol=2)
-    plt.show()
+    #plt.show()
+    plt.savefig('../../plots/exp_0/width_vs_muts_some_sigs.png')
     return np.log10(num_muts), mean_width[:,list_of_sigs_ind]
 
 def plot_propin_vs_mutations(label, upper, lower, plot = True): # Returns x,y
