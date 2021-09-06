@@ -6,14 +6,13 @@ import torch
 from torchsummary import summary
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
+from models.finetuner import FineTuner, baseline_guess_to_finetuner_guess
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
 source = "realistic"
 experiment_id = "exp_0"
 model_path = "../trained_models/" + experiment_id
-finetuner_model_name = "finetuner_" + source
 iterations = 30
 num_classes = 72
 
@@ -25,58 +24,37 @@ num_neurons_pos = 1000
 num_hidden_layers_neg = 1
 num_neurons_neg = 1000
 
-# Finetuner params
-num_hidden_layers = 2
-num_units = 1300
-
+# Finetuner args
+finetuner_path = os.path.join(model_path, "finetuner_" + source)
+fintuner_args = {
+    "num_hidden_layers": 2,
+    "num_units": 1300
+}
 
 if __name__ == "__main__":
-    # dev = "cuda" if torch.cuda.is_available() else "cpu"
-    dev = "cpu"
-    device = torch.device(dev)
-    print("Using device:", dev)
+    # Select training device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("Using device:", device)
 
-    train_input, train_baseline, train_label,\
-        val_input, val_baseline, val_label = read_data(device=dev,
-                                                       experiment_id=experiment_id,
-                                                       source=source)
-    
-    finetuner = FineTuner(num_classes=72,
-                          num_hidden_layers=num_hidden_layers,
-                          num_units=num_units)
-    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name),  map_location=torch.device('cpu')))
-    finetuner.to("cpu")
-    finetuner.eval()
-    
-    with torch.no_grad():
-        train_guess_1 = finetuner(mutation_dist=train_input,
-                                weights=train_baseline,
-                                num_mut=train_label[:, -1].reshape(-1, 1))
+    # Load data
+    train_data, val_data = read_data(experiment_id=experiment_id,
+                                     source=source,
+                                     device="cpu")
 
-        val_guess_1 = finetuner(mutation_dist=val_input,
-                                weights=val_baseline,
-                                num_mut=val_label[:, -1].reshape(-1, 1))
+    train_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
+                                                   trained_finetuner_file=finetuner_path,
+                                                   data=train_data)
+    val_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
+                                                 trained_finetuner_file=finetuner_path,
+                                                 data=val_data)
 
-    del finetuner
-    del train_baseline
-    del val_baseline
-    gc.collect()
+    train_data.to(device=device)
+    val_data.to(device=device)
     torch.cuda.empty_cache()
 
-    train_input = train_input.to(device)
-    train_guess_1 = train_guess_1.to(device)
-    train_label = train_label.to(device)
-    val_input = val_input.to(device)
-    val_guess_1 = val_guess_1.to(device)
-    val_label = val_label.to(device)
-
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
-                           train_input=train_input,
-                           train_weight_guess=train_guess_1,
-                           train_label=train_label,
-                           val_input=val_input,
-                           val_weight_guess=val_guess_1,
-                           val_label=val_label,
+                           train_data=train_data,
+                           val_data=val_data,
                            experiment_id=experiment_id,
                            num_classes=num_classes,
                            device=device,

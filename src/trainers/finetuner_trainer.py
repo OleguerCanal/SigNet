@@ -1,5 +1,5 @@
 from models.finetuner import FineTuner
-from utilities.train_dataset import TrainDataSet
+from utilities.data_partitions import DataPartitions
 from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
 from loggers.finetuner_logger import FinetunerLogger
 import collections
@@ -20,12 +20,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 class FinetunerTrainer:
     def __init__(self,
                  iterations,
-                 train_input,
-                 train_weight_guess,
-                 train_label,
-                 val_input,
-                 val_weight_guess,
-                 val_label,
+                 train_data,
+                 val_data,
                  fp_param=1e-3,
                  fn_param=1e-3,
                  loging_path="../runs",
@@ -40,13 +36,8 @@ class FinetunerTrainer:
         self.device = device
         self.model_path = model_path
         self.experiment_id = experiment_id
-        self.train_dataset = TrainDataSet(train_input=train_input,
-                                          train_label=train_label,
-                                          train_baseline=train_weight_guess)
-        self.val_input = val_input
-        self.val_weight_guess = val_weight_guess
-        self.val_num_mut = val_label[:, -1].reshape(-1,1)
-        self.val_label = val_label[:, :self.num_classes]
+        self.train_dataset = train_data
+        self.val_dataset = val_data
         self.logger = FinetunerLogger(
             path=loging_path, experiment_id=experiment_id)
 
@@ -55,11 +46,6 @@ class FinetunerTrainer:
         l += self.fp_param*FP / \
             prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
         return l
-
-    # def __loss(self, prediction, label):
-    #     batch_size = prediction.shape[0]
-    #     weight_loss = torch.nn.MSELoss()(prediction, label)
-    #     return weight_loss
 
     def objective(self,
                   batch_size,
@@ -84,10 +70,8 @@ class FinetunerTrainer:
         max_found = -np.inf
         step = 0
         for iteration in range(self.iterations):
-            for train_input, train_label, train_weight_guess in tqdm(dataloader):
+            for train_input, train_label, train_weight_guess, num_mut in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                num_mut = train_label[:, -1].reshape(-1,1)
-                train_label = train_label[:, :self.num_classes]
 
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, train_weight_guess, num_mut)
@@ -105,17 +89,17 @@ class FinetunerTrainer:
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
                                                                               prediction_batch=train_prediction)
                     val_prediction = model(
-                        self.val_input, self.val_weight_guess, self.val_num_mut)
-                    val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_label,
+                        self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                                                     prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
-                                           label=self.val_label,
+                                           label=self.val_dataset.labels,
                                            FP=val_FP,
                                            FN=val_FN)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
-                    val_classification_metrics = get_classification_metrics(label_batch=self.val_label,
+                    val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
                                                                             prediction_batch=val_prediction)
 
                 if plot:
@@ -125,7 +109,7 @@ class FinetunerTrainer:
                                     train_classification_metrics=train_classification_metrics,
                                     val_loss=val_loss,
                                     val_prediction=val_prediction,
-                                    val_label=self.val_label,
+                                    val_label=self.val_dataset.labels,
                                     val_classification_metrics=val_classification_metrics,
                                     step=step)
 

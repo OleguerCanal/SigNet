@@ -1,4 +1,3 @@
-from trainers.finetuner_trainer import FinetunerTrainer
 from utilities.io import read_data
 import os
 import sys
@@ -6,6 +5,7 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from trainers.finetuner_trainer import FinetunerTrainer
 
 experiment_id = "finetuner_random"
 model_path = "../trained_models/exp_0/"
@@ -17,7 +17,7 @@ fn_param = 0.001
 batch_size = 500
 lr = 0.0001
 num_hidden_layers = 2
-num_neurons = 1300
+num_neurons = 600
 
 if __name__ == "__main__":
     # dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -25,18 +25,13 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_baseline, train_label,\
-        val_input, val_baseline, val_label = read_data(device=dev,
-                                                       experiment_id="exp_0",
-                                                       source="random")
+    train_data, val_data = read_data(device=dev,
+                                     experiment_id="exp_0",
+                                     source="random")
 
     trainer = FinetunerTrainer(iterations=iterations,  # Passes through all dataset
-                               train_input=train_input,
-                               train_weight_guess=train_baseline,
-                               train_label=train_label,
-                               val_input=val_input,
-                               val_weight_guess=val_baseline,
-                               val_label=val_label,
+                               train_data=train_data,
+                               val_data=val_data,
                                experiment_id=experiment_id,
                                num_classes=num_classes,
                                fp_param=fp_param,
