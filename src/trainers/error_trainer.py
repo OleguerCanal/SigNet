@@ -58,7 +58,7 @@ class ErrorTrainer:
             "be,be->be", real_error, (real_error < 0).type(torch.int))
         return real_error_pos, real_error_neg
 
-    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=5e-2):
+    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=7e-3):
         batch_size = float(pred_lower.shape[0])
         lower = label - pred_lower
         upper = pred_upper - label
