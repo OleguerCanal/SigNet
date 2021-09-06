@@ -1,4 +1,3 @@
-from utilities.io import read_data
 import os
 import sys
 
@@ -6,6 +5,7 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer
+from utilities.io import read_data
 
 experiment_id = "finetuner_random"
 model_path = "../trained_models/exp_0/"
