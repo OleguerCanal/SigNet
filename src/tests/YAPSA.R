@@ -5,10 +5,14 @@ data(cutoffs)
 current_cutoff_vector <- cutoffCosmicValid_abs_df[6,]
 data("lymphomaNature2013_mutCat_df")
 
-data <- read.csv("data/exp_0/test_realistic/test_realistic_input.csv", header = FALSE)
+data <- read.csv("../../data/exp_0/test_realistic/test_realistic_input.csv", header = FALSE)
+label <- read.csv("../../data/exp_0/test_realistic/test_realistic_label.csv", header = FALSE)
+num_mut <- label[,ncol(label)]
+data <- data*num_mut
 data <- t(data)
 rownames(data) <- rownames(lymphomaNature2013_mutCat_df)
 colnames(data) <- paste("sample", 1:ncol(data), sep = "")
+data <- as.data.frame(data)
 data_listsList <-  LCD_complex_cutoff_combined(
     in_mutation_catalogue_df = data,
     in_cutoff_vector = current_cutoff_vector, 
