@@ -16,7 +16,7 @@ from models.error_finder import ErrorFinder
 from models.finetuner import FineTuner
 from utilities.dataloader import DataLoader
 from utilities.metrics import *
-from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
+from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 
 
 class ModelTester:
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    model_id_error_learner = "errorfinder_realistic"
+    model_id_error_learner = "errorfinder_2"
     num_hidden_layers_pos = 1
     num_neurons_pos = 1000
     num_hidden_layers_neg = 1
@@ -139,6 +139,7 @@ if __name__ == "__main__":
 
 
     # Plot interval performance
+    plot_interval_metrics_vs_sigs(label_mut_batch, pred_upper, pred_lower, "interval_metrics_vs_sigs")
     plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
     plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
 
