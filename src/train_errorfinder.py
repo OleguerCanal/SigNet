@@ -13,6 +13,7 @@ from utilities.io import read_data
 source = "realistic"
 experiment_id = "exp_0"
 model_path = "../trained_models/" + experiment_id
+errorfinder_model_name = "errorfinder_2"
 finetuner_model_name = "finetuner_" + source
 iterations = 30
 num_classes = 72
@@ -77,7 +78,7 @@ if __name__ == "__main__":
                            val_input=val_input,
                            val_weight_guess=val_guess_1,
                            val_label=val_label,
-                           experiment_id=experiment_id,
+                           experiment_id=errorfinder_model_name,
                            num_classes=num_classes,
                            device=device,
                            model_path=model_path)
