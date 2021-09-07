@@ -130,12 +130,12 @@ if __name__ == "__main__":
     # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # # Plot signatures
-    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
-    # ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[9000, :].detach().numpy(), guessed_labels[9000, :].detach().numpy(
-    # ), pred_upper[9000, :].detach().numpy(),pred_lower[9000, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:], "example_25mut.png")
+    plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
+    ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:],"example_150mut.png")
+    plot_weights_comparison(label_batch[12000, :].detach().numpy(), guessed_labels[12000, :].detach().numpy(
+    ), pred_upper[12000, :].detach().numpy(),pred_lower[12000, :].detach().numpy(), list(data.columns)[2:],"example_10kmut.png")
 
 
     # Plot interval performance
