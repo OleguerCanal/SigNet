@@ -10,25 +10,26 @@ from models.finetuner import FineTuner, baseline_guess_to_finetuner_guess
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-source = "realistic"
+source = "mixed"
 experiment_id = "exp_0"
-model_path = "../trained_models/" + experiment_id
-iterations = 30
+models_path = os.path.join("../trained_models", experiment_id)
+errorfinder_path = os.path.join(models_path, "errorfinder_" + source)
+iterations = 40
 num_classes = 72
 
 # Error finder params
 batch_size = 500
 lr = 0.0001
-num_hidden_layers_pos = 1
+num_hidden_layers_pos = 2
 num_neurons_pos = 1000
-num_hidden_layers_neg = 1
+num_hidden_layers_neg = 2
 num_neurons_neg = 1000
 
 # Finetuner args
-finetuner_path = os.path.join(model_path, "finetuner_" + source)
+finetuner_path = os.path.join(models_path, "finetuner_" + source)
 fintuner_args = {
-    "num_hidden_layers": 2,
-    "num_units": 1300
+    "num_hidden_layers": 3,
+    "num_units": 600
 }
 
 if __name__ == "__main__":
@@ -55,10 +56,9 @@ if __name__ == "__main__":
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
                            train_data=train_data,
                            val_data=val_data,
-                           experiment_id=experiment_id,
                            num_classes=num_classes,
                            device=device,
-                           model_path=model_path)
+                           model_path=errorfinder_path)
 
     min_val = trainer.objective(batch_size=batch_size,
                                 lr=lr,

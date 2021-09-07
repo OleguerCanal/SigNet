@@ -27,7 +27,6 @@ class ErrorTrainer:
                  train_data,
                  val_data,
                  loging_path="../runs",
-                 experiment_id="test",
                  num_classes=72,
                  model_path=None,
                  device="cuda:0"):
@@ -37,9 +36,9 @@ class ErrorTrainer:
         self.val_dataset = val_data
         self.device = device
         self.model_path = model_path
-        self.experiment_id = experiment_id
         self.logger = ErrorFinderLogger(
-            path=loging_path, experiment_id=experiment_id)
+            path=loging_path,
+            experiment_id="_".join(model_path.split("/")[-2:]))
 
     def __loss(self, label, pred_lower, pred_upper, lagrange_mult=7e-3):
         batch_size = float(pred_lower.shape[0])
@@ -113,7 +112,6 @@ class ErrorTrainer:
                                     val_values_upper=val_pred_upper,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
-                    torch.save(model.state_dict(), os.path.join(
-                        self.model_path, self.experiment_id))
+                    torch.save(model.state_dict(), self.model_path)
                 step += 1
         return max_found

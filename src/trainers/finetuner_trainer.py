@@ -25,9 +25,8 @@ class FinetunerTrainer:
                  fp_param=1e-3,
                  fn_param=1e-3,
                  loging_path="../runs",
-                 experiment_id="test",
                  num_classes=72,
-                 model_path=None,  # Path where to save model learned weights None to not save
+                 model_path=None,  # File where to save model learned weights None to not save
                  device=torch.device("cuda:0")):
         self.iterations = iterations  # Now iteration refers to passes through all dataset
         self.num_classes = num_classes
@@ -35,11 +34,11 @@ class FinetunerTrainer:
         self.fn_param = fn_param
         self.device = device
         self.model_path = model_path
-        self.experiment_id = experiment_id
         self.train_dataset = train_data
         self.val_dataset = val_data
         self.logger = FinetunerLogger(
-            path=loging_path, experiment_id=experiment_id)
+            path=loging_path,
+            experiment_id="_".join(model_path.split("/")[-2:]))
 
     def __loss(self, prediction, label, FP, FN):
         l = get_kl_divergence(prediction, label)
@@ -116,7 +115,6 @@ class FinetunerTrainer:
                 if self.model_path is not None and step % 500 == 0:
                     pathlib.Path(self.model_path).mkdir(
                         parents=True, exist_ok=True)
-                    torch.save(model.state_dict(), os.path.join(
-                        self.model_path, self.experiment_id))
+                    torch.save(model.state_dict(), self.model_path)
                 step += 1
         return max_found
