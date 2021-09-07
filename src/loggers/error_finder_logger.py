@@ -6,9 +6,9 @@ from torch.utils.tensorboard import SummaryWriter
 class ErrorFinderLogger:
     def __init__(self, path, experiment_id):
         self.writer = SummaryWriter(
-            log_dir=os.path.join("runs/train", experiment_id))
+            log_dir=os.path.join(path, "train", experiment_id))
         self.val_writer = SummaryWriter(
-            log_dir=os.path.join("runs/val", experiment_id))
+            log_dir=os.path.join(path, "val", experiment_id))
 
 
     def log(self,
