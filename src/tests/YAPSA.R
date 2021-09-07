@@ -1,9 +1,20 @@
 library(YAPSA)
+library("readxl")
 
 data(sigs)
 data(cutoffs)
 current_cutoff_vector <- cutoffCosmicValid_abs_df[6,]
 data("lymphomaNature2013_mutCat_df")
+
+current_cutoff_vector <- cbind(current_cutoff_vector, t(rep(0,42)))
+colnames(current_cutoff_vector) <- colnames(cosmic.sigs)
+
+cosmic.sigs <- read_xlsx('../../data/data.xlsx')
+cosmic.sigs <- cosmic.sigs[,3:ncol(cosmic.sigs)]
+rownames(cosmic.sigs) <- rownames(AlexCosmicArtif_sig_df)
+cosmic.sigs_igInd <- rbind(AlexCosmicValid_sigInd_df,AlexCosmicValid_sigInd_df,AlexCosmicValid_sigInd_df[21:nrow(AlexCosmicValid_sigInd_df),])
+cosmic.sigs_igInd$sig <- c(colnames(cosmic.sigs), "unassigned" )
+cosmic.sigs_igInd$index <- 1:73
 
 data <- read.csv("../../data/exp_0/test_realistic/test_realistic_input.csv", header = FALSE)
 label <- read.csv("../../data/exp_0/test_realistic/test_realistic_label.csv", header = FALSE)
@@ -16,8 +27,8 @@ data <- as.data.frame(data)
 data_listsList <-  LCD_complex_cutoff_combined(
     in_mutation_catalogue_df = data,
     in_cutoff_vector = current_cutoff_vector, 
-    in_signatures_df = AlexCosmicValid_sig_df, 
-    in_sig_ind_df = AlexCosmicValid_sigInd_df)
+    in_signatures_df = cosmic.sigs, 
+    in_sig_ind_df = cosmic.sigs_igInd)
 
 exposures <- data_listsList$cohort$exposures
 weights <- exposures/matrix(rep(colSums(exposures),nrow(exposures)), nrow=nrow(exposures), ncol=ncol(exposures), byrow=T)
@@ -56,3 +67,5 @@ plotExposuresConfidence(
   in_complete_df = complete_df_normalized, 
   in_subgroups_df = subgroups_df,
   in_sigInd_df = data_listsList$cohort$out_sig_ind_df)
+
+write.csv(complete_df_normalized, "yapsa_output_v2.csv")
