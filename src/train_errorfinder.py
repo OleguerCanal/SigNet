@@ -12,16 +12,9 @@ from utilities.io import read_data
 
 source = "mixed"
 experiment_id = "exp_0"
-<<<<<<< HEAD
-model_path = "../trained_models/" + experiment_id
-errorfinder_model_name = "errorfinder_2"
-finetuner_model_name = "finetuner_" + source
-iterations = 30
-=======
 models_path = os.path.join("../trained_models", experiment_id)
 errorfinder_path = os.path.join(models_path, "errorfinder_" + source)
 iterations = 40
->>>>>>> main
 num_classes = 72
 
 # Error finder params

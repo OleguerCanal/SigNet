@@ -233,19 +233,23 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
     plt.tight_layout()
     plt.show()
 
-def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
+def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_name):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
+    ax.set_ylim([0,1])
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
-    plt.show() 
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
 
 def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)
