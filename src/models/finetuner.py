@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class FineTuner(nn.Module):
 
     def __init__(self,
@@ -13,28 +14,24 @@ class FineTuner(nn.Module):
         self._EPS = 1e-10
 
         # Num units of the mutations path
-        num_units_branch_mut = int(num_units*0.02)
+        num_units_branch_mut = 10
+        num_units_joined_path = 2*num_units + num_units_branch_mut
 
-        # Num units of the other paths
-        num_units_other_branches = num_units - num_units_branch_mut
-
-        num_units_other_branches = int(num_units_other_branches/2)*2  # To have an even number of units
-        num_units_branch = int(num_units_other_branches/2)
-
-        self.layer1_1 = nn.Linear(num_classes, num_units_branch)    # Baseline guess path
+        self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
         # 96 = total number of possible muts
-        self.layer1_2 = nn.Linear(96, num_units_branch)             # Input path
-        self.layer1_3 = nn.Linear(1, num_units_branch_mut)          # Number of mutations path
+        self.layer1_2 = nn.Linear(96, num_units)  # Input path
+        # Number of mutations path
+        self.layer1_3 = nn.Linear(1, num_units_branch_mut)
 
-        self.layer2_1 = nn.Linear(num_units_branch, num_units_branch)
-        self.layer2_2 = nn.Linear(num_units_branch, num_units_branch)
+        self.layer2_1 = nn.Linear(num_units, num_units)
+        self.layer2_2 = nn.Linear(num_units, num_units)
         self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
 
         self.hidden_layers = nn.ModuleList(
-            modules=[nn.Linear(num_units, num_units)
+            modules=[nn.Linear(num_units_joined_path, num_units_joined_path)
                      for _ in range(num_hidden_layers)])
 
-        self.output_layer = nn.Linear(num_units, num_classes)
+        self.output_layer = nn.Linear(num_units_joined_path, num_classes)
         self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
@@ -71,5 +68,27 @@ class FineTuner(nn.Module):
         if not self.training:
             mask = (comb > self._cutoff).type(torch.int).float()
             comb = comb*mask
-            comb = torch.div(comb, torch.sum(comb, axis=1).reshape((-1,1)) + self._EPS)
+            comb = torch.div(comb, torch.sum(
+                comb, axis=1).reshape((-1, 1)) + self._EPS)
         return comb
+
+
+def baseline_guess_to_finetuner_guess(finetuner_args, trained_finetuner_file, data):
+    # Load finetuner and compute guess_1
+    import gc
+    finetuner = FineTuner(**finetuner_args)
+    finetuner.to("cpu")
+    finetuner.load_state_dict(torch.load(
+        trained_finetuner_file, map_location=torch.device('cpu')))
+    finetuner.eval()
+
+    with torch.no_grad():
+        data.prev_guess = finetuner(mutation_dist=data.inputs,
+                                    weights=data.prev_guess,
+                                    num_mut=data.num_mut)
+    # del data.prev_guess
+    del finetuner
+    gc.collect()
+    torch.cuda.empty_cache()
+    # data.next_guess = next_guess
+    return data

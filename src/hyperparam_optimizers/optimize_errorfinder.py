@@ -7,12 +7,14 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
-from models.finetuner import FineTuner 
+from models.finetuner import FineTuner, baseline_guess_to_finetuner_guess
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
 
-experiment_id = "error_finder"
+source = "random"
+experiment_id = "exp_0"
 iterations = 8
+model_path = "../../trained_models/" + experiment_id
 num_classes = 72
 
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
@@ -21,66 +23,49 @@ neurons_pos = Integer(name='num_neurons_pos', low=20, high=1500)
 layers_pos = Integer(name='num_hidden_layers_pos', low=1, high=10)
 neurons_neg = Integer(name='num_neurons_neg', low=20, high=1500)
 layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=10)
-normalize_mut_param = Integer(name='normalize_mut', low=1e4, high=1e6)
 
 input_file = None
 output_file = "search_results_" + experiment_id + ".csv"
 
 # Finetuner params
-finetuner_model_name = "finetuner_model_1"
-num_hidden_layers = 1
-num_units = 1500
-model_path = "../../trained_models"
+finetuner_path = os.path.join(model_path, "finetuner_" + source)
+fintuner_args = {
+    "num_hidden_layers": 2,
+    "num_units": 1300
+}
 
 if __name__ == "__main__":
-    dev = "cuda" if torch.cuda.is_available() else "cpu"
-    device = torch.device(dev)
-    print("Using device:", dev)
+# Select training device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("Using device:", device)
 
-    train_input, train_guess_0, train_label, val_input, val_guess_0, val_label = read_data("cpu", data_folder="../../data")
+    # Load data
+    train_data, val_data = read_data(experiment_id=experiment_id,
+                                     source=source,
+                                     device="cpu",
+                                     data_folder="../../data/")
 
-    finetuner = FineTuner(num_classes=72,
-                          num_hidden_layers=num_hidden_layers,
-                          num_units=num_units)
-    finetuner.load_state_dict(torch.load(os.path.join(model_path, finetuner_model_name), map_location=torch.device('cpu')))
-    finetuner.to("cpu")
-    finetuner.eval()
+    train_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
+                                                   trained_finetuner_file=finetuner_path,
+                                                   data=train_data)
+    val_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
+                                                 trained_finetuner_file=finetuner_path,
+                                                 data=val_data)
 
-    with torch.no_grad():
-        train_guess_1 = finetuner(mutation_dist=train_input,
-                                weights=train_guess_0)
-
-        val_guess_1 = finetuner(mutation_dist=val_input,
-                                weights=val_guess_0)
-
-    del finetuner
-    del train_guess_0
-    del val_guess_0
-    gc.collect()
+    train_data.to(device=device)
+    val_data.to(device=device)
     torch.cuda.empty_cache()
 
-    train_input = train_input.to(device)
-    train_guess_1 = train_guess_1.to(device)
-    train_label = train_label.to(device)
-    val_input = val_input.to(device)
-    val_guess_1 = val_guess_1.to(device)
-    val_label = val_label.to(device)
-
     trainer = ErrorTrainer(iterations=iterations,  # Passes through all dataset
-                               train_input=train_input,
-                               train_weight_guess=train_guess_1,
-                               train_label=train_label,
-                               val_input=val_input,
-                               val_weight_guess=val_guess_1,
-                               val_label=val_label,
-                               experiment_id=experiment_id,
-                               num_classes=num_classes,
-                               device=device,
-                               model_path=model_path)
+                           train_data=train_data,
+                           val_data=val_data,
+                           experiment_id=experiment_id,
+                           num_classes=num_classes,
+                           device=device,)
 
 
     search_space = [batch_sizes, learning_rates, neurons_pos,
-                    layers_pos, neurons_neg, layers_neg, normalize_mut_param]
+                    layers_pos, neurons_neg, layers_neg]
     fixed_space = {"plot": False}
 
     gp_search = GaussianProcessSearch(search_space=search_space,
