@@ -112,6 +112,9 @@ class ErrorTrainer:
                                     val_values_upper=val_pred_upper,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
+                    directory = os.path.dirname(self.model_path)
+                    pathlib.Path(directory).mkdir(
+                        parents=True, exist_ok=True)
                     torch.save(model.state_dict(), self.model_path)
                 step += 1
         return max_found
