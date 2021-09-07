@@ -49,7 +49,7 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     
-    num_sigs = [1,2,3,4,5,6,7,8,9,10]
+    num_sigs = list(range(1, 10))
     num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
     for metric in list_of_metrics:
         m += 1
