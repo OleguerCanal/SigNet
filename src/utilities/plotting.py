@@ -115,10 +115,8 @@ def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_name):
     num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
     values = np.zeros((4,len(num_sigs)))
     for i in range(len(num_sigs)):
-        k = -1
         metrics = get_pi_metrics(label[num_sigs_ind==i+1, :-1], pred_lower[num_sigs_ind==i+1, :], pred_upper[num_sigs_ind==i+1, :])
-        for metric in metrics.keys():
-            k += 1
+        for k, metric in enumerate(metrics.keys()):
             values[k,i] = metrics[metric]
         
     axs[0,0].plot(num_sigs, values[0])
