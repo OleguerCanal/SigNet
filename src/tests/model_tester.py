@@ -76,16 +76,16 @@ if __name__ == "__main__":
     device = "cpu"
 
     # Model params finetuner
-    model_id_finetuner = "finetuner_realistic"
-    num_hidden_layers = 2
-    num_neurons = 1300
+    model_id_finetuner = "finetuner_mixed"
+    num_hidden_layers = 3
+    num_neurons = 600
     num_classes = 72
 
     # Model params error
-    model_id_error_learner = "errorfinder_2"
-    num_hidden_layers_pos = 1
+    model_id_error_learner = "errorfinder_mixed"
+    num_hidden_layers_pos = 2
     num_neurons_pos = 1000
-    num_hidden_layers_neg = 1
+    num_hidden_layers_neg = 2
     num_neurons_neg = 1000
 
     # Open data
@@ -139,9 +139,9 @@ if __name__ == "__main__":
 
 
     # Plot interval performance
-    plot_interval_metrics_vs_sigs(label_mut_batch, pred_upper, pred_lower, "interval_metrics_vs_sigs")
-    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
-    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    plot_interval_metrics_vs_sigs(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval_vs_sigs")
+    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval")
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:], "mixed_realistic_interval_performance")
 
     # Plot interval width vs number of mutations
     plot_interval_width_vs_mutations(label_mut_batch, 
