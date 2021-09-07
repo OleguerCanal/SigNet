@@ -51,8 +51,7 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
     
     num_sigs = list(range(1, 10))
     num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
-    for metric in list_of_metrics:
-        m += 1
+    for m, metric in enumerate(list_of_metrics):
         values = np.zeros((len(list_of_methods), len(num_sigs)))
 
         for k in range(len(list_of_methods)):
