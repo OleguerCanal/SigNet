@@ -32,12 +32,8 @@ class SignedErrorFinder(nn.Module):
         for hidden_layer in self.hidden_layers:
             nn.init.kaiming_uniform_(hidden_layer.weight)
 
-        
-
-
         # Activation function
         self.activation = nn.LeakyReLU(0.1)
-        # self.activation = nn.ELU(0.1)
 
     def __clamp(self, x, slope=1e-2):
         return nn.LeakyReLU(slope)(1 - nn.LeakyReLU(slope)(1 - x))

@@ -1,23 +1,25 @@
-from trainers.finetuner_trainer import FinetunerTrainer
-from utilities.io import read_data
 import os
 import sys
 
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from trainers.finetuner_trainer import FinetunerTrainer
+from utilities.io import read_data
 
-experiment_id = "finetuner_mixed"
-model_path = "../trained_models/exp_0/"
-iterations = 20
+source = "mixed"
+experiment_id = "exp_0"
+models_path = os.path.join("../trained_models", experiment_id)
+finetuner_path = os.path.join(models_path, "finetuner_" + source)
+iterations = 40
 num_classes = 72
 fp_param = 0.001
 fn_param = 0.001
 
 batch_size = 500
 lr = 0.0001
-num_hidden_layers = 2
-num_neurons = 1300
+num_hidden_layers = 3
+num_neurons = 600
 
 if __name__ == "__main__":
     dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -25,24 +27,18 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    train_input, train_baseline, train_label,\
-        val_input, val_baseline, val_label = read_data(device=dev,
-                                                       experiment_id="exp_0",
-                                                       source="mixed")
+    train_data, val_data = read_data(device=dev,
+                                     experiment_id="exp_0",
+                                     source=source)
 
     trainer = FinetunerTrainer(iterations=iterations,  # Passes through all dataset
-                               train_input=train_input,
-                               train_weight_guess=train_baseline,
-                               train_label=train_label,
-                               val_input=val_input,
-                               val_weight_guess=val_baseline,
-                               val_label=val_label,
-                               experiment_id=experiment_id,
+                               train_data=train_data,
+                               val_data=val_data,
                                num_classes=num_classes,
                                fp_param=fp_param,
                                fn_param=fn_param,
                                device=device,
-                               model_path=model_path)
+                               model_path=finetuner_path)
 
     min_val = trainer.objective(batch_size=batch_size,
                                 lr=lr,
