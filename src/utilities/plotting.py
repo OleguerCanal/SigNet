@@ -45,7 +45,6 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     fig.savefig('../plots/exp_0/%s.png'%plot_name)
 
 def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
-    m = -1
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     
