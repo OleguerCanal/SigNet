@@ -10,9 +10,9 @@ def csv_to_tensor(file, device):
     input_tensor = torch.tensor(pd.read_csv(
         file, header=None).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
-           == input_tensor.shape[0])
-    return input_tensor.to(device)
+    # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
+    #        == input_tensor.shape[0])
+    return input_tensor.double().to(device)
 
 
 def read_data(device, experiment_id, source, data_folder="../data"):

@@ -53,9 +53,9 @@ def get_wasserstein_distance(predicted_label, true_label):
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
 def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
-    batch_size = label_batch.shape[0]
-    label_mask = (label_batch > cutoff).type(torch.int).float()
-    prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
+    batch_size = float(label_batch.shape[0])
+    label_mask = (label_batch > cutoff).type(torch.int).double()
+    prediction_mask = (prediction_batch > cutoff).type(torch.int).double()
     fp = torch.sum(label_mask - prediction_mask < -0.1)/batch_size
     fn = torch.sum(label_mask - prediction_mask > 0.1)/batch_size
     tp = torch.sum(torch.einsum("bi,bi->b", prediction_mask, label_mask))
@@ -102,7 +102,7 @@ def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=
 
 # USED IN ERROR FINDER 
 def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
-    batch_size = float(pred_lower.shape[0])
+    batch_size = double(pred_lower.shape[0])
     lower = label - pred_lower
     upper = pred_upper - label
     lower = nn.ReLU()(-lower)
@@ -117,12 +117,12 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper):
     """Used to compare prediction interval guesses.
     
     Returns:
-        in_prop [float]: Proportion of labels in (pred_lower, pred_upper)
-        mean_interval_width [float]: Mean width of the intervals
+        in_prop [double]: Proportion of labels in (pred_lower, pred_upper)
+        mean_interval_width [double]: Mean width of the intervals
     """
     EPS = 1e-6
-    k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
-    k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
+    k_hu = (label <= pred_upper).type(torch.double)  # 1 if label < upper; else 0
+    k_hl = (pred_lower <= label).type(torch.double)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
     in_prop = torch.mean(k_h, 0)  # Hard Prediction Interval Coverage Probability
     interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
@@ -151,10 +151,10 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
 
     Algorithm 1 of https://arxiv.org/pdf/1802.07167.pdf
 
-    conf [float]: Interval confidence, proportion of missplaced points which is "ok" usually ~0.05
-    lagrange_mult [float]: "How much do we care about missclassifications"
+    conf [double]: Interval confidence, proportion of missplaced points which is "ok" usually ~0.05
+    lagrange_mult [double]: "How much do we care about missclassifications"
                             Larger lagrange_mult means more correctly guessed points at the expense of larger intervals
-    softening_factor [float]: The bigger the closer it is to the real function
+    softening_factor [double]: The bigger the closer it is to the real function
                               This means better guesses but harder optimization (less differentiable)
     """
     EPS_ = 1e-9
@@ -162,8 +162,8 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
 
     # Hard in-between constrain
     with torch.no_grad():
-        k_hu = (label <= pred_upper).type(torch.float)  # 1 if label <= upper; else 0
-        k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower <= label; else 0
+        k_hu = (label <= pred_upper).type(torch.double)  # 1 if label <= upper; else 0
+        k_hl = (pred_lower <= label).type(torch.double)  # 1 if lower <= label; else 0
         k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
         PICP_h = torch.mean(k_h)  # Prediction Interval Coverage Probability
 
@@ -177,7 +177,7 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
     MPIW = torch.sum(torch.einsum("be,be->be", (pred_upper - pred_lower), k_h))/(torch.sum(k_h) + EPS_)
 
     # Compute constrain
-    n = float(torch.numel(label))  # number elements in the input
+    n = double(torch.numel(label))  # number elements in the input
     constrain = (n/(conf*(1.0 - conf)))*torch.max(torch.tensor(0).to(PICP_s), (1.0 - conf) - PICP_s)**2
     
     # Compute and return loss
