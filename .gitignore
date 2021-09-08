@@ -141,3 +141,5 @@ signatures-nets.e*
 results/
 plots/*
 runs_old/
+
+!.vscode/launch.json
