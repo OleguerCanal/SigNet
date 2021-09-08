@@ -44,10 +44,9 @@ class FinetunerTrainer:
         self.wand_config = wandb.config
 
     def __loss(self, prediction, label, FP, FN):
-        # l = get_kl_divergence(prediction, label)
-        # l += self.fp_param*FP / \
-        #     prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
-        l = torch.nn.MSELoss()(prediction, label)
+        l = get_kl_divergence(prediction, label)
+        l += self.fp_param*FP / \
+            prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
         return l
 
     def objective(self,
@@ -80,65 +79,49 @@ class FinetunerTrainer:
                 with torch.autograd.detect_anomaly():
                     optimizer.zero_grad()                
                     train_prediction = model(train_input, train_weight_guess, num_mut)
-                    assert(not torch.isnan(train_prediction).any())
                     train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                                         prediction_batch=train_prediction)
-                    assert(not torch.isnan(train_FP).any())
-                    assert(not torch.isnan(train_FN).any())
-                    
-                    # print(train_FP.item(), train_FN.item())
-
                     train_loss = self.__loss(prediction=train_prediction,
                                             label=train_label,
                                             FP=train_FP,
                                             FN=train_FN)
-                    wandb.log({"train_loss": train_loss})
-                    print("*************************")
-                    print("train_loss:", train_loss.item())
-                    print("*************************")
-
-                    # # print(train_loss.item())
-                    # assert(not torch.isnan(train_loss).any())
-                    # # import pdb; pdb.set_trace()
 
                     train_loss.backward()
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
                     optimizer.step()
-                    torch.cuda.synchronize()
 
-                    # model.eval()
-                    # with torch.no_grad():
-                    #     train_classification_metrics = get_classification_metrics(label_batch=train_label,
-                    #                                                             prediction_batch=train_prediction)
-                    #     val_prediction = model(
-                    #         self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
-                    #     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
-                    #                                     prediction_batch=val_prediction)
-                    #     val_loss = self.__loss(prediction=val_prediction,
-                    #                         label=self.val_dataset.labels,
-                    #                         FP=val_FP,
-                    #                         FN=val_FN)
-                    #     l_vals.append(val_loss.item())
-                    #     max_found = max(max_found, -np.nanmean(l_vals))
+                    model.eval()
+                    with torch.no_grad():
+                        train_classification_metrics = get_classification_metrics(label_batch=train_label,
+                                                                                prediction_batch=train_prediction)
+                        val_prediction = model(
+                            self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                        val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
+                                                        prediction_batch=val_prediction)
+                        val_loss = self.__loss(prediction=val_prediction,
+                                            label=self.val_dataset.labels,
+                                            FP=val_FP,
+                                            FN=val_FN)
+                        l_vals.append(val_loss.item())
+                        max_found = max(max_found, -np.nanmean(l_vals))
 
-                    #     val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
-                    #                                                             prediction_batch=val_prediction)
+                        val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
+                                                                                prediction_batch=val_prediction)
 
-                    # if plot:
-                    #     self.logger.log(train_loss=train_loss,
-                    #                     train_prediction=train_prediction,
-                    #                     train_label=train_label,
-                    #                     train_classification_metrics=train_classification_metrics,
-                    #                     val_loss=val_loss,
-                    #                     val_prediction=val_prediction,
-                    #                     val_label=self.val_dataset.labels,
-                    #                     val_classification_metrics=val_classification_metrics,
-                    #                     step=step)
+                    if plot:
+                        self.logger.log(train_loss=train_loss,
+                                        train_prediction=train_prediction,
+                                        train_label=train_label,
+                                        train_classification_metrics=train_classification_metrics,
+                                        val_loss=val_loss,
+                                        val_prediction=val_prediction,
+                                        val_label=self.val_dataset.labels,
+                                        val_classification_metrics=val_classification_metrics,
+                                        step=step)
 
-                    # if self.model_path is not None and step % 500 == 0:
-                    #     directory = os.path.dirname(self.model_path)
-                    #     pathlib.Path(directory).mkdir(
-                    #         parents=True, exist_ok=True)
-                    #     torch.save(model.state_dict(), self.model_path)
+                    if self.model_path is not None and step % 500 == 0:
+                        directory = os.path.dirname(self.model_path)
+                        pathlib.Path(directory).mkdir(
+                            parents=True, exist_ok=True)
+                        torch.save(model.state_dict(), self.model_path)
                     step += 1
         return max_found

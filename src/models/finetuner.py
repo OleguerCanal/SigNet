@@ -40,24 +40,6 @@ class FineTuner(nn.Module):
                 mutation_dist,
                 weights,
                 num_mut):
-        assert(not torch.isnan(mutation_dist).any())
-        assert(not torch.isnan(weights).any())
-        assert(not torch.isnan(num_mut).any())
-
-        all_layers = [self.layer1_1, self.layer1_2, self.layer1_3,
-                        self.layer2_1, self.layer2_2, self.layer2_3,
-                        self.output_layer]
-        for layer in all_layers:
-            print("l_mean:", layer, torch.mean(torch.abs(layer.weight)).item())
-            assert(not torch.isnan(layer.weight).any())
-        
-        for layer in self.hidden_layers:
-            print("l_mean:", layer, torch.mean(torch.abs(layer.weight)).item())
-            assert(not torch.isnan(layer.weight).any())
-        print("####")
-
-        # import pdb; pdb.set_trace()
-
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
         mutation_dist = self.activation(self.layer2_2(mutation_dist))
@@ -78,26 +60,18 @@ class FineTuner(nn.Module):
 
         # Apply shared layers
         for layer in self.hidden_layers:
-            # print("comb mean:", torch.mean(torch.abs(comb)).item())
-            # print("layer_mean:", torch.mean(torch.abs(layer.weight)).item())
-            # print("####")
             comb = self.activation(layer(comb))
-        assert(not torch.isnan(comb).any())
+
         # Apply output layer
         comb = self.output_layer(comb)
-        assert(not torch.isnan(comb).any())
         comb = self.softmax(comb)
 
         # If in eval mode, send small values to 0
         if not self.training:
-            # print("eval")
             mask = (comb > self._cutoff).type(torch.int).float()
             comb = comb*mask
             comb = torch.div(comb, torch.sum(
                 comb, axis=1).reshape((-1, 1)) + self._EPS)
-        # print("train")
-        assert(not torch.isnan(comb).any())
-
         return comb
 
 

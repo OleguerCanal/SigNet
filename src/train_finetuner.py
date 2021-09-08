@@ -12,14 +12,14 @@ experiment_id = "exp_0"
 model_id = "_big_net"
 models_path = os.path.join("../trained_models", experiment_id)
 finetuner_path = os.path.join(models_path, "finetuner_" + source + model_id)
-iterations = 40
+iterations = 200
 num_classes = 72
 fp_param = 0.001
 fn_param = 0.001
 
 batch_size = 500
 lr = 0.0001
-num_hidden_layers = 2
+num_hidden_layers = 6
 num_neurons = 600
 
 if __name__ == "__main__":
