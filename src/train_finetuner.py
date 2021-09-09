@@ -6,11 +6,11 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer
-from utilities.io import read_data
+from utilities.io import read_data, read_data_type
 
 config = {
     # IDs
-    "experiment_id": "exp_0",
+    "experiment_id": "exp_1",
     "model_id": "",
 
     # Training params
@@ -41,9 +41,10 @@ if __name__ == "__main__":
                entity='sig-net',
                config=config)
 
-    train_data, val_data = read_data(device=dev,
-                                     experiment_id="exp_0",
-                                     source=config["source"])
+    train_data, val_data = read_data_type(device=dev,
+                                     experiment_id="exp_1",
+                                     source=config["source"],
+                                     type="low")
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

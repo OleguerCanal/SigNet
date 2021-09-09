@@ -83,14 +83,14 @@ def create_huge_baseline_dataset(input_file, output_file):
 
 
 if __name__ == "__main__":
-    training_data_in_file = "/train_val_test_sets/train_random_input.csv"
-    validation_data_in_file = "/train_val_test_sets/val_random_input.csv"
-    test_data_in_file = "/train_val_test_sets/test_random_input.csv"
+    training_data_in_file = "/exp_two_trainings/train_mixed_large_input.csv"
+    # validation_data_in_file = "/exp_two_trainings/val_mixed_large_input.csv"
+    # test_data_in_file = "/exp_two_trainings/test_mixed_large_input.csv"
 
-    training_data_out_file = "/train_val_test_sets/train_random_baseline_yapsa.csv"
-    validation_data_out_file = "/train_val_test_sets/val_random_baseline_yapsa.csv"
-    test_data_out_file = "/train_val_test_sets/test_random_baseline_yapsa.csv"
+    training_data_out_file = "/exp_two_trainings/train_mixed_large_baseline.csv"
+    # validation_data_out_file = "/exp_two_trainings/val_mixed_large_baseline_yapsa.csv"
+    # test_data_out_file = "/exp_two_trainings/test_mixed_large_baseline_yapsa.csv"
 
     create_baseline_dataset(training_data_in_file, training_data_out_file)
-    create_baseline_dataset(validation_data_in_file, validation_data_out_file)
-    create_baseline_dataset(test_data_in_file, test_data_out_file)
+    # create_baseline_dataset(validation_data_in_file, validation_data_out_file)
+    # create_baseline_dataset(test_data_in_file, test_data_out_file)

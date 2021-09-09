@@ -29,8 +29,8 @@ if __name__ == "__main__":
     df = input_batch.detach().numpy()
     #df = np.array(df, dtype=int)
     df = pd.DataFrame(df)
-    df.to_csv("../../data/train_val_test_sets/train_random_input.csv", header=False, index=False)
+    df.to_csv("../../data/exp_two_trainings/train_random_large_input.csv", header=False, index=False)
 
     df = label_batch.detach().numpy()
     df = pd.DataFrame(df)
-    df.to_csv("../../data/train_val_test_sets/train_random_label.csv", header=False, index=False)
+    df.to_csv("../../data/exp_two_trainings/train_random_large_label.csv", header=False, index=False)
