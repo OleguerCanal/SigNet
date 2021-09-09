@@ -17,22 +17,22 @@ class FineTuner(nn.Module):
         num_units_branch_mut = 10
         num_units_joined_path = 2*num_units + num_units_branch_mut
 
-        self.layer1_1 = nn.Linear(num_classes, num_units).double()  # Baseline guess path
+        self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
         # 96 = total number of possible muts
-        self.layer1_2 = nn.Linear(96, num_units).double()  # Input path
+        self.layer1_2 = nn.Linear(96, num_units)  # Input path
         # Number of mutations path
-        self.layer1_3 = nn.Linear(1, num_units_branch_mut).double()
+        self.layer1_3 = nn.Linear(1, num_units_branch_mut)
 
-        self.layer2_1 = nn.Linear(num_units, num_units).double()
-        self.layer2_2 = nn.Linear(num_units, num_units).double()
-        self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut).double()
+        self.layer2_1 = nn.Linear(num_units, num_units)
+        self.layer2_2 = nn.Linear(num_units, num_units)
+        self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
 
         self.hidden_layers = nn.ModuleList(
-            modules=[nn.Linear(num_units_joined_path, num_units_joined_path).double()
+            modules=[nn.Linear(num_units_joined_path, num_units_joined_path)
                      for _ in range(num_hidden_layers)])
 
-        self.output_layer = nn.Linear(num_units_joined_path, num_classes).double()
-        self.activation = nn.LeakyReLU(0.1).double()
+        self.output_layer = nn.Linear(num_units_joined_path, num_classes)
+        self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
 

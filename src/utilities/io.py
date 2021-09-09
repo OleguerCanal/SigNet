@@ -12,7 +12,7 @@ def csv_to_tensor(file, device):
     assert(not torch.isnan(input_tensor).any())
     # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
     #        == input_tensor.shape[0])
-    return input_tensor.double().to(device)
+    return input_tensor.to(device)
 
 
 def read_data(device, experiment_id, source, data_folder="../data"):
