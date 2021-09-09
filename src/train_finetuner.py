@@ -39,7 +39,8 @@ if __name__ == "__main__":
 
     wandb.init(project='finetuner',
                entity='sig-net',
-               config=config)
+               config=config,
+               name=config["model_id"])
 
     train_data, val_data = read_data(device=dev,
                                      experiment_id="exp_0",
