@@ -53,7 +53,6 @@ if __name__ == "__main__":
     train_data, val_data = read_data(experiment_id=config["experiment_id"],
                                      source=config["source"],
                                      device="cpu")
-    import pdb; pdb.set_trace()
 
     train_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
                                                    trained_finetuner_file=finetuner_path,

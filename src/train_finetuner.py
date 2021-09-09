@@ -10,12 +10,14 @@ from utilities.io import read_data, read_data_type
 
 config = {
     # IDs
+<<<<<<< HEAD
     "experiment_id": "exp_two_trainings",
     "model_id": "",
+>>>>>>> main
 
     # Training params
     "source": "mixed",
-    "iterations": 200,
+    "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
     "fn_param": 0.001,
@@ -39,7 +41,8 @@ if __name__ == "__main__":
 
     wandb.init(project='finetuner',
                entity='sig-net',
-               config=config)
+               config=config,
+               name=config["model_id"])
 
     train_data, val_data = read_data_type(device=dev,
                                      experiment_id=config["experiment_id"],
