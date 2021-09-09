@@ -10,7 +10,7 @@ from utilities.io import read_data, read_data_type
 
 config = {
     # IDs
-    "experiment_id": "exp_1",
+    "experiment_id": "exp_two_trainings",
     "model_id": "",
 
     # Training params
@@ -23,7 +23,7 @@ config = {
     "lr": 0.0001,
 
     # Network params
-    "num_hidden_layers": 6,
+    "num_hidden_layers": 2,
     "num_neurons": 600,
 }
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
                config=config)
 
     train_data, val_data = read_data_type(device=dev,
-                                     experiment_id="exp_1",
+                                     experiment_id=config["experiment_id"],
                                      source=config["source"],
                                      type="low")
 
