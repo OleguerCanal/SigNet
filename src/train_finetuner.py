@@ -10,10 +10,8 @@ from utilities.io import read_data, read_data_type
 
 config = {
     # IDs
-<<<<<<< HEAD
     "experiment_id": "exp_two_trainings",
-    "model_id": "",
->>>>>>> main
+    "model_id": "two_trainings",
 
     # Training params
     "source": "mixed",
