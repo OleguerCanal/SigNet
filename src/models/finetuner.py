@@ -11,7 +11,7 @@ class FineTuner(nn.Module):
                  cutoff=0.05):
         super(FineTuner, self).__init__()
         self._cutoff = cutoff
-        self._EPS = 1e-10
+        self._EPS = 1e-6
 
         # Num units of the mutations path
         num_units_branch_mut = 10
@@ -50,11 +50,13 @@ class FineTuner(nn.Module):
 
         # Number of mutations head
         num_mut = torch.log10(num_mut)
+        assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
+        assert(not torch.isnan(comb).any())
 
         # Apply shared layers
         for layer in self.hidden_layers:
@@ -86,9 +88,7 @@ def baseline_guess_to_finetuner_guess(finetuner_args, trained_finetuner_file, da
         data.prev_guess = finetuner(mutation_dist=data.inputs,
                                     weights=data.prev_guess,
                                     num_mut=data.num_mut)
-    # del data.prev_guess
     del finetuner
     gc.collect()
     torch.cuda.empty_cache()
-    # data.next_guess = next_guess
     return data
