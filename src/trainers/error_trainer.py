@@ -40,7 +40,8 @@ class ErrorTrainer:
             path=loging_path,
             experiment_id="_".join(model_path.split("/")[-2:]))
 
-    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=7e-3):
+    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=5e-2):
+        _EPS = 1e-6
         batch_size = float(pred_lower.shape[0])
         lower = label - pred_lower
         upper = pred_upper - label
@@ -53,6 +54,7 @@ class ErrorTrainer:
         loss_by_mutation = torch.linalg.norm(
             1e4*loss_by_mutation_signature, ord=5, axis=1)
         loss = torch.mean(loss_by_mutation)
+        loss += torch.mean(torch.abs(pred_upper[label <= _EPS]))
         return loss
 
     def objective(self,
@@ -101,7 +103,7 @@ class ErrorTrainer:
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
-                if plot:
+                if plot and step % 10 == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
                     pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper)
                     self.logger.log(train_loss=train_loss,

@@ -44,7 +44,7 @@ class SignedErrorFinder(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Mutations head
-        num_mutations = nn.Sigmoid()((num_mutations-500)/150)  # Normalize
+        num_mutations = nn.Sigmoid()((num_mutations-30000)/7000)  # Normalize
         num_mutations = self.activation(self.layer1_2(num_mutations))
 
         # Concatenate

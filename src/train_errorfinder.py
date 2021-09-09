@@ -12,8 +12,9 @@ from utilities.io import read_data
 
 source = "mixed"
 experiment_id = "exp_0"
+model_id = "_reduce_upper_2"
 models_path = os.path.join("../trained_models", experiment_id)
-errorfinder_path = os.path.join(models_path, "errorfinder_" + source)
+errorfinder_path = os.path.join(models_path, "errorfinder_" + source + model_id)
 iterations = 40
 num_classes = 72
 
