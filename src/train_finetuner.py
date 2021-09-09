@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer
 from utilities.io import read_data
 
-source = "realistic"
+source = "mixed"
 experiment_id = "exp_0"
 model_id = "_big_net"
 models_path = os.path.join("../trained_models", experiment_id)
