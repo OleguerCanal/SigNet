@@ -54,8 +54,8 @@ def get_wasserstein_distance(predicted_label, true_label):
 
 def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     batch_size = float(label_batch.shape[0])
-    label_mask = (label_batch > cutoff).type(torch.int)
-    prediction_mask = (prediction_batch > cutoff).type(torch.int)
+    label_mask = (label_batch > cutoff).type(torch.int).float()
+    prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
     fp = torch.sum(label_mask - prediction_mask < -0.1)/batch_size
     fn = torch.sum(label_mask - prediction_mask > 0.1)/batch_size
     tp = torch.sum(torch.einsum("bi,bi->b", prediction_mask, label_mask))

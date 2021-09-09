@@ -11,11 +11,11 @@ from utilities.io import read_data
 config = {
     # IDs
     "experiment_id": "exp_0",
-    "model_id": "",
+    "model_id": "original",
 
     # Training params
     "source": "mixed",
-    "iterations": 200,
+    "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
     "fn_param": 0.001,
@@ -23,7 +23,7 @@ config = {
     "lr": 0.0001,
 
     # Network params
-    "num_hidden_layers": 6,
+    "num_hidden_layers": 2,
     "num_neurons": 600,
 }
 
