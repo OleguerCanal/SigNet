@@ -40,12 +40,12 @@ class YapsaInspiredBaseline:
 
 
 def create_baseline_dataset(input_file, output_file):
-    num_classes = 72
+    num_classes = 30
     data_path = "../../data/"
 
-    signatures_data = pd.read_excel(data_path + "data.xlsx")
+    signatures_data = pd.read_excel(data_path + "data_v2.xls")
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:num_classes]
+                  for i in range(1, 31)][:num_classes]
 
     sf = YapsaInspiredBaseline(signatures)
 
@@ -60,12 +60,12 @@ def create_baseline_dataset(input_file, output_file):
 
 
 def create_huge_baseline_dataset(input_file, output_file):
-    num_classes = 72
+    num_classes = 30
     data_path = "../../data/"
 
-    signatures_data = pd.read_excel(data_path + "data.xlsx")
+    signatures_data = pd.read_excel(data_path + "data_v2.xls")
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:num_classes]
+                  for i in range(1, 31)][:num_classes]
 
     sf = YapsaInspiredBaseline(signatures)
 
@@ -83,13 +83,13 @@ def create_huge_baseline_dataset(input_file, output_file):
 
 
 if __name__ == "__main__":
-    training_data_in_file = "/train_val_test_sets/train_random_input.csv"
-    validation_data_in_file = "/train_val_test_sets/val_random_input.csv"
-    test_data_in_file = "/train_val_test_sets/test_random_input.csv"
+    training_data_in_file = "/exp_v2/train_random_input.csv"
+    validation_data_in_file = "/exp_v2/val_random_input.csv"
+    test_data_in_file = "/exp_v2/test_random_input.csv"
 
-    training_data_out_file = "/train_val_test_sets/train_random_baseline_yapsa.csv"
-    validation_data_out_file = "/train_val_test_sets/val_random_baseline_yapsa.csv"
-    test_data_out_file = "/train_val_test_sets/test_random_baseline_yapsa.csv"
+    training_data_out_file = "/exp_v2/train_random_baseline.csv"
+    validation_data_out_file = "/exp_v2/val_random_baseline.csv"
+    test_data_out_file = "/exp_v2/test_random_baseline.csv"
 
     create_baseline_dataset(training_data_in_file, training_data_out_file)
     create_baseline_dataset(validation_data_in_file, validation_data_out_file)
