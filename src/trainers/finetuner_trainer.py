@@ -40,8 +40,6 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger(
             path=loging_path,
             experiment_id="_".join(model_path.split("/")[-2:]))
-        wandb.init(project='signatures', entity='sig-net')
-        self.wand_config = wandb.config
 
     def __loss(self, prediction, label, FP, FN):
         l = get_kl_divergence(prediction, label)
@@ -65,9 +63,11 @@ class FinetunerTrainer:
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_units))
         model.to(self.device)
-        wandb.watch(model, log="all", log_freq=1, log_graph=True)
 
-        # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.00001)
+        log_freq = 5
+        if plot:
+            wandb.watch(model, log_freq=log_freq, log_graph=True)
+
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
         l_vals = collections.deque(maxlen=100)
@@ -76,7 +76,6 @@ class FinetunerTrainer:
         for iteration in range(self.iterations):
             for train_input, train_label, train_weight_guess, num_mut in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                # with torch.autograd.detect_anomaly():
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, train_weight_guess, num_mut)
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
@@ -107,7 +106,7 @@ class FinetunerTrainer:
                     val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
                                                                             prediction_batch=val_prediction)
 
-                if plot:
+                if plot and step % log_freq == 0:
                     self.logger.log(train_loss=train_loss,
                                     train_prediction=train_prediction,
                                     train_label=train_label,
