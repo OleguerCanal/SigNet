@@ -47,27 +47,24 @@ class ModelTester:
         conf_mat = plot_confusion_matrix(
             label_sigs, predicted_sigs, range(self.num_classes+1))
 
-    def probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff, num_classes):
-        label_sigs_list = torch.zeros(0, dtype=torch.long)
-        predicted_sigs_list = torch.zeros(0, dtype=torch.long)
+    def probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff=0.05, num_classes=72):
+        label_sigs_list = list(range(num_classes))
+        predicted_sigs_list = list(range(num_classes))
         for i in range(len(label_batch)):
             for j in range(len(label_batch[i])):
                 if label_batch[i][j] > cutoff and predicted_batch[i][j] > cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([j]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([j]))])
+                    label_sigs_list.append(j)
+                    predicted_sigs_list.append(j)
+                    continue
                 if label_batch[i][j] > cutoff and predicted_batch[i][j] < cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([j]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([num_classes]))])
+                    label_sigs_list.append(j)
+                    predicted_sigs_list.append(num_classes)
+                    continue
                 if label_batch[i][j] < cutoff and predicted_batch[i][j] > cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([num_classes]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([j]))])
-        return label_sigs_list, predicted_sigs_list
+                    label_sigs_list.append(num_classes)
+                    predicted_sigs_list.append(j)
+                    continue
+        return torch.tensor(label_sigs_list), torch.tensor(predicted_sigs_list)
 
 
 if __name__ == "__main__":
@@ -76,9 +73,9 @@ if __name__ == "__main__":
     device = "cpu"
 
     # Model params finetuner
-    model_id_finetuner = "finetuner_realistic"
+    model_id_finetuner = "finetuner_mixed_js_loss"
     num_hidden_layers = 2
-    num_neurons = 1300
+    num_neurons = 600
     num_classes = 72
 
     # Model params error
@@ -97,8 +94,10 @@ if __name__ == "__main__":
                                                   experiment_id=experiment_id,
                                                   test_id=test_id,
                                                   data_folder="../../data")
-    label_batch = label_mut_batch[:, :-1]
-    num_mut = label_mut_batch[:, -1].reshape((-1, 1))
+    n_datapoints = -1
+    input_batch = input_batch[:n_datapoints]
+    label_batch = label_mut_batch[:n_datapoints, :-1]
+    num_mut = label_mut_batch[:n_datapoints, -1].reshape((-1, 1))
 
     # Baseline:
     sf = YapsaInspiredBaseline(signatures)
