@@ -16,7 +16,7 @@ from models.error_finder import ErrorFinder
 from models.finetuner import FineTuner
 from utilities.dataloader import DataLoader
 from utilities.metrics import *
-from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
+from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 
 
 class ModelTester:
@@ -79,10 +79,10 @@ if __name__ == "__main__":
     num_classes = 72
 
     # Model params error
-    model_id_error_learner = "errorfinder_realistic"
-    num_hidden_layers_pos = 1
+    model_id_error_learner = "errorfinder_mixed"
+    num_hidden_layers_pos = 2
     num_neurons_pos = 1000
-    num_hidden_layers_neg = 1
+    num_hidden_layers_neg = 2
     num_neurons_neg = 1000
 
     # Open data
@@ -129,17 +129,18 @@ if __name__ == "__main__":
     # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # # Plot signatures
-    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
-    # ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[9000, :].detach().numpy(), guessed_labels[9000, :].detach().numpy(
-    # ), pred_upper[9000, :].detach().numpy(),pred_lower[9000, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:], "example_25mut.png")
+    plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
+    ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:],"example_150mut.png")
+    plot_weights_comparison(label_batch[12000, :].detach().numpy(), guessed_labels[12000, :].detach().numpy(
+    ), pred_upper[12000, :].detach().numpy(),pred_lower[12000, :].detach().numpy(), list(data.columns)[2:],"example_10kmut.png")
 
 
     # Plot interval performance
-    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
-    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    plot_interval_metrics_vs_sigs(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval_vs_sigs")
+    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval")
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:], "mixed_realistic_interval_performance")
 
     # Plot interval width vs number of mutations
     plot_interval_width_vs_mutations(label_mut_batch, 

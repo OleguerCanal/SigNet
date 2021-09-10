@@ -47,7 +47,7 @@ class ErrorTrainer:
         upper = pred_upper - label
         lower = nn.ReLU()(-lower)
         upper = nn.ReLU()(-upper)
-        # inverse_interval = nn.ReLU()(pred_lower - pred_upper)  # Penalize if the interval is inverted
+
         interval_length = ((pred_upper - pred_lower)**2)/batch_size
         loss_by_mutation_signature =\
             interval_length +\
@@ -55,6 +55,8 @@ class ErrorTrainer:
         loss_by_mutation = torch.linalg.norm(
             1e4*loss_by_mutation_signature, ord=5, axis=1)
         loss = torch.mean(loss_by_mutation)
+
+        loss += torch.sum(pred_upper[label <= _EPS])
         return loss
 
     def objective(self,

@@ -101,7 +101,7 @@ def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=
     return label_sigs_list, predicted_sigs_list
 
 # USED IN ERROR FINDER 
-def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
+def distance_to_interval(label, pred_lower, pred_upper):
     batch_size = float(pred_lower.shape[0])
     lower = label - pred_lower
     upper = pred_upper - label

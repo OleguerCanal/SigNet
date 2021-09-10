@@ -44,6 +44,34 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     plt.show()
     fig.savefig('../plots/exp_0/%s.png'%plot_name)
 
+def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
+    fig, axs = plt.subplots(len(list_of_metrics))
+    fig.suptitle("Metrics vs Number of Signatures")
+    
+    num_sigs = list(range(1, 11))
+    num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
+    for m, metric in enumerate(list_of_metrics):
+        values = np.zeros((len(list_of_methods), len(num_sigs)))
+
+        for k in range(len(list_of_methods)):
+            for i in range(len(num_sigs)):
+                metrics = get_classification_metrics(label_batch=label[num_sigs_ind==i+1, :-1], prediction_batch=list_of_guesses[k][num_sigs_ind==i+1,:])
+                values[k,i] = metrics[metric]
+        
+        handles = axs[m].plot(num_sigs, np.transpose(values))
+        axs[m].set_ylabel(metric)
+        if m == len(list_of_metrics)-1:
+            axs[m].set_xlabel("N")
+
+        # Shrink current axis by 3%
+        box = axs[m].get_position()
+        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+    fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+
 # ERRORLEARNER PLOTS:
 def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_name):
     fig, axs = plt.subplots(2,2)
@@ -77,20 +105,58 @@ def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_name)
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
 
-def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names): # Returns x,y
+def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_name):
+    fig, axs = plt.subplots(2,2)
+    fig.suptitle("Interval metrics vs Number of Signatures")
+
+    num_sigs = list(range(1, 11))
+    num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
+    values = np.zeros((4,len(num_sigs)))
+    for i in range(len(num_sigs)):
+        metrics = get_pi_metrics(label[num_sigs_ind==i+1, :-1], pred_lower[num_sigs_ind==i+1, :], pred_upper[num_sigs_ind==i+1, :])
+        for k, metric in enumerate(metrics.keys()):
+            values[k,i] = metrics[metric]
+        
+    axs[0,0].plot(num_sigs, values[0])
+    axs[0,0].set_ylabel("Proportion in")
+    axs[0,0].set_xlabel("N")
+
+    axs[0,1].plot(num_sigs, values[1])
+    axs[0,1].set_ylabel("Interval width")
+    axs[0,1].set_xlabel("N")
+
+    axs[1,0].plot(num_sigs, values[2])
+    axs[1,0].set_ylabel("Interval width present")
+    axs[1,0].set_xlabel("N")
+
+    axs[1,1].plot(num_sigs, values[3])
+    axs[1,1].set_ylabel("Interval width absent")
+    axs[1,1].set_xlabel("N")
+
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
+
+def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, plot_name): # Returns x,y
     lower = label_batch - pred_lower
     upper = pred_upper - label_batch
     num_error = torch.sum(lower<0, dim=0)
     num_error += torch.sum(upper<0, dim=0)
     num_error = num_error / label_batch.shape[0]
     num_classes = 72
-    plt.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    plt.ylabel("Percentage of error (%)")
-    plt.xticks(range(num_classes), sigs_names, rotation='vertical')
-    plt.title('Confidence intervals performance')
+    fig, ax = plt.subplots(1,1)
+    fig.suptitle('Confidence intervals performance')
+    ax.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    ax.set_ylabel("Percentage of error (%)")
+    ax.set_xticks(range(num_classes))
+    ax.set_xticklabels(sigs_names, rotation='vertical')
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
     plt.show()
+    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
     return range(num_classes), 100*num_error
 
 def plot_interval_width_vs_mutations(label, upper, lower, plot = True): # Returns x,y
@@ -118,7 +184,8 @@ def plot_interval_width_vs_mutations_some_sigs(label, upper, lower, list_of_sigs
     plt.xlabel("log(N)")
     plt.title("Mean interval width vs number of mutations")
     plt.legend(np.array(sigs_names)[list_of_sigs_ind], title='Signatures', bbox_to_anchor=(1.02, 0.5), ncol=2)
-    plt.show()
+    #plt.show()
+    plt.savefig('../../plots/exp_0/width_vs_muts_some_sigs.png')
     return np.log10(num_muts), mean_width[:,list_of_sigs_ind]
 
 def plot_propin_vs_mutations(label, upper, lower, plot = True): # Returns x,y
@@ -166,19 +233,23 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
     plt.tight_layout()
     plt.show()
 
-def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
+def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_name):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
     ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
     ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
+    ax.set_ylim([0,1])
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
-    plt.show() 
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
 
 def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)
