@@ -28,9 +28,9 @@ metrics_interest = {
     "JS" : get_jensen_shannon
 }
 if __name__=="__main__":
-    # true_label = torch.tensor([0, 0, 0.3, 0, 0.2, 0.5, 0, 0], dtype=torch.double).unsqueeze(0)
-    # prediction_1 = torch.tensor([0, 0, 0.4, 0, 0.15, 0.45, 0, 0], dtype=torch.double).unsqueeze(0)
-    # prediction_2 = torch.tensor([0, 0.1, 0.3, 0, 0.15, 0.45, 0, 0], dtype=torch.double).unsqueeze(0)
+    # true_label = torch.tensor([0, 0, 0.3, 0, 0.2, 0.5, 0, 0], dtype=torch.float).unsqueeze(0)
+    # prediction_1 = torch.tensor([0, 0, 0.4, 0, 0.15, 0.45, 0, 0], dtype=torch.float).unsqueeze(0)
+    # prediction_2 = torch.tensor([0, 0.1, 0.3, 0, 0.15, 0.45, 0, 0], dtype=torch.float).unsqueeze(0)
 
     # for metric_name in list(metrics.keys()):
     #     a = metrics[metric_name](prediction_1, true_label).item()
@@ -43,8 +43,8 @@ if __name__=="__main__":
                   for i in range(2, 74)][:num_classes]
     sf = SignatureFinder(signatures)
 
-    validation_input = torch.tensor(pd.read_csv("../data/validation_input.csv", header=None).values, dtype=torch.double)
-    validation_label = torch.tensor(pd.read_csv("../data/validation_label.csv", header=None).values, dtype=torch.double)
+    validation_input = torch.tensor(pd.read_csv("../data/validation_input.csv", header=None).values, dtype=torch.float)
+    validation_label = torch.tensor(pd.read_csv("../data/validation_label.csv", header=None).values, dtype=torch.float)
     
     
     metrics_results = np.zeros((len(metrics), len(metrics)))
@@ -58,7 +58,7 @@ if __name__=="__main__":
         for i in  tqdm(range(int(N_total))):
             sf.metric = metrics[optimizer_metric]
             pred = sf.get_weights(validation_input[i,:])
-            pred = torch.tensor(pred, dtype=torch.double).unsqueeze(0)
+            pred = torch.tensor(pred, dtype=torch.float).unsqueeze(0)
             guessed_labels = torch.cat([guessed_labels, pred])
             #print(pred)
             # print(validation_label[i,:])

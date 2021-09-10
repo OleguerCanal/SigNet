@@ -13,7 +13,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
+import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_partitions import DataPartitions
@@ -41,8 +41,7 @@ class ErrorTrainer:
             experiment_id="_".join(model_path.split("/")[-2:]))
 
     def __loss(self, label, pred_lower, pred_upper, lagrange_mult=7e-3):
-        EPS = 1e-6
-        
+        _EPS = 1e-6
         batch_size = float(pred_lower.shape[0])
         lower = label - pred_lower
         upper = pred_upper - label
@@ -50,13 +49,14 @@ class ErrorTrainer:
         upper = nn.ReLU()(-upper)
 
         interval_length = ((pred_upper - pred_lower)**2)/batch_size
-        loss_by_mutation_signature = interval_length + \
+        loss_by_mutation_signature =\
+            interval_length +\
             lagrange_mult*(lower + upper)
         loss_by_mutation = torch.linalg.norm(
             1e4*loss_by_mutation_signature, ord=5, axis=1)
         loss = torch.mean(loss_by_mutation)
 
-        loss += torch.sum(pred_upper[label <= EPS])
+        loss += torch.sum(pred_upper[label <= _EPS])
         return loss
 
     def objective(self,
@@ -78,6 +78,11 @@ class ErrorTrainer:
                             num_hidden_layers_neg=int(num_hidden_layers_neg),
                             num_units_neg=int(num_neurons_neg))
         model.to(self.device)
+
+        log_freq = 5
+        if plot:
+            wandb.watch(model, log_freq=log_freq, log_graph=True)
+
         optimizer = optim.Adam(model.parameters(),
                                lr=lr)
         l_vals = collections.deque(maxlen=100)
@@ -105,7 +110,7 @@ class ErrorTrainer:
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
-                if plot:
+                if plot and step % log_freq == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
                     pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper)
                     self.logger.log(train_loss=train_loss,
@@ -116,6 +121,9 @@ class ErrorTrainer:
                                     val_values_upper=val_pred_upper,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
+                    directory = os.path.dirname(self.model_path)
+                    pathlib.Path(directory).mkdir(
+                        parents=True, exist_ok=True)
                     torch.save(model.state_dict(), self.model_path)
                 step += 1
         return max_found
