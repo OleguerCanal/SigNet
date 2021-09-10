@@ -15,7 +15,7 @@ from models.finetuner import FineTuner
 
 dev = torch.device("cpu")
 
-experiment_id = "exp_0"
+experiment_id = "exp_two_trainings"
 # Our methods (baseline with YAPSA and finetuner)
 num_classes = 72
 signatures_data = pd.read_excel("../data/data.xlsx")
@@ -29,19 +29,38 @@ label_batch = torch.tensor(pd.read_csv(
 sf = YapsaInspiredBaseline(signatures)
 baseline_guess = sf.get_weights_batch(input_batch)
 
-finetuner_model_name = "finetuner_realistic"
+input_low = input_batch[:11000,]
+label_low = label_batch[:11000,]
+baseline_low = baseline_guess[:11000,]
+
+finetuner_model_name = "finetuner_mixed_two_trainings"
 finetuner_params = {"num_hidden_layers": 2,
-                        "num_units": 1300,
+                        "num_units": 600,
                         "num_classes": 72}
 
 finetuner = FineTuner(**finetuner_params)
 finetuner.load_state_dict(torch.load(os.path.join(
             "../trained_models/%s"%experiment_id, finetuner_model_name), map_location=torch.device('cpu')))
 finetuner.eval() # NOTE: Important! Otherwise we don't zero small values
-finetuner_guess = finetuner(mutation_dist=input_batch, weights=baseline_guess, num_mut=label_batch[:,-1].reshape(-1,1))
+finetuner_low = finetuner(mutation_dist=input_low, weights=baseline_low, num_mut=label_low[:,-1].reshape(-1,1))
 
+input_large = input_batch[11000:,]
+label_large = label_batch[11000:,]
+baseline_large = baseline_guess[11000:,]
 
-list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"] # "deconstructSigs"
+finetuner_model_name = "finetuner_mixed_large_mut_train"
+finetuner_params = {"num_hidden_layers": 2,
+                        "num_units": 600,
+                        "num_classes": 72}
+
+finetuner = FineTuner(**finetuner_params)
+finetuner.load_state_dict(torch.load(os.path.join(
+            "../trained_models/%s"%experiment_id, finetuner_model_name), map_location=torch.device('cpu')))
+finetuner.eval() # NOTE: Important! Otherwise we don't zero small values
+finetuner_large = finetuner(mutation_dist=input_large, weights=baseline_large, num_mut=label_large[:,-1].reshape(-1,1))
+
+finetuner_guess = torch.cat((finetuner_low, finetuner_large), 0)
+list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs"]
 
 list_of_guesses, label = read_methods_guesses(dev, experiment_id, "test_realistic", list_of_methods)
 
@@ -52,7 +71,10 @@ list_of_methods.append("Finetuner")
 
 list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "realistic_realistic")
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "mixed_2_realistic")
+
+list_of_metrics = ["sens: tp/p %", "spec: tn/n %", "accuracy %"]
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "mixed_2_realistic_performance")
 
 
 

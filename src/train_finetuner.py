@@ -11,7 +11,7 @@ from utilities.io import read_data, read_data_type
 config = {
     # IDs
     "experiment_id": "exp_two_trainings",
-    "model_id": "two_trainings",
+    "model_id": "large_mut_train",
 
     # Training params
     "source": "mixed",
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     train_data, val_data = read_data_type(device=dev,
                                      experiment_id=config["experiment_id"],
                                      source=config["source"],
-                                     type="low")
+                                     type="large")
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
