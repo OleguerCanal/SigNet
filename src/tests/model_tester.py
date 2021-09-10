@@ -73,13 +73,8 @@ if __name__ == "__main__":
     device = "cpu"
 
     # Model params finetuner
-<<<<<<< HEAD
-    model_id_finetuner = "finetuner_mixed"
-    num_hidden_layers = 3
-=======
     model_id_finetuner = "finetuner_mixed_js_loss"
     num_hidden_layers = 2
->>>>>>> main
     num_neurons = 600
     num_classes = 72
 
