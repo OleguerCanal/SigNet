@@ -1,7 +1,3 @@
-from models.finetuner import FineTuner
-from utilities.data_partitions import DataPartitions
-from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
-from loggers.finetuner_logger import FinetunerLogger
 import collections
 import copy
 import os
@@ -16,7 +12,10 @@ from tqdm import tqdm
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from models.finetuner import FineTuner
+from utilities.data_partitions import DataPartitions
+from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
+from loggers.finetuner_logger import FinetunerLogger
 
 class FinetunerTrainer:
     def __init__(self,
