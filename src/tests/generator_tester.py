@@ -1,16 +1,16 @@
 import os
 import sys
-from typing import Generator
 
 import pandas as pd
 import torch
 import torch.nn as nn
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
-from models.yapsa_inspired_baseline import YapsaInspiredBaseline
-from utilities.io import read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
+from utilities.io import read_signatures, read_test_data
+from models.generator import Generator
+from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from models.finetuner import FineTuner
 
 test_id = "test_random"
 device = "cpu"
@@ -40,14 +40,13 @@ baseline_batch = baseline.get_weights_batch(input_batch)  # [:50, ...])
 
 # Instantiate model and do predictions for finetuner:
 finetuner_model = FineTuner(num_classes=num_classes,
-                  num_hidden_layers=num_hidden_layers,
-                  num_units=num_neurons)
+                            num_hidden_layers=num_hidden_layers,
+                            num_units=num_neurons)
 finetuner_model.load_state_dict(torch.load(os.path.join(
     "../../trained_models/" + experiment_id, model_id_finetuner), map_location=torch.device(device)))
 finetuner_model.eval()
-finetuner_guessed_labels = finetuner_model(input_batch, baseline_batch, num_mut)
-
-
+finetuner_guessed_labels = finetuner_model(
+    input_batch, baseline_batch, num_mut)
 
 
 experiment_id = "exp_real_data"
@@ -57,13 +56,17 @@ num_hidden_layers = 3
 num_neurons = 600
 
 # Instantiate model and do predictions for generator:
-generator_model = FineTuner(num_classes=num_classes,
-                  num_hidden_layers=num_hidden_layers,
-                  num_units=num_neurons)
+generator_finetuner = FineTuner(num_classes=num_classes,
+                                num_hidden_layers=num_hidden_layers,
+                                num_units=num_neurons)
+generator_model = Generator(baseline=baseline,
+                            finetuner=generator_finetuner,
+                            signatures=signatures)
 generator_model.load_state_dict(torch.load(os.path.join(
     "../../trained_models/" + experiment_id, model_id_finetuner), map_location=torch.device(device)))
 generator_model.eval()
-generator_guessed_labels = generator_model(input_batch, baseline_batch, num_mut)
+generator_guessed_labels = generator_model.get_finetuned_weights(mutation_dist=input_batch,
+                                                                 num_mut=num_mut)
 
 
 # Check performance
@@ -71,10 +74,14 @@ list_of_guesses = [finetuner_guessed_labels, generator_guessed_labels]
 list_of_methods = ["Finetuner", "Generator"]
 list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label_mut_batch, "../../plots/exp_real_data/random_vs_num_muts")
-plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label_mut_batch, "../../plots/exp_real_data/random_vs_sigs")
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses,
+                         label_mut_batch, "../../plots/exp_real_data/random_vs_num_muts")
+plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses,
+                    label_mut_batch, "../../plots/exp_real_data/random_vs_sigs")
 
 list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
 
-plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label_mut_batch, "../../plots/exp_real_data/random_performance_vs_sigs")
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label_mut_batch, "../../plots/exp_real_data/random_performance_vs_num_muts")
+plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses,
+                    label_mut_batch, "../../plots/exp_real_data/random_performance_vs_sigs")
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses,
+                         label_mut_batch, "../../plots/exp_real_data/random_performance_vs_num_muts")

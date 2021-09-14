@@ -50,13 +50,11 @@ class FineTuner(nn.Module):
 
         # Number of mutations head
         num_mut = torch.log10(num_mut)
-        assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
-        assert(not torch.isnan(comb).any())
 
         # Apply shared layers
         for layer in self.hidden_layers:

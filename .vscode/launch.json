@@ -68,5 +68,14 @@
             "cwd": "${workspaceFolder}/src/tests",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Python: Generator Tester",
+            "type": "python",
+            "request": "launch",
+            "program": "generator_tester.py",
+            "cwd": "${workspaceFolder}/src/tests",
+            "console": "integratedTerminal"
+        }
     ]
 }

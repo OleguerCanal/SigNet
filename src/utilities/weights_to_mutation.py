@@ -14,10 +14,11 @@ class WeightToMutation:
 
     def get_mutation(self, weights, noise_variance=0.0):
         mutation = torch.einsum("ji,bi->bj", self.signatures, weights)
-        mask = (mutation > self._EPS).type(torch.int).float()
-        noise = noise_variance*torch.rand_like(mutation)
-        mutation = torch.abs(mutation + noise*mask)
-        mutation = mutation/torch.sum(mutation, axis=1).view(-1, 1)
+        if noise_variance > 0.0:  # NOTE(oleguer): This bloc sometimes has NAN issues not sure why
+            mask = (mutation > self._EPS).type(torch.int).float()
+            noise = noise_variance*torch.rand_like(mutation)
+            mutation = torch.abs(mutation + noise*mask)
+            mutation = mutation/torch.sum(mutation, axis=1).view(-1, 1)
         return mutation
 
         
