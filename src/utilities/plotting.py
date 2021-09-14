@@ -15,7 +15,7 @@ def plot_signature(signature, labels):
     plt.show()
 
 # FINETUNER PLOTS:
-def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
+def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
     m = -1
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Mutations")
@@ -42,9 +42,9 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
 
-def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_name):
+def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     
@@ -70,10 +70,10 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
 
 # ERRORLEARNER PLOTS:
-def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_name):
+def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path):
     fig, axs = plt.subplots(2,2)
     fig.suptitle("Interval metrics vs Number of Mutations")
 
@@ -105,9 +105,9 @@ def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_name)
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
 
-def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_name):
+def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_path):
     fig, axs = plt.subplots(2,2)
     fig.suptitle("Interval metrics vs Number of Signatures")
 
@@ -138,9 +138,9 @@ def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_name):
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
 
-def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, plot_name): # Returns x,y
+def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, plot_path): # Returns x,y
     lower = label_batch - pred_lower
     upper = pred_upper - label_batch
     num_error = torch.sum(lower<0, dim=0)
@@ -156,7 +156,7 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, p
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
     return range(num_classes), 100*num_error
 
 def plot_interval_width_vs_mutations(label, upper, lower, plot = True): # Returns x,y
@@ -233,7 +233,7 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
     plt.tight_layout()
     plt.show()
 
-def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_name):
+def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
@@ -249,7 +249,7 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    fig.savefig('../../plots/exp_0/%s.png'%plot_name)
+    fig.savefig(plot_path)
 
 def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels, guessed_labels, pred_upper, pred_lower, sigs_names):
     num_classes = len(guessed_labels)

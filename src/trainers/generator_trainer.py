@@ -8,19 +8,18 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from models.generator import Generator
 from utilities.metrics import get_jensen_shannon
 from loggers.generator_logger import GeneratorLogger
 
 class GeneratorTrainer:
 
-    def __init__(self, signatures, baseline, finetuner, train_data, val_data, iterations, model_path=None):
+    def __init__(self, signatures, baseline, finetuner, train_data, iterations, model_path=None):
         self.__generator = Generator(baseline=baseline,
                                      finetuner=finetuner,
                                      signatures=signatures)
         self.train_dataset = train_data
-        self.val_dataset = val_data
+        # self.val_dataset = val_data
         self.logger = GeneratorLogger()
         self.__iterations = iterations
         self.model_path = model_path
@@ -51,20 +50,20 @@ class GeneratorTrainer:
                 optimizer.step()
 
                 model.eval()
-                with torch.no_grad():
-                    val_prediction = model(
-                        self.val_dataset.inputs, self.val_dataset.num_mut)
+                # with torch.no_grad():
+                #     val_prediction = model(
+                #         self.val_dataset.inputs, self.val_dataset.num_mut)
 
-                    val_loss = self.__loss(prediction=val_prediction,
-                                           label=self.val_dataset.inputs)
+                #     val_loss = self.__loss(prediction=val_prediction,
+                #                            label=self.val_dataset.inputs)
 
                 if plot and step % log_freq == 0:
                     self.logger.log(train_loss=train_loss,
                                     train_prediction=train_prediction,
                                     train_label=train_input,
-                                    val_loss=val_loss,
-                                    val_prediction=val_prediction,
-                                    val_label=self.val_dataset.inputs,
+                                    # val_loss=val_loss,
+                                    # val_prediction=val_prediction,
+                                    # val_label=self.val_dataset.inputs,
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:

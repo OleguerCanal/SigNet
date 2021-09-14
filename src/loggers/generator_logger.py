@@ -27,15 +27,15 @@ class GeneratorLogger:
             train_loss,
             train_prediction,
             train_label,
-            val_loss,
-            val_prediction,
-            val_label,
+            # val_loss,
+            # val_prediction,
+            # val_label,
             step):
 
         wandb.log({"train_loss": train_loss})
-        wandb.log({"val_loss": val_loss})
+        # wandb.log({"val_loss": val_loss})
 
         for metric_name in self.metrics.keys():
             metric = self.metrics[metric_name]
             wandb.log({"train_" + metric_name: metric(train_prediction, train_label).item()})
-            wandb.log({"val_" + metric_name: metric(val_prediction, val_label).item()})
+            # wandb.log({"val_" + metric_name: metric(val_predictiosn, val_label).item()})
