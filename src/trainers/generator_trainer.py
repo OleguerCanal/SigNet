@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from models.generator import Generator
 from utilities.metrics import get_jensen_shannon
 from loggers.generator_logger import GeneratorLogger
@@ -39,7 +38,7 @@ class GeneratorTrainer:
         log_freq = 5
 
         for step in range(self.__iterations):
-            for train_input, num_mut in tqdm(dataloader):
+            for train_input, _, _, num_mut in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()
                 train_prediction = model(train_input, num_mut)

@@ -13,13 +13,10 @@ class DataPartitions(Dataset):
                 this is the baseline output, if training the errorfinder this is the
                 finetuner output. Defaults to None.
         """
-        
         self.inputs = inputs
         self.labels = labels
         self.prev_guess = prev_guess
-        self.num_mut = None
-        if num_mut is not None:
-            self.num_mut = num_mut
+        self.num_mut = num_mut if num_mut is not None else None
         if labels is not None:
             self.num_mut = labels[:, -1].reshape(-1,1)
             self.labels = labels[:, :-1]
@@ -28,21 +25,16 @@ class DataPartitions(Dataset):
     def to(self, device):
         device = torch.device(device)
         self.inputs = self.inputs.to(device)
-        if self.labels is not None:
-            self.labels = self.labels.to(device)
-        if self.prev_guess is not None:
-            self.prev_guess = self.prev_guess.to(device)
-        if self.num_mut is not None:
-            self.num_mut = self.num_mut.to(device)
+        self.labels = self.labels.to(device) if self.labels is not None else self.labels
+        self.prev_guess = self.prev_guess.to(device) if self.prev_guess is not None else self.prev_guess
+        self.num_mut = self.num_mut.to(device) if self.num_mut is not None else self.num_mut
 
     def __len__(self):
         return self.inputs.shape[0]
 
     def __getitem__(self, i):
-        num_mut_i = None if self.num_mut is None else self.num_mut[i]
-        if self.labels == None:
-            return self.inputs[i], num_mut_i
-        else:
-            labels_i = None if self.labels is None else self.labels[i]
-            prev_guess_i = None if self.prev_guess is None else self.prev_guess[i]
-            return self.inputs[i], labels_i, prev_guess_i, num_mut_i
+        labels_i = torch.empty(0) if self.labels is None else self.labels[i]
+        prev_guess_i = torch.empty(0) if self.prev_guess is None else self.prev_guess[i]
+        num_mut_i = torch.empty(0) if self.num_mut is None else self.num_mut[i]
+        return self.inputs[i], labels_i, prev_guess_i, num_mut_i
+            
