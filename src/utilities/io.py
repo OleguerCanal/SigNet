@@ -52,6 +52,24 @@ def read_data(device, experiment_id, source, data_folder="../data"):
 
     return train_data, val_data
 
+def read_real_data(device, experiment_id, data_folder="../data"):
+    """Read data from disk
+
+    Args:
+        device (string): Device to train on
+        experiment_id (string): Full name of the experiment folder
+        source (string): Type of generated data: random or realistic
+        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+    """
+    path = os.path.join(data_folder, experiment_id)
+
+    real_input = csv_to_tensor(path + "/real_data_input.csv", device)
+    real_num_mut = csv_to_tensor(path + "/real_data_num_mut.csv", device)
+
+    train_data = DataPartitions(inputs=real_input,
+                                num_mut=real_num_mut)
+
+    return train_data
 
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):
     """Read one method guess from disk
