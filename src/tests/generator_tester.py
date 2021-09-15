@@ -15,17 +15,21 @@ from models.finetuner import FineTuner
 test_id = "test_random"
 device = "cpu"
 
-experiment_id = "exp_0"
 # Model params finetuner
+experiment_id_finetuner = "exp_0"
 model_id_finetuner = "finetuner_random"
 num_hidden_layers = 3
 num_neurons = 600
 num_classes = 72
 
+# Model params generator
+experiment_id_generator = "exp_real_data"
+model_id_generator = "generator_real"
+
 # Open data
 signatures = read_signatures("../../data/data.xlsx", num_classes=72)
 input_batch, label_mut_batch = read_test_data(device=device,
-                                              experiment_id=experiment_id,
+                                              experiment_id=experiment_id_finetuner,
                                               test_id=test_id,
                                               data_folder="../../data")
 n_datapoints = -1  # What is this for?
@@ -43,17 +47,11 @@ finetuner_model = FineTuner(num_classes=num_classes,
                             num_hidden_layers=num_hidden_layers,
                             num_units=num_neurons)
 finetuner_model.load_state_dict(torch.load(os.path.join(
-    "../../trained_models/" + experiment_id, model_id_finetuner), map_location=torch.device(device)))
+    "../../trained_models/" + experiment_id_finetuner, model_id_finetuner), map_location=torch.device(device)))
 finetuner_model.eval()
 finetuner_guessed_labels = finetuner_model(
     input_batch, baseline_batch, num_mut)
 
-
-experiment_id = "exp_real_data"
-# Model params generator
-model_id_finetuner = "generator_real"
-num_hidden_layers = 3
-num_neurons = 600
 
 # Instantiate model and do predictions for generator:
 generator_finetuner = FineTuner(num_classes=num_classes,
@@ -63,7 +61,7 @@ generator_model = Generator(baseline=baseline,
                             finetuner=generator_finetuner,
                             signatures=signatures)
 generator_model.load_state_dict(torch.load(os.path.join(
-    "../../trained_models/" + experiment_id, model_id_finetuner), map_location=torch.device(device)))
+    "../../trained_models/" + experiment_id_generator, model_id_generator), map_location=torch.device(device)))
 generator_model.eval()
 generator_guessed_labels = generator_model.get_finetuned_weights(mutation_dist=input_batch,
                                                                  num_mut=num_mut)
