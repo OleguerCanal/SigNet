@@ -66,10 +66,7 @@ def read_real_data(device, experiment_id, data_folder="../data"):
     real_input = csv_to_tensor(path + "/real_data_input.csv", device)
     real_num_mut = csv_to_tensor(path + "/real_data_num_mut.csv", device)
 
-    train_data = DataPartitions(inputs=real_input,
-                                num_mut=real_num_mut)
-
-    return train_data
+    return real_input, real_num_mut
 
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):
     """Read one method guess from disk
@@ -108,3 +105,8 @@ def read_test_data(device, experiment_id, test_id, data_folder="../data"):
     label = csv_to_tensor(path + "/%s_label.csv" % (test_id), device=device)
 
     return inputs, label
+
+def write_data(data_tensor, output_path):
+    df = data_tensor.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv(output_path, header=False, index=False)
