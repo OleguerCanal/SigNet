@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import pandas as pd
 import torch
@@ -10,6 +11,7 @@ def read_signatures(file, num_classes=72):
     signatures_data = pd.read_excel(file)
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
                   for i in range(2, num_classes + 2)][:num_classes]
+    signatures = torch.stack(signatures).t()
     return signatures
 
 
@@ -21,6 +23,12 @@ def csv_to_tensor(file, device):
     #        == input_tensor.shape[0])
     return input_tensor.float().to(device)
 
+def tensor_to_csv(data_tensor, output_path):
+    directory = os.path.dirname(output_path)
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    df = data_tensor.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv(output_path, header=False, index=False) 
 
 def read_data(device, experiment_id, source, data_folder="../data"):
     """Read data from disk
@@ -105,8 +113,3 @@ def read_test_data(device, experiment_id, test_id, data_folder="../data"):
     label = csv_to_tensor(path + "/%s_label.csv" % (test_id), device=device)
 
     return inputs, label
-
-def write_data(data_tensor, output_path):
-    df = data_tensor.detach().numpy()
-    df = pd.DataFrame(df)
-    df.to_csv(output_path, header=False, index=False)
