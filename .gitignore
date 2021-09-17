@@ -143,3 +143,7 @@ plots/*
 runs_old/
 
 !.vscode/launch.json
+
+wandb
+
+nohup.out

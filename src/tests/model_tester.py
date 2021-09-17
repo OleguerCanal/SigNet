@@ -14,9 +14,8 @@ from models.yapsa_inspired_baseline import YapsaInspiredBaseline
 from utilities.io import read_test_data
 from models.error_finder import ErrorFinder
 from models.finetuner import FineTuner
-from utilities.dataloader import DataLoader
 from utilities.metrics import *
-from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
+from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 
 
 class ModelTester:
@@ -47,27 +46,24 @@ class ModelTester:
         conf_mat = plot_confusion_matrix(
             label_sigs, predicted_sigs, range(self.num_classes+1))
 
-    def probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff, num_classes):
-        label_sigs_list = torch.zeros(0, dtype=torch.long)
-        predicted_sigs_list = torch.zeros(0, dtype=torch.long)
+    def probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff=0.05, num_classes=72):
+        label_sigs_list = list(range(num_classes))
+        predicted_sigs_list = list(range(num_classes))
         for i in range(len(label_batch)):
             for j in range(len(label_batch[i])):
                 if label_batch[i][j] > cutoff and predicted_batch[i][j] > cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([j]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([j]))])
+                    label_sigs_list.append(j)
+                    predicted_sigs_list.append(j)
+                    continue
                 if label_batch[i][j] > cutoff and predicted_batch[i][j] < cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([j]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([num_classes]))])
+                    label_sigs_list.append(j)
+                    predicted_sigs_list.append(num_classes)
+                    continue
                 if label_batch[i][j] < cutoff and predicted_batch[i][j] > cutoff:
-                    label_sigs_list = torch.cat(
-                        [label_sigs_list, torch.from_numpy(np.array([num_classes]))])
-                    predicted_sigs_list = torch.cat(
-                        [predicted_sigs_list, torch.from_numpy(np.array([j]))])
-        return label_sigs_list, predicted_sigs_list
+                    label_sigs_list.append(num_classes)
+                    predicted_sigs_list.append(j)
+                    continue
+        return torch.tensor(label_sigs_list), torch.tensor(predicted_sigs_list)
 
 
 if __name__ == "__main__":
@@ -76,16 +72,16 @@ if __name__ == "__main__":
     device = "cpu"
 
     # Model params finetuner
-    model_id_finetuner = "finetuner_realistic"
+    model_id_finetuner = "finetuner_mixed_js_loss"
     num_hidden_layers = 2
-    num_neurons = 1300
+    num_neurons = 600
     num_classes = 72
 
     # Model params error
-    model_id_error_learner = "errorfinder_realistic"
-    num_hidden_layers_pos = 1
+    model_id_error_learner = "errorfinder_mixed"
+    num_hidden_layers_pos = 2
     num_neurons_pos = 1000
-    num_hidden_layers_neg = 1
+    num_hidden_layers_neg = 2
     num_neurons_neg = 1000
 
     # Open data
@@ -97,8 +93,10 @@ if __name__ == "__main__":
                                                   experiment_id=experiment_id,
                                                   test_id=test_id,
                                                   data_folder="../../data")
-    label_batch = label_mut_batch[:, :-1]
-    num_mut = label_mut_batch[:, -1].reshape((-1, 1))
+    n_datapoints = -1
+    input_batch = input_batch[:n_datapoints]
+    label_batch = label_mut_batch[:n_datapoints, :-1]
+    num_mut = label_mut_batch[:n_datapoints, -1].reshape((-1, 1))
 
     # Baseline:
     sf = YapsaInspiredBaseline(signatures)
@@ -130,17 +128,18 @@ if __name__ == "__main__":
     # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # # Plot signatures
-    # plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
-    # ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
-    # ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:])
-    # plot_weights_comparison(label_batch[9000, :].detach().numpy(), guessed_labels[9000, :].detach().numpy(
-    # ), pred_upper[9000, :].detach().numpy(),pred_lower[9000, :].detach().numpy(), list(data.columns)[2:])
+    plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
+    ), pred_upper[0, :].detach().numpy(),pred_lower[0, :].detach().numpy(), list(data.columns)[2:], "example_25mut.png")
+    plot_weights_comparison(label_batch[5000, :].detach().numpy(), guessed_labels[5000, :].detach().numpy(
+    ), pred_upper[5000, :].detach().numpy(),pred_lower[5000, :].detach().numpy(), list(data.columns)[2:],"example_150mut.png")
+    plot_weights_comparison(label_batch[12000, :].detach().numpy(), guessed_labels[12000, :].detach().numpy(
+    ), pred_upper[12000, :].detach().numpy(),pred_lower[12000, :].detach().numpy(), list(data.columns)[2:],"example_10kmut.png")
 
 
     # Plot interval performance
-    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "interval_metrics")
-    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:])
+    plot_interval_metrics_vs_sigs(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval_vs_sigs")
+    plot_interval_metrics_vs_mutations(label_mut_batch, pred_upper, pred_lower, "mixed_realistic_interval")
+    plot_interval_performance(label_batch, pred_upper,pred_lower, list(data.columns)[2:], "mixed_realistic_interval_performance")
 
     # Plot interval width vs number of mutations
     plot_interval_width_vs_mutations(label_mut_batch, 

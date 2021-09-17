@@ -1,7 +1,3 @@
-from models.finetuner import FineTuner
-from utilities.data_partitions import DataPartitions
-from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
-from loggers.finetuner_logger import FinetunerLogger
 import collections
 import copy
 import os
@@ -13,9 +9,13 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from models.finetuner import FineTuner
+from utilities.data_partitions import DataPartitions
+from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
+from loggers.finetuner_logger import FinetunerLogger
 
 class FinetunerTrainer:
     def __init__(self,
@@ -62,7 +62,11 @@ class FinetunerTrainer:
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_units))
         model.to(self.device)
-        # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.00001)
+
+        log_freq = 5
+        if plot:
+            wandb.watch(model, log_freq=log_freq, log_graph=True)
+
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
         l_vals = collections.deque(maxlen=100)
@@ -71,37 +75,37 @@ class FinetunerTrainer:
         for iteration in range(self.iterations):
             for train_input, train_label, train_weight_guess, num_mut in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, train_weight_guess, num_mut)
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                                                prediction_batch=train_prediction)
+                                                    prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
-                                         label=train_label,
-                                         FP=train_FP,
-                                         FN=train_FN)
+                                        label=train_label,
+                                        FP=train_FP,
+                                        FN=train_FN)
+
                 train_loss.backward()
                 optimizer.step()
 
                 model.eval()
                 with torch.no_grad():
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
-                                                                              prediction_batch=train_prediction)
+                                                                            prediction_batch=train_prediction)
                     val_prediction = model(
                         self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                                                     prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
-                                           label=self.val_dataset.labels,
-                                           FP=val_FP,
-                                           FN=val_FN)
+                                        label=self.val_dataset.labels,
+                                        FP=val_FP,
+                                        FN=val_FN)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
                     val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
                                                                             prediction_batch=val_prediction)
 
-                if plot:
+                if plot and step % log_freq == 0:
                     self.logger.log(train_loss=train_loss,
                                     train_prediction=train_prediction,
                                     train_label=train_label,
@@ -113,7 +117,8 @@ class FinetunerTrainer:
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:
-                    pathlib.Path(self.model_path).mkdir(
+                    directory = os.path.dirname(self.model_path)
+                    pathlib.Path(directory).mkdir(
                         parents=True, exist_ok=True)
                     torch.save(model.state_dict(), self.model_path)
                 step += 1

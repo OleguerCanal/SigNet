@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -56,6 +57,15 @@
             "request": "launch",
             "program": "optimize_finetuner.py",
             "cwd": "${workspaceFolder}/src/hyperparam_optimizers",
+            "console": "integratedTerminal"
+        }
+
+        {
+            "name": "Python: Model Tester",
+            "type": "python",
+            "request": "launch",
+            "program": "model_tester.py",
+            "cwd": "${workspaceFolder}/src/tests",
             "console": "integratedTerminal"
         }
     ]

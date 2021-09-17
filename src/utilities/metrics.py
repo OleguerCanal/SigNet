@@ -53,7 +53,7 @@ def get_wasserstein_distance(predicted_label, true_label):
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
 def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
-    batch_size = label_batch.shape[0]
+    batch_size = float(label_batch.shape[0])
     label_mask = (label_batch > cutoff).type(torch.int).float()
     prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
     fp = torch.sum(label_mask - prediction_mask < -0.1)/batch_size
@@ -101,7 +101,7 @@ def probs_batch_to_sigs(label_batch, prediction_batch, cutoff=0.05, num_classes=
     return label_sigs_list, predicted_sigs_list
 
 # USED IN ERROR FINDER 
-def distance_to_interval(label, pred_lower, pred_upper, lagrange_mult=5e-2):
+def distance_to_interval(label, pred_lower, pred_upper):
     batch_size = float(pred_lower.shape[0])
     lower = label - pred_lower
     upper = pred_upper - label
