@@ -15,12 +15,12 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.metrics import *
-
+from utilities.io import read_signatures
 
 class YapsaInspiredBaseline:
 
     def __init__(self, signatures):
-        self.signatures = torch.stack(signatures).t().cpu().detach().numpy()
+        self.signatures = signatures.cpu().detach().numpy()
         self.__weight_len = self.signatures.shape[1]
 
     def get_weights(self, normalized_mutations):
@@ -40,13 +40,7 @@ class YapsaInspiredBaseline:
 
 
 def create_baseline_dataset(input_file, output_file):
-    num_classes = 72
-    data_path = "../../data/"
-
-    signatures_data = pd.read_excel(data_path + "data.xlsx")
-    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:num_classes]
-
+    signatures = read_signatures("../../data/data.xlsx")
     sf = YapsaInspiredBaseline(signatures)
 
     input_data = torch.tensor(pd.read_csv(
@@ -56,17 +50,11 @@ def create_baseline_dataset(input_file, output_file):
 
     df = pd.DataFrame(sol)
     df.to_csv(data_path + output_file, header=False, index=False)
-    print("done")
+    print("Done!")
 
 
 def create_huge_baseline_dataset(input_file, output_file):
-    num_classes = 72
-    data_path = "../../data/"
-
-    signatures_data = pd.read_excel(data_path + "data.xlsx")
-    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, 74)][:num_classes]
-
+    signatures = read_signatures("../../data/data.xlsx")
     sf = YapsaInspiredBaseline(signatures)
 
     x = np.linspace(0, int(1e7), num=1000, dtype=int)
@@ -78,7 +66,6 @@ def create_huge_baseline_dataset(input_file, output_file):
         df.to_csv(data_path + output_file, header=False, index=False, mode='a')
         del sol_i
         gc.collect()
-        
     print("Done!")
 
 

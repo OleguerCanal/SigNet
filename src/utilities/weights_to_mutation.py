@@ -9,7 +9,7 @@ from utilities.io import read_signatures
 
 class WeightToMutation:
     def __init__(self, signatures):
-        self.signatures = torch.stack(signatures).t()
+        self.signatures = signatures
         self._EPS = 1e-6
 
     def get_mutation(self, weights, noise_variance=0.0):

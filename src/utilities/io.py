@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import pandas as pd
 import torch
@@ -10,6 +11,7 @@ def read_signatures(file, num_classes=72):
     signatures_data = pd.read_excel(file)
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
                   for i in range(2, num_classes + 2)][:num_classes]
+    signatures = torch.stack(signatures).t()
     return signatures
 
 
@@ -17,10 +19,16 @@ def csv_to_tensor(file, device):
     input_tensor = torch.tensor(pd.read_csv(
         file, header=None).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
-    #        == input_tensor.shape[0])
+    assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
+           == input_tensor.shape[0])
     return input_tensor.float().to(device)
 
+def tensor_to_csv(data_tensor, output_path):
+    directory = os.path.dirname(output_path)
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    df = data_tensor.detach().numpy()
+    df = pd.DataFrame(df)
+    df.to_csv(output_path, header=False, index=False) 
 
 def read_data(device, experiment_id, source, data_folder="../data"):
     """Read data from disk
@@ -66,10 +74,7 @@ def read_real_data(device, experiment_id, data_folder="../data"):
     real_input = csv_to_tensor(path + "/real_data_input.csv", device)
     real_num_mut = csv_to_tensor(path + "/real_data_num_mut.csv", device)
 
-    train_data = DataPartitions(inputs=real_input,
-                                num_mut=real_num_mut)
-
-    return train_data
+    return real_input, real_num_mut
 
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):
     """Read one method guess from disk
