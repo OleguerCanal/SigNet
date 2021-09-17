@@ -6,12 +6,31 @@ from sklearn.metrics import confusion_matrix
 import torch
 # from utilities.io import read_methods_realistic_data, read_realistic_test_methods
 
-from utilities.metrics import get_classification_metrics, get_pi_metrics
+# from utilities.metrics import get_classification_metrics, get_pi_metrics
 
 # SIGNATURE PLOTS:
 def plot_signature(signature, labels):
     plt.bar(range(96), signature, tick_label=labels)
     plt.xticks(rotation=90)
+    plt.show()
+
+# DATA GENERATION PLOTS:
+def plot_prop_signatures(weights_0, weights_augmented):
+    prop_0 = torch.sum(weights_0>0, dim=0)/weights_0.shape[0]*100
+    prop_augmented = torch.sum(weights_augmented>0, dim=0)/weights_augmented.shape[0]*100
+
+    num_classes = weights_0.shape[1]
+    data = pd.read_excel("../../data/data.xlsx")
+    sigs_names = list(data.columns)[2:]
+    fig, ax = plt.subplots()
+    ax.bar(range(num_classes),prop_0, align='center', width=0.4, alpha=0.5, ecolor='black', capsize=10)
+    ax.bar(np.array(range(num_classes))+0.4, prop_augmented, width=0.4, align='center')
+    ax.set_ylabel('Proportion present (%)')
+    ax.set_xticks(range(num_classes))
+    ax.set_xticklabels(sigs_names, rotation='vertical')
+    ax.set_title('Signature decomposition')
+    plt.legend(['Original weights', 'Augmented weights'])
+    plt.tight_layout()
     plt.show()
 
 # FINETUNER PLOTS:
