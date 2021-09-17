@@ -29,10 +29,9 @@ class WeightAugmenter:
         mask = (weight > self._cutoff).type(torch.int).float()
         augmented_weights = weight.repeat(num_augmentations, 1)
         augmented_mask = mask.repeat(num_augmentations, 1)
-        augmented_noise = augmentation_variance * \
-            augmented_mask*torch.rand_like(augmented_mask)
-        augmented_weights = torch.max(torch.zeros_like(
-            augmented_weights), augmented_weights + augmented_noise)
+        augmented_noise = augmentation_variance * augmented_mask*torch.rand_like(augmented_mask)
+        augmented_weights = torch.max(torch.zeros_like(augmented_weights), augmented_weights + augmented_noise)
+        augmented_weights = augmented_weights[torch.sum(augmented_weights, axis=1) > 0, ...]
         return self.__normalize(augmented_weights)
 
     def get_random_augmentations(self,

@@ -57,7 +57,7 @@ class DataGenerator:
         # Sampling:
         num_datapoints = augmented_labels.shape[0]
         mutations = torch.einsum("ij,bj->bi", (self.signatures, augmented_labels))
-        range_muts = [15, 50, 75, 100, 150, 250]
+        range_muts = [15, 50, 75, 100, 150, 250, 500, 1e3, 1e4, 1e5, 1e6]
         data_input = torch.empty((num_datapoints*(len(range_muts)-1), examples_input.shape[1]))
         data_label = torch.empty((num_datapoints*(len(range_muts)-1), augmented_labels.shape[1] + 1))
         for i in range(len(range_muts)-1):
