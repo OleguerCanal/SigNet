@@ -22,31 +22,28 @@ class ModelTester:
     def __init__(self, num_classes):
         self.num_classes = num_classes
 
-    def test(self, guessed_labels, true_labels):
-        mse = get_MSE(guessed_labels, true_labels)
-        cross_entropy = get_cross_entropy(guessed_labels, true_labels)
-        kl_divergence = get_kl_divergence(guessed_labels, true_labels)
-        js_divergence = get_jensen_shannon(guessed_labels, true_labels)
-        cosine_similarity = get_cosine_similarity(guessed_labels, true_labels)
-        wasserstein_distance = get_wasserstein_distance(
-            guessed_labels, true_labels)
+    def get_basic_metrics(self, guessed_labels, true_labels):
+            metrics = {
+                "mse": get_MSE,
+                "cos": get_negative_cosine_similarity,
+                "cross_ent": get_cross_entropy,
+                "KL": get_kl_divergence,
+                "JS": get_jensen_shannon,
+                "W": get_wasserstein_distance,
+            }
+            for key in metrics.keys():
+                val = metrics[key](predicted_label=guessed_labels,
+                                true_label=true_labels)
+                print(key, ":", np.round(val, decimals=3))
 
-        print("mse:", np.round(mse.item(), decimals=5))
-        print("cross_entropy:", np.round(cross_entropy.item(), decimals=3))
-        print("kl_divergence:", np.round(kl_divergence.item(), decimals=3))
-        print("js_divergence:", np.round(js_divergence.item(), decimals=3))
-        print("cosine_similarity:", np.round(
-            cosine_similarity.item(), decimals=3))
-        print("wasserstein_distance:", np.round(
-            wasserstein_distance.item(), decimals=3))
-
-        label_sigs, predicted_sigs = self.probs_batch_to_sigs(
+    def get_confusion_matrix(self, guessed_labels, true_labels):
+        label_sigs, predicted_sigs = self.__probs_batch_to_sigs(
             true_labels, guessed_labels, cutoff=0.05, num_classes=self.num_classes)
 
         conf_mat = plot_confusion_matrix(
             label_sigs, predicted_sigs, range(self.num_classes+1))
 
-    def probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff=0.05, num_classes=72):
+    def __probs_batch_to_sigs(self, label_batch, predicted_batch, cutoff=0.05, num_classes=72):
         label_sigs_list = list(range(num_classes))
         predicted_sigs_list = list(range(num_classes))
         for i in range(len(label_batch)):
@@ -125,7 +122,7 @@ if __name__ == "__main__":
 
     # # Get metrics
     # model_tester = ModelTester(num_classes=num_classes)
-    # model_tester.test(guessed_labels=guessed_labels, true_labels=label_batch)
+    # model_tester.get_basic_metrics(guessed_labels=guessed_labels, true_labels=label_batch)
 
     # # Plot signatures
     plot_weights_comparison(label_batch[0, :].detach().numpy(), guessed_labels[0, :].detach().numpy(
