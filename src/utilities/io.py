@@ -14,6 +14,12 @@ def read_signatures(file, num_classes=72):
     signatures = torch.stack(signatures).t()
     return signatures
 
+def read_cosmic_v2_signatures(file):
+    signatures_data = pd.read_excel(file)
+    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
+                  for i in range(1, 31)]
+    signatures = torch.stack(signatures).t()
+    return signatures
 
 def csv_to_tensor(file, device):
     input_tensor = torch.tensor(pd.read_csv(

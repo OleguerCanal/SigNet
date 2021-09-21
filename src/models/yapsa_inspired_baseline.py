@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.metrics import *
-from utilities.io import read_signatures
+from utilities.io import read_signatures, read_cosmic_v2_signatures
 
 class YapsaInspiredBaseline:
 
@@ -39,8 +39,9 @@ class YapsaInspiredBaseline:
         return guessed_labels
 
 
-def create_baseline_dataset(input_file, output_file):
-    signatures = read_signatures("../../data/data.xlsx")
+def create_baseline_dataset(data_path, input_file, output_file):
+    # signatures = read_signatures(data_path + "data.xlsx")
+    signatures = read_cosmic_v2_signatures(data_path + "data_v2.xlsx")
     sf = YapsaInspiredBaseline(signatures)
 
     input_data = torch.tensor(pd.read_csv(
@@ -53,8 +54,8 @@ def create_baseline_dataset(input_file, output_file):
     print("Done!")
 
 
-def create_huge_baseline_dataset(input_file, output_file):
-    signatures = read_signatures("../../data/data.xlsx")
+def create_huge_baseline_dataset(data_path, input_file, output_file):
+    signatures = read_signatures(data_path + "data.xlsx")
     sf = YapsaInspiredBaseline(signatures)
 
     x = np.linspace(0, int(1e7), num=1000, dtype=int)
@@ -70,6 +71,7 @@ def create_huge_baseline_dataset(input_file, output_file):
 
 
 if __name__ == "__main__":
+    data_path = "../../data/"
     training_data_in_file = "/train_val_test_sets/train_random_input.csv"
     validation_data_in_file = "/train_val_test_sets/val_random_input.csv"
     test_data_in_file = "/train_val_test_sets/test_random_input.csv"
@@ -78,6 +80,6 @@ if __name__ == "__main__":
     validation_data_out_file = "/train_val_test_sets/val_random_baseline_yapsa.csv"
     test_data_out_file = "/train_val_test_sets/test_random_baseline_yapsa.csv"
 
-    create_baseline_dataset(training_data_in_file, training_data_out_file)
-    create_baseline_dataset(validation_data_in_file, validation_data_out_file)
-    create_baseline_dataset(test_data_in_file, test_data_out_file)
+    create_baseline_dataset(data_path, training_data_in_file, training_data_out_file)
+    create_baseline_dataset(data_path, validation_data_in_file, validation_data_out_file)
+    create_baseline_dataset(data_path, test_data_in_file, test_data_out_file)
