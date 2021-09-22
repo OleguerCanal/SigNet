@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
 
     # Read data
-    train_data, val_data = read_data(device=dev,
+    train_data, val_data = read_data(device=dev,  #TODO: IMPORTANT make sure you are using correct dataset
                                      experiment_id="exp_0",
                                      source="random",
                                      data_folder="../../data/")
