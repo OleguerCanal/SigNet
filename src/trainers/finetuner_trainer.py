@@ -14,7 +14,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from utilities.data_partitions import DataPartitions
-from utilities.metrics import get_kl_divergence, get_fp_fn_soft, get_classification_metrics
+from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics
 from loggers.finetuner_logger import FinetunerLogger
 
 class FinetunerTrainer:
@@ -41,7 +41,7 @@ class FinetunerTrainer:
             experiment_id="_".join(model_path.split("/")[-2:]))
 
     def __loss(self, prediction, label, FP, FN):
-        l = get_kl_divergence(prediction, label)
+        l = get_jensen_shannon(prediction, label)
         l += self.fp_param*FP / \
             prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
         return l
