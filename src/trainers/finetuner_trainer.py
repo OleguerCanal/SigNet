@@ -26,6 +26,7 @@ class FinetunerTrainer:
                  fn_param=1e-3,
                  loging_path="../runs",
                  num_classes=72,
+                 log_freq=100,
                  model_path=None,  # File where to save model learned weights None to not save
                  device=torch.device("cuda:0")):
         self.iterations = iterations  # Now iteration refers to passes through all dataset
@@ -33,12 +34,11 @@ class FinetunerTrainer:
         self.fp_param = fp_param
         self.fn_param = fn_param
         self.device = device
+        self.log_freq = log_freq
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
-        self.logger = FinetunerLogger(
-            path=loging_path,
-            experiment_id="_".join(model_path.split("/")[-2:]))
+        self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
         l = get_jensen_shannon(prediction, label)
@@ -63,13 +63,12 @@ class FinetunerTrainer:
                           num_units=int(num_units))
         model.to(self.device)
 
-        log_freq = 5
-        if plot:
-            wandb.watch(model, log_freq=log_freq, log_graph=True)
+        # if plot:
+        #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
-        l_vals = collections.deque(maxlen=100)
+        l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
         step = 0
         for iteration in range(self.iterations):
@@ -102,10 +101,9 @@ class FinetunerTrainer:
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 
+                if plot and step % self.log_freq == 0:
                     val_classification_metrics = get_classification_metrics(label_batch=self.val_dataset.labels,
                                                                             prediction_batch=val_prediction)
-
-                if plot and step % log_freq == 0:
                     self.logger.log(train_loss=train_loss,
                                     train_prediction=train_prediction,
                                     train_label=train_label,
