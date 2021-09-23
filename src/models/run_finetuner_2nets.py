@@ -8,7 +8,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 
-class RunFinetuner:
+class CombinedFinetuner:
     def __init__(self,
                  experiment_id,
                  finetuner_model_name_low,
@@ -53,6 +53,9 @@ class RunFinetuner:
             guess_low = self.finetuner_low(input_batch_low, baseline_guess_low, num_mut_low)
             guess_large = self.finetuner_large(input_batch_large, baseline_guess_large, num_mut_large)
             finetuner_guess = torch.cat((guess_low, guess_large), dim=0)
+            finetuner_guess = torch.cat((finetuner_guess, torch.tensor(ind_order).reshape(-1,1)), dim=1)
+            finetuner_guess = finetuner_guess[finetuner_guess[:, -1].sort()[1]]
+            finetuner_guess = finetuner_guess[:,:-1]
         
-        return finetuner_guess, ind_order
+        return finetuner_guess
             
