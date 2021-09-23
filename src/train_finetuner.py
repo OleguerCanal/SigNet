@@ -10,11 +10,11 @@ from utilities.io import read_data
 
 config = {
     # IDs
-    "experiment_id": "exp_0",
-    "model_id": "original",
+    "experiment_id": "exp_random_2_nets",
+    "model_id": "norm",
 
     # Training params
-    "source": "mixed",
+    "source": "random_low",
     "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
                name=config["model_id"])
 
     train_data, val_data = read_data(device=dev,
-                                     experiment_id="exp_0",
+                                     experiment_id=config["experiment_id"],
                                      source=config["source"])
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset

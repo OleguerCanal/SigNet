@@ -49,7 +49,7 @@ class FineTuner(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
-        num_mut = torch.log10(num_mut)
+        num_mut = nn.Sigmoid()((num_mut-5000)/2000)
         assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))

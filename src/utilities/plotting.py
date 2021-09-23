@@ -4,6 +4,8 @@ import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
+
+from utilities.metrics import get_classification_metrics, get_pi_metrics
 # from utilities.io import read_methods_realistic_data, read_realistic_test_methods
 
 # from utilities.metrics import get_classification_metrics, get_pi_metrics
