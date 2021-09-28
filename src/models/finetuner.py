@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn.modules.activation import Sigmoid
 
 
 class FineTuner(nn.Module):
@@ -8,10 +9,12 @@ class FineTuner(nn.Module):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.05):
+                 cutoff=0.05,
+                 sigmoid_params = [5000, 2000]):
         super(FineTuner, self).__init__()
         self._cutoff = cutoff
         self._EPS = 1e-6
+        self.sigmoid_params = sigmoid_params
 
         # Num units of the mutations path
         num_units_branch_mut = 10
@@ -49,7 +52,7 @@ class FineTuner(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
-        num_mut = nn.Sigmoid()((num_mut-5000)/2000)
+        num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
         assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))

@@ -24,6 +24,7 @@ class FinetunerTrainer:
                  val_data,
                  fp_param=1e-3,
                  fn_param=1e-3,
+                 sigmoid_params = [5000, 2000],
                  loging_path="../runs",
                  num_classes=72,
                  model_path=None,  # File where to save model learned weights None to not save
@@ -32,6 +33,7 @@ class FinetunerTrainer:
         self.num_classes = num_classes
         self.fp_param = fp_param
         self.fn_param = fn_param
+        self.sigmoid_params = sigmoid_params
         self.device = device
         self.model_path = model_path
         self.train_dataset = train_data
@@ -60,7 +62,8 @@ class FinetunerTrainer:
                                 shuffle=True)
         model = FineTuner(num_classes=self.num_classes,
                           num_hidden_layers=int(num_hidden_layers),
-                          num_units=int(num_units))
+                          num_units=int(num_units),
+                          sigmoid_params=self.sigmoid_params)
         model.to(self.device)
 
         log_freq = 5

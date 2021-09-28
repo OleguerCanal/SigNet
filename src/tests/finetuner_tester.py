@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.run_finetuner_2nets import RunFinetuner
+from models.run_finetuner_2nets import CombinedFinetuner
 from models.yapsa_inspired_baseline import YapsaInspiredBaseline
 from utilities.io import read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
@@ -12,12 +12,14 @@ experiment_id = "exp_random_2_nets"
 finetuner_model_name_low = "finetuner_random_low_random_low"
 finetuner_params_low = {"num_hidden_layers": 2,
                         "num_units": 600,
-                        "num_classes": 72}
+                        "num_classes": 72,
+                        "sigmoid_params": [500,150]}
 
 finetuner_model_name_large = "finetuner_1.0_large_mixture_1.0_large"
 finetuner_params_large = {"num_hidden_layers": 2,
                           "num_units": 600,
-                          "num_classes": 72}
+                          "num_classes": 72,
+                          "sigmoid_params": [50000, 10000]}
 
 test_id = "test_random"
 
@@ -27,7 +29,7 @@ signatures = read_signatures("../../data/data.xlsx")
 baseline = YapsaInspiredBaseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
-finetuner = RunFinetuner(experiment_id,
+finetuner = CombinedFinetuner(experiment_id,
                 finetuner_model_name_low,
                 finetuner_params_low,
                 finetuner_model_name_large,
