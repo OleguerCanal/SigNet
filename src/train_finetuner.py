@@ -10,15 +10,16 @@ from utilities.io import read_data
 
 config = {
     # IDs
-    "experiment_id": "exp_0",
-    "model_id": "original",
+    "experiment_id": "exp_random_2_nets",
+    "model_id": "1",
 
     # Training params
-    "source": "mixed",
+    "source": "random_low",
     "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
     "fn_param": 0.001,
+    "sigmoid_params": [500,150],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
     "batch_size": 500,
     "lr": 0.0001,
 
@@ -37,13 +38,13 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    wandb.init(project='finetuner',
+    wandb.init(project='finetuner_two_trains',
                entity='sig-net',
                config=config,
                name=config["model_id"])
 
     train_data, val_data = read_data(device=dev,
-                                     experiment_id="exp_0",
+                                     experiment_id=config["experiment_id"],
                                      source=config["source"])
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
@@ -52,6 +53,7 @@ if __name__ == "__main__":
                                num_classes=config["num_classes"],
                                fp_param=config["fp_param"],
                                fn_param=config["fn_param"],
+                               sigmoid_params=config["sigmoid_params"],
                                device=device,
                                model_path=finetuner_path)
 
