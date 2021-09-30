@@ -57,17 +57,17 @@ class ClassifiedFinetuner:
         ind_order = np.concatenate((ind_real, ind_rand))
 
         # Select and finetune mutations classified as real
-        mut_dist_real = mutation_dist[classification >=self.classification_cutoff, ...]
-        weights_real = weights[classification >=self.classification_cutoff, ...]
-        num_mut_real = num_mut[classification >= self.classification_cutoff]
+        mut_dist_real = mutation_dist[ind_real, ...]
+        weights_real = weights[ind_real, ...]
+        num_mut_real = num_mut[ind_real]
         real_guess = self.realistic_finetuner(mutation_dist=mut_dist_real,
                                               weights=weights_real,
                                               num_mut=num_mut_real)
 
-        # Select and finetune mutations classified as real
-        mut_dist_rand = mutation_dist[classification < self.classification_cutoff, ...]
-        weights_rand = weights[classification < self.classification_cutoff, ...]
-        num_mut_rand = num_mut[classification < self.classification_cutoff]
+        # Select and finetune mutations classified as random
+        mut_dist_rand = mutation_dist[ind_rand, ...]
+        weights_rand = weights[ind_rand, ...]
+        num_mut_rand = num_mut[ind_rand]
         rand_guess = self.random_finetuner(mutation_dist=mut_dist_rand,
                                            weights=weights_rand,
                                            num_mut=num_mut_rand)
