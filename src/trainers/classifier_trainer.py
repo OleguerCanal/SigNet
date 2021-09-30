@@ -15,7 +15,6 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.classifier import Classifier
 from utilities.data_partitions import DataPartitions
-from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics
 from loggers.classifier_logger import ClassifierLogger
 
 class ClassifierTrainer:
