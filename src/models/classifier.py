@@ -45,7 +45,6 @@ class Classifier(nn.Module):
 
         # Concatenate
         comb = torch.cat([mutation_dist, num_mut], dim=1)
-        assert(not torch.isnan(comb).any())
 
         # Apply shared layers
         for layer in self.hidden_layers:
