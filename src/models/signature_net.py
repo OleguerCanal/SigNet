@@ -25,6 +25,8 @@ class SignatureNet:
                  models_path="../../trained_models"):
         self.signature_finder = SignatureFinder(**signature_finder_params)
 
+        # TODO: Use ClassifiedFinetuner instead of Finetuner
+
         # Instantiate finetuner and read params
         self.finetuner = FineTuner(**finetuner_params)
         self.finetuner.load_state_dict(torch.load(os.path.join(
