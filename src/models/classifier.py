@@ -40,7 +40,6 @@ class Classifier(nn.Module):
 
         # Number of mutations head
         num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
-        assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_2(num_mut))
         num_mut = self.activation(self.layer2_2(num_mut))
 
