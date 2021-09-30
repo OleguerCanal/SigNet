@@ -184,6 +184,23 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
     loss = MPIW + lagrange_mult*constrain
     return loss, PICP_h, MPIW
 
+
+def get_entropy(data):
+    """Return average entropy across 
+    """
+    _EPS = 1e-9
+    return -torch.sum(data * torch.log(data + _EPS))/data.shape[0]
+
+def get_std(data):
+    """Return average std across 
+    """
+    return torch.mean(torch.std(data, axis=1))
+
+def get_present_sigs(data):
+    """Return average std across 
+    """
+    return torch.mean(torch.count(data, axis=1))
+
 if __name__ == "__main__":
     torch.seed = 0
 
