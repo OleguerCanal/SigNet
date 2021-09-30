@@ -26,15 +26,15 @@ class ClassifierLogger:
         self.threshold = torch.tensor([0.5])
 
     def accuracy(self, prediction, label):
-        prediction = (prediction>self.threshold).float()*1
+        prediction = (prediction > self.threshold).float()*1
         return torch.sum(prediction == label)/torch.numel(prediction)*100
     
     def false_realistic(self, prediction, label):
-        prediction = (prediction>self.threshold).float()*1
+        prediction = (prediction > self.threshold).float()
         return torch.sum(label[prediction == 1] == 0)/torch.numel(label[prediction == 1])*100
 
     def false_random(self, prediction, label):
-        prediction = (prediction>self.threshold).float()*1
+        prediction = (prediction > self.threshold).float()
         return torch.sum(label[prediction == 0] == 1)/torch.numel(label[prediction == 0])*100
 
     def log(self,
