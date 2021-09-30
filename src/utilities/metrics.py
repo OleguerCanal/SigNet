@@ -6,6 +6,23 @@ from snorkel import classification
 import torch
 import torch.nn as nn
 
+
+# USED IN CLASSIFIER
+def accuracy(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(prediction == label)/torch.numel(prediction)*100
+
+def false_realistic(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(label[prediction == 1] == 0)/torch.numel(label[prediction == 1])*100
+
+def false_random(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(label[prediction == 0] == 1)/torch.numel(label[prediction == 0])*100
+
 # USED IN FINE TUNER
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
