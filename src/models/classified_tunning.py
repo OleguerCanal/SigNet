@@ -38,7 +38,7 @@ class ClassifiedFinetuner:
         assert(model_type in ["classifier", "finetuner"])
         model = FineTuner(
             **params) if model_type == "finetuner" else Classifier(**params)
-        model.load_state_dict(torch.load(file), map_location=self.device)
+        model.load_state_dict(torch.load(file, map_location=self.device))
         model.eval()
         return model
 

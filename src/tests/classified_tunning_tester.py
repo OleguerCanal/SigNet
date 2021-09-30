@@ -40,8 +40,7 @@ signatures = read_signatures("../../data/data.xlsx")
 baseline = YapsaInspiredBaseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
-finetuner = ClassifiedFinetuner(experiment_id,
-                 classifier_params,
+finetuner = ClassifiedFinetuner(classifier_params,
                  realistic_finetuner_params,
                  random_finetuner_params,
                  classifier_model,
