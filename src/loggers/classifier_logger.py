@@ -1,14 +1,6 @@
 import torch
 import wandb
 
-from utilities.metrics import get_MSE,\
-    get_negative_cosine_similarity,\
-    get_cross_entropy2,\
-    get_kl_divergence,\
-    get_jensen_shannon,\
-    get_wasserstein_distance
-
-
 
 class ClassifierLogger:
     def __init__(self):
