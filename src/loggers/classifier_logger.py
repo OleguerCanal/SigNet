@@ -23,7 +23,7 @@ class ClassifierLogger:
             # "JS": get_jensen_shannon,
             # "W": get_wasserstein_distance,
         }
-        self.threshold = torch.tensor([0.5])
+        self.threshold = 0.5
 
     def accuracy(self, prediction, label):
         prediction = (prediction > self.threshold).float()*1
