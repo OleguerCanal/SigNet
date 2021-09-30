@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
 
-from utilities.metrics import get_classification_metrics, get_pi_metrics
+from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics
 # from utilities.io import read_methods_realistic_data, read_realistic_test_methods
 
 # from utilities.metrics import get_classification_metrics, get_pi_metrics
@@ -35,6 +35,34 @@ def plot_prop_signatures(weights_0, weights_augmented):
     plt.tight_layout()
     plt.show()
 
+# CLASSIFIER PLOTS:
+def plot_metric_vs_mutations(guess, label, num_muts_list, plot_path = '../../plots/plot_classifier.png'):
+    fig, axs = plt.subplots(3)
+    fig.suptitle("Metrics vs Number of Mutations")
+    
+    num_muts_list = num_muts_list[num_muts_list<=100000]
+    num_muts = np.unique(num_muts_list.detach().numpy())
+    
+    values = np.zeros((3, len(num_muts)))
+    for i in range(len(num_muts)):
+        values[0,i] = accuracy(label=label[2000*i:2000*(i+1),:], prediction=guess[2000*i:2000*(i+1),:])
+        values[1,i] = false_realistic(label=label[2000*i:2000*(i+1),:], prediction=guess[2000*i:2000*(i+1),:])
+        values[2,i] = false_random(label=label[2000*i:2000*(i+1),:], prediction=guess[2000*i:2000*(i+1),:])
+        
+    axs[0].plot(np.log10(num_muts), values[0,:])
+    axs[0].set_ylabel("Accuracy (%)")
+
+    axs[1].plot(np.log10(num_muts), values[1,:])
+    axs[1].set_ylabel("False Realistic (%)")
+
+    axs[2].plot(np.log10(num_muts), values[2,:])
+    axs[2].set_ylabel("False Random (%)")
+
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.show()
+    #fig.savefig(plot_path)
+    
 # FINETUNER PLOTS:
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
     m = -1

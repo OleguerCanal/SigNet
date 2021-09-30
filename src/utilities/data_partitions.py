@@ -17,7 +17,7 @@ class DataPartitions(Dataset):
         self.labels = labels
         self.prev_guess = prev_guess
         self.num_mut = num_mut if num_mut is not None else None
-        if labels is not None:
+        if labels is not None and num_mut is None:
             self.num_mut = labels[:, -1].reshape(-1,1)
             self.labels = labels[:, :-1]
 
