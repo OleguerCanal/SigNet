@@ -19,8 +19,8 @@ def csv_to_tensor(file, device):
     input_tensor = torch.tensor(pd.read_csv(
         file, header=None).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
-           == input_tensor.shape[0])
+    # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
+    #        == input_tensor.shape[0])
     return input_tensor.float().to(device)
 
 def tensor_to_csv(data_tensor, output_path):
@@ -56,6 +56,35 @@ def read_data(device, experiment_id, source, data_folder="../data"):
 
     val_data = DataPartitions(inputs=val_input,
                               prev_guess=val_baseline,
+                              labels=val_label)
+
+    return train_data, val_data
+
+def read_data_classifier(device, experiment_id, data_folder="../data"):
+    """Read data from disk
+
+    Args:
+        device (string): Device to train on
+        experiment_id (string): Full name of the experiment folder
+        source (string): Type of generated data: random or realistic
+        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+    """
+    path = os.path.join(data_folder, experiment_id)
+
+    train_input = csv_to_tensor(path + "/train_input.csv", device)
+    train_num_mut = csv_to_tensor(path + "/train_num_mut.csv", device).reshape((-1,1))
+    train_label = csv_to_tensor(path + "/train_label.csv", device).reshape((-1,1))
+
+    train_data = DataPartitions(inputs=train_input,
+                                num_mut=train_num_mut,
+                                labels=train_label)
+
+    val_input = csv_to_tensor(path + "/val_input.csv", device)
+    val_num_mut = csv_to_tensor(path + "/val_num_mut.csv", device).reshape((-1,1))
+    val_label = csv_to_tensor(path + "/val_label.csv", device).reshape((-1,1))
+
+    val_data = DataPartitions(inputs=val_input,
+                              num_mut=val_num_mut,
                               labels=val_label)
 
     return train_data, val_data
