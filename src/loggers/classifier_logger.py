@@ -23,11 +23,19 @@ class ClassifierLogger:
             # "JS": get_jensen_shannon,
             # "W": get_wasserstein_distance,
         }
+        self.threshold = torch.tensor([0.5])
 
     def accuracy(self, prediction, label):
-        threshold = torch.tensor([0.5])
-        prediction = (prediction>threshold).float()*1
+        prediction = (prediction>self.threshold).float()*1
         return torch.sum(prediction == label)/torch.numel(prediction)*100
+    
+    def false_realistic(self, prediction, label):
+        prediction = (prediction>self.threshold).float()*1
+        return torch.sum(label[prediction == 1] == 0)/torch.numel(label[prediction == 1])*100
+
+    def false_random(self, prediction, label):
+        prediction = (prediction>self.threshold).float()*1
+        return torch.sum(label[prediction == 0] == 1)/torch.numel(label[prediction == 0])*100
 
     def log(self,
             train_loss,
@@ -44,3 +52,8 @@ class ClassifierLogger:
         wandb.log({"train_accuracy": self.accuracy(train_prediction, train_label).item()})
         wandb.log({"val_accuracy": self.accuracy(val_prediction, val_label).item()})
 
+        wandb.log({"train_false_realistic": self.false_realistic(train_prediction, train_label).item()})
+        wandb.log({"val_false_realistic": self.false_realistic(val_prediction, val_label).item()})
+
+        wandb.log({"train_false_random": self.false_random(train_prediction, train_label).item()})
+        wandb.log({"val_false_random": self.false_random(val_prediction, val_label).item()})
