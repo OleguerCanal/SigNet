@@ -4,14 +4,6 @@ import wandb
 
 class ClassifierLogger:
     def __init__(self):
-        self.metrics = {
-            # "mse": get_MSE,
-            # "cos": get_negative_cosine_similarity,
-            # "cross_ent": get_cross_entropy2,
-            # "KL": get_kl_divergence,
-            # "JS": get_jensen_shannon,
-            # "W": get_wasserstein_distance,
-        }
         self.threshold = 0.5
 
     def accuracy(self, prediction, label):
