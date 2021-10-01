@@ -123,4 +123,5 @@ class ErrorTrainer:
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
                 step += 1
+        save_model(model=model, directory=self.model_path)
         return max_found
