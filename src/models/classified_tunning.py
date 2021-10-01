@@ -33,7 +33,7 @@ class ClassifiedFinetuner:
                  num_mut):
         # Classify inputs depending on whether they come from a real distribution or not
         classification = self.classifier(mutation_dist=mutation_dist,
-                                         num_mut=num_mut)
+                                         num_mut=num_mut).view(-1)
 
         # Remember input indexes
         ind = np.array(range(mutation_dist.size()[0]))
