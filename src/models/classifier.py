@@ -8,14 +8,21 @@ class Classifier(nn.Module):
     def __init__(self,
                  num_hidden_layers=2,
                  num_units=400,
-                 sigmoid_params = [5000,1000]):
+                 sigmoid_params=[5000, 1000]):
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "Classifier"
+
         super(Classifier, self).__init__()
+        
         self.sigmoid_params = sigmoid_params
         num_units_branch_mut = 10
         num_units_joined_path = num_units + num_units_branch_mut
 
         # Input path
-        self.layer1_1 = nn.Linear(96, num_units)  # 96 = total number of possible muts
+        # 96 = total number of possible muts
+        self.layer1_1 = nn.Linear(96, num_units)
         # Number of mutations path
         self.layer1_2 = nn.Linear(1, num_units_branch_mut)
 
@@ -39,7 +46,8 @@ class Classifier(nn.Module):
         mutation_dist = self.activation(self.layer2_1(mutation_dist))
 
         # Number of mutations head
-        num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
+        num_mut = nn.Sigmoid()(
+            (num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
         num_mut = self.activation(self.layer1_2(num_mut))
         num_mut = self.activation(self.layer2_2(num_mut))
 
