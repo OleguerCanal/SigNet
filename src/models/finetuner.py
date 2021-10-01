@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.nn.modules.activation import Sigmoid
 
-
 class FineTuner(nn.Module):
 
     def __init__(self,
@@ -11,6 +10,10 @@ class FineTuner(nn.Module):
                  num_units=400,
                  cutoff=0.05,
                  sigmoid_params = [5000, 2000]):
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "FineTuner"
         super(FineTuner, self).__init__()
         self._cutoff = cutoff
         self._EPS = 1e-6
