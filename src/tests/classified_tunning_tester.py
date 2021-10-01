@@ -11,18 +11,20 @@ experiment_id = "exp_random_2_nets"
 
 model_path = "../../trained_models/"
 
-classifier_exp = "exp_classifier"
-classifier_model = model_path + '/' + classifier_exp + '/' + "classifier_baseline"
+classifier_exp = "exp_classifier/"
+classifier_model = model_path + classifier_exp + "classifier"
 
-random_exp = "exp_0"
-random_finetuner_model = model_path + "finetuner_random"
-realistic_finetuner_model = model_path + "finetuner_realistic"
+random_exp = "exp_0/"
+random_finetuner_model = model_path + random_exp + "finetuner_random"
+
+realistic_exp = "exp_0/"
+realistic_finetuner_model = model_path + realistic_exp + "finetuner_realistic"
 
 experiment_id = "exp_classifier"
 
-input_batch = csv_to_tensor("../../data/" + experiment_id + "/test_input.csv", device='cpu')
-num_mut = csv_to_tensor("../../data/" + experiment_id + "/test_num_mut.csv", device='cpu')
-label = csv_to_tensor("../../data/" + experiment_id + "/test_label.csv", device='cpu')
+test_id = "test_mixed"
+input_batch, label = read_test_data('cpu', 'exp_0', test_id, data_folder="../../data")
+
 signatures = read_signatures("../../data/data.xlsx")
 
 baseline = Baseline(signatures)
@@ -32,8 +34,7 @@ finetuner = ClassifiedFinetuner(classifier_model,
                  realistic_finetuner_model,
                  random_finetuner_model)
 
-finetuner_guess, ind_order = finetuner(input_batch, baseline_guess, num_mut)
-baseline_guess = baseline_guess[ind_order,:]
+finetuner_guess = finetuner(input_batch, baseline_guess, label[:,-1].reshape(-1,1))
 
 list_of_methods = ['baseline', 'finetuner']
 list_of_guesses = [baseline_guess, finetuner_guess]
