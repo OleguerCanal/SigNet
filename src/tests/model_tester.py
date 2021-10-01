@@ -10,7 +10,7 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from models.baseline import Baseline
 from utilities.io import read_test_data
 from models.error_finder import ErrorFinder
 from models.finetuner import FineTuner
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     num_mut = label_mut_batch[:n_datapoints, -1].reshape((-1, 1))
 
     # Baseline:
-    sf = YapsaInspiredBaseline(signatures)
+    sf = Baseline(signatures)
     baseline_batch = sf.get_weights_batch(input_batch)  # [:50, ...])
 
     # Instantiate model and do predictions for finetuner:

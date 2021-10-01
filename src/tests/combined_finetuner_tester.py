@@ -3,7 +3,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modules.combined_finetuner import CombinedFinetuner
-from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from models.baseline import Baseline
 from utilities.io import read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
@@ -26,7 +26,7 @@ test_id = "test_random"
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
 signatures = read_signatures("../../data/data.xlsx")
 
-baseline = YapsaInspiredBaseline(signatures)
+baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
 finetuner = CombinedFinetuner(experiment_id,

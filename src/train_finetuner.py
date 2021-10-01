@@ -11,15 +11,15 @@ from utilities.io import read_data
 config = {
     # IDs
     "experiment_id": "exp_0",
-    "model_id": "test_new_saving",
+    "model_id": "finetuner_realistic",
 
     # Training params
-    "source": "random",
-    "iterations": 10,
+    "source": "realistic",
+    "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
     "fn_param": 0.001,
-    "sigmoid_params": [500,150],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
+    "sigmoid_params": [5000,1000],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
     "batch_size": 500,
     "lr": 0.0001,
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    wandb.init(project='finetuner_two_trains',
+    wandb.init(project='finetuner',
                entity='sig-net',
                config=config,
                name=config["model_id"])
