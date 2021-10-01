@@ -11,7 +11,7 @@ from utilities.io import read_data, read_data_classifier
 config = {
     # IDs
     "experiment_id": "exp_classifier",
-    "model_id": "1",
+    "model_id": "classifier",
 
     # Training params
     "iterations": 20,
@@ -25,8 +25,7 @@ config = {
 }
 
 models_path = os.path.join("../trained_models", config["experiment_id"])
-classifier_path = os.path.join(models_path,
-                    "classifier_" + config["model_id"])
+classifier_path = os.path.join(models_path, config["model_id"])
 
 if __name__ == "__main__":
     dev = "cuda" if torch.cuda.is_available() else "cpu"

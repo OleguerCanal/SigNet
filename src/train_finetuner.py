@@ -11,10 +11,10 @@ from utilities.io import read_data
 config = {
     # IDs
     "experiment_id": "exp_0",
-    "model_id": "finetuner_realistic",
+    "model_id": "0",
 
     # Training params
-    "source": "realistic",
+    "source": "random",
     "iterations": 40,
     "num_classes": 72,
     "fp_param": 0.001,
@@ -29,8 +29,7 @@ config = {
 }
 
 models_path = os.path.join("../trained_models", config["experiment_id"])
-finetuner_path = os.path.join(models_path,
-                    "finetuner_" + config["source"] + "_" + config["model_id"])
+finetuner_path = os.path.join(models_path,config["model_id"])
 
 if __name__ == "__main__":
     dev = "cuda" if torch.cuda.is_available() else "cpu"
