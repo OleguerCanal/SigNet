@@ -3,7 +3,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.classified_tunning import ClassifiedFinetuner
-from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from models.baseline import Baseline
 from utilities.io import csv_to_tensor, read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
@@ -25,7 +25,7 @@ num_mut = csv_to_tensor("../../data/" + experiment_id + "/test_num_mut.csv", dev
 label = csv_to_tensor("../../data/" + experiment_id + "/test_label.csv", device='cpu')
 signatures = read_signatures("../../data/data.xlsx")
 
-baseline = YapsaInspiredBaseline(signatures)
+baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
 finetuner = ClassifiedFinetuner(classifier_model,
