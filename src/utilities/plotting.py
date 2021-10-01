@@ -104,7 +104,8 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
 
         for k in range(len(list_of_methods)):
             for i in range(len(num_sigs)):
-                metrics = get_classification_metrics(label_batch=label[num_sigs_ind==i+1, :-1], prediction_batch=list_of_guesses[k][num_sigs_ind==i+1,:])
+                metrics = get_classification_metrics(label_batch=label[num_sigs_ind==i+1, :-1],
+                                                     prediction_batch=list_of_guesses[k][num_sigs_ind==i+1,:])
                 values[k,i] = metrics[metric]
         
         handles = axs[m].plot(num_sigs, np.transpose(values))

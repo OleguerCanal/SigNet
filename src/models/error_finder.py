@@ -68,6 +68,11 @@ class ErrorFinder(nn.Module):
                  num_hidden_layers_neg=2,
                  num_units_pos=400,
                  num_units_neg=400):
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "ErrorFinder"
+        
         super(ErrorFinder, self).__init__()
 
         self.positive_path = SignedErrorFinder(num_classes=num_classes,

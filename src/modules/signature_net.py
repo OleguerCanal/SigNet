@@ -8,7 +8,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from error_finder import ErrorFinder
 from finetuner import FineTuner
-from signature_finder import SignatureFinder
+from models.yapsa_inspired_baseline import YapsaInspiredBaseline
 from utilities.normalize_data import create_opportunities, normalize_data
 from utilities.metrics import get_jensen_shannon
 from utilities.plotting import plot_weights, plot_weights_comparison
@@ -23,7 +23,7 @@ class SignatureNet:
                  error_finder_model_name,
                  path_opportunities = None,
                  models_path="../../trained_models"):
-        self.signature_finder = SignatureFinder(**signature_finder_params)
+        self.signature_finder = YapsaInspiredBaseline(**signature_finder_params)
 
         # Instantiate finetuner and read params
         self.finetuner = FineTuner(**finetuner_params)

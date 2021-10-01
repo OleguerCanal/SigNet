@@ -1,11 +1,14 @@
 import os
 import pathlib
 
+import json
 import pandas as pd
 import torch
 
 from utilities.data_partitions import DataPartitions
-
+from models.classifier import Classifier
+from models.finetuner import FineTuner
+from models.error_finder import ErrorFinder
 
 def read_signatures(file, num_classes=72):
     signatures_data = pd.read_excel(file)
@@ -142,3 +145,55 @@ def read_test_data(device, experiment_id, test_id, data_folder="../data"):
     label = csv_to_tensor(path + "/%s_label.csv" % (test_id), device=device)
 
     return inputs, label
+
+
+def read_model(directory):
+    """Instantiate a pre-trained model from the stored vars
+    The model is in cpu and in eval mode
+
+    Args:
+        directory (String): Folder containing state_dict and init_args.json of the model
+    """
+    # Load init_args
+    init_args_file = os.path.join(directory, 'init_args.json')
+    with open(init_args_file, 'r') as fp:
+        init_args = json.load(fp)
+    model_type = init_args["model_type"]
+    init_args.pop("model_type")
+    assert(model_type is not None)  # Model type not saved!
+    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder"])
+
+    # Instantiate model class
+    if model_type == "Classifier":
+        model = Classifier(**init_args)
+    elif model_type == "FineTuner":
+        model = FineTuner(**init_args)
+    elif model_type == "ErrorFinder":
+        model = ErrorFinder(**init_args)
+    
+    # Load model weights
+    state_dict_file = os.path.join(directory, "state_dict")
+    state_dict = torch.load(f=state_dict_file,
+                            map_location=torch.device('cpu'))
+    model.load_state_dict(state_dict)
+    model.eval()
+    return model
+
+def save_model(model, directory):
+    """Store a pytorch model. The arguments are splitted into 2 files:
+    A init_args.json needed to instantiate the class, and the model state_dict
+
+    Args:
+        model (nn.Module): Model to save
+        directory (String): Path where to save
+    """
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    
+    # Store init_args into a json file
+    init_args_file = os.path.join(directory, 'init_args.json')
+    with open(init_args_file, 'w') as fp:
+        json.dump(model.init_args, fp)
+
+    # Store state_dict
+    state_dict_file = os.path.join(directory, "state_dict")
+    torch.save(model.state_dict(), state_dict_file)

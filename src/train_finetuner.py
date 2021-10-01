@@ -10,12 +10,12 @@ from utilities.io import read_data
 
 config = {
     # IDs
-    "experiment_id": "exp_random_2_nets",
-    "model_id": "1",
+    "experiment_id": "exp_0",
+    "model_id": "test_new_saving",
 
     # Training params
-    "source": "random_low",
-    "iterations": 40,
+    "source": "random",
+    "iterations": 10,
     "num_classes": 72,
     "fp_param": 0.001,
     "fn_param": 0.001,

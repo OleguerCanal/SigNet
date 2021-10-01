@@ -14,6 +14,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from utilities.data_partitions import DataPartitions
+from utilities.io import save_model
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics
 from loggers.finetuner_logger import FinetunerLogger
 
@@ -118,9 +119,6 @@ class FinetunerTrainer:
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:
-                    directory = os.path.dirname(self.model_path)
-                    pathlib.Path(directory).mkdir(
-                        parents=True, exist_ok=True)
-                    torch.save(model.state_dict(), self.model_path)
+                    save_model(model=model, directory=self.model_path)
                 step += 1
         return max_found
