@@ -4,6 +4,8 @@ import sys
 import numpy as np
 import torch
 
+from utilities.io import read_model
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from models.classifier import Classifier
@@ -13,9 +15,6 @@ class ClassifiedFinetuner:
     # instead of a single finetuner
 
     def __init__(self,
-                 classifier_params,
-                 realistic_finetuner_params,
-                 random_finetuner_params,
                  classifier_file,
                  realistic_model_file,
                  random_model_file,
@@ -24,23 +23,9 @@ class ClassifiedFinetuner:
         self.classification_cutoff = classification_cutoff
         self.device = device
 
-        self.classifier = self.__load_model(params=classifier_params,
-                                            file=classifier_file,
-                                            model_type="classifier")
-        self.realistic_finetuner = self.__load_model(params=realistic_finetuner_params,
-                                                     file=realistic_model_file,
-                                                     model_type="finetuner")
-        self.random_finetuner = self.__load_model(params=random_finetuner_params,
-                                                  file=random_model_file,
-                                                  model_type="finetuner")
-
-    def __load_model(self, params, file, model_type):
-        assert(model_type in ["classifier", "finetuner"])
-        model = FineTuner(
-            **params) if model_type == "finetuner" else Classifier(**params)
-        model.load_state_dict(torch.load(file, map_location=self.device))
-        model.eval()
-        return model
+        self.classifier = read_model(classifier_file)
+        self.realistic_finetuner = read_model(realistic_model_file)
+        self.random_finetuner = read_model(random_model_file)
 
     def __call__(self,
                  mutation_dist,

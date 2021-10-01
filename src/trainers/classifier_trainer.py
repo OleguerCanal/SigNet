@@ -68,7 +68,7 @@ class ClassifierTrainer:
         max_found = -np.inf
         step = 0
         for iteration in range(self.iterations):
-            for train_input, train_label, prev_guess, num_mut in tqdm(dataloader):                  # MIRAR AIXO!!!!!!!!!!
+            for train_input, train_label, baseline_guess, num_mut in tqdm(dataloader):                  # MIRAR AIXO!!!!!!!!!!
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, num_mut)
@@ -97,6 +97,6 @@ class ClassifierTrainer:
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:
-                    torch.save(model.state_dict(), self.model_path)
+                    save_model(model=model, directory=self.model_path)
                 step += 1
         return max_found

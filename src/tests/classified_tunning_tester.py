@@ -12,23 +12,11 @@ experiment_id = "exp_random_2_nets"
 model_path = "../../trained_models/"
 
 classifier_exp = "exp_classifier"
-classifier_model = model_path + '/' + classifier_exp + '/' + "classifier_1"
-classifier_params = {"num_hidden_layers": 1,
-                        "num_units": 300}
+classifier_model = model_path + '/' + classifier_exp + '/' + "classifier_baseline"
 
 random_exp = "exp_0"
-random_finetuner_model = model_path + '/' + random_exp + '/' + "finetuner_random"
-random_finetuner_params = {"num_hidden_layers": 2,
-                        "num_units": 600,
-                        "num_classes": 72,
-                        "sigmoid_params": [500,150]}
-
-realistic_exp = "exp_0"
-realistic_finetuner_model = model_path + '/' + realistic_exp + '/' + "finetuner_realistic"
-realistic_finetuner_params = {"num_hidden_layers": 2,
-                        "num_units": 600,
-                        "num_classes": 72,
-                        "sigmoid_params": [500,150]}
+random_finetuner_model = model_path + "finetuner_random"
+realistic_finetuner_model = model_path + "finetuner_realistic"
 
 experiment_id = "exp_classifier"
 
@@ -40,10 +28,7 @@ signatures = read_signatures("../../data/data.xlsx")
 baseline = YapsaInspiredBaseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
-finetuner = ClassifiedFinetuner(classifier_params,
-                 realistic_finetuner_params,
-                 random_finetuner_params,
-                 classifier_model,
+finetuner = ClassifiedFinetuner(classifier_model,
                  realistic_finetuner_model,
                  random_finetuner_model)
 
