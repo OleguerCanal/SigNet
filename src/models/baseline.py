@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.metrics import *
 from utilities.io import read_signatures
 
-class YapsaInspiredBaseline:
+class Baseline:
 
     def __init__(self, signatures):
         self.signatures = signatures.cpu().detach().numpy()
@@ -41,7 +41,7 @@ class YapsaInspiredBaseline:
 
 def create_baseline_dataset(input_file, output_file, data_path="../../data/"):
     signatures = read_signatures(data_path + "data.xlsx")
-    sf = YapsaInspiredBaseline(signatures)
+    sf = Baseline(signatures)
 
     input_data = torch.tensor(pd.read_csv(
         data_path + input_file, header=None).values, dtype=torch.float)
@@ -55,7 +55,7 @@ def create_baseline_dataset(input_file, output_file, data_path="../../data/"):
 
 def create_huge_baseline_dataset(input_file, output_file, data_path="../../data/"):
     signatures = read_signatures(data_path + "data.xlsx")
-    sf = YapsaInspiredBaseline(signatures)
+    sf = Baseline(signatures)
 
     x = np.linspace(0, int(1e7), num=1000, dtype=int)
     for i in tqdm(range(len(x)-1)):
