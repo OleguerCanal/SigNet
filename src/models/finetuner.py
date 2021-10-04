@@ -44,14 +44,14 @@ class FineTuner(nn.Module):
 
     def forward(self,
                 mutation_dist,
-                weights,
+                baseline_guess,
                 num_mut):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
         mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
-        weights = self.activation(self.layer1_1(weights))
+        weights = self.activation(self.layer1_1(baseline_guess))
         weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head

@@ -6,26 +6,30 @@ import torch
 
 from utilities.io import read_model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
-from models.classifier import Classifier
-
 class ClassifiedFinetuner:
-    # TODO: At some point we'll be using the CombinedFInetuner
-    # instead of a single finetuner
 
     def __init__(self,
-                 classifier_file,
-                 realistic_model_file,
-                 random_model_file,
+                 classifier,
+                 realistic_finetuner,
+                 random_finetuner,
                  classification_cutoff=0.5,
                  device="cpu"):
+        """Instantiate a ClassifiedFinetuner
+
+        Args:
+            classifier (Classifier): Model to discriminate between realistic and random data
+            realistic_finetuner (Finetuner or CombinedFinetuner): Model which improves baseline guess for random data
+            random_finetuner (Finetuner or CombinedFinetuner): Model which improves baseline guess for random data
+            classification_cutoff (float, optional): Cuttoff at which we decide something is realistic. Defaults to 0.5.
+            device (str, optional): Device to use (cuda or cpu). Defaults to "cpu".
+        """
+
         self.classification_cutoff = classification_cutoff
         self.device = device
 
-        self.classifier = read_model(classifier_file)
-        self.realistic_finetuner = read_model(realistic_model_file)
-        self.random_finetuner = read_model(random_model_file)
+        self.classifier = classifier
+        self.realistic_finetuner = realistic_finetuner
+        self.random_finetuner = random_finetuner
 
     def __call__(self,
                  mutation_dist,
@@ -46,7 +50,7 @@ class ClassifiedFinetuner:
         weights_real = weights[ind_real, ...]
         num_mut_real = num_mut[ind_real]
         real_guess = self.realistic_finetuner(mutation_dist=mut_dist_real,
-                                              weights=weights_real,
+                                              baseline_guess=weights_real,
                                               num_mut=num_mut_real)
 
         # Select and finetune mutations classified as random
@@ -54,7 +58,7 @@ class ClassifiedFinetuner:
         weights_rand = weights[ind_rand, ...]
         num_mut_rand = num_mut[ind_rand]
         rand_guess = self.random_finetuner(mutation_dist=mut_dist_rand,
-                                           weights=weights_rand,
+                                           baseline_guess=weights_rand,
                                            num_mut=num_mut_rand)
 
         # Join predictions and re-order them as originally
