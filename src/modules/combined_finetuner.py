@@ -15,7 +15,7 @@ class CombinedFinetuner:
 
         # Instantiate finetuner 1 and read params
         self.finetuner_low = read_model(low_mum_mut_dir)
-        self.finetuner_large = read_model(low_mum_mut_dir)
+        self.finetuner_large = read_model(large_mum_mut_dir)
 
     def __call__(self,
                  mutation_dist,
