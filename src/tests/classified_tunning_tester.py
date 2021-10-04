@@ -15,12 +15,12 @@ experiment_id = "exp_classifier"
 # Model ids
 classifier = model_path + "exp_classifier/classifier"
 realistic_finetuner_low_nummut = model_path + "exp_0/finetuner_realistic"
-realistic_finetuner_large_nummut = model_path + "exp_mixture/finetuner_realistic_large_nummut"
+realistic_finetuner_large_nummut = model_path + "exp_0/finetuner_realistic_large"
 random_finetuner_low_nummut = model_path + "exp_0/finetuner_random"
-random_finetuner_large_nummut = model_path + "exp_0/finetuner_random"
+random_finetuner_large_nummut = model_path + "exp_0/finetuner_random_large"
 
 
-test_id = "test_realistic"
+test_id = "test_mixed"
 input_batch, label = read_test_data('cpu', 'exp_0', test_id, data_folder="../../data")
 
 signatures = read_signatures("../../data/data.xlsx")
@@ -45,10 +45,10 @@ list_of_guesses = [baseline_guess, finetuner_guess]
 
 list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 
-plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/random_vs_sigs.png"%experiment_id)
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/random_vs_muts.png"%experiment_id)
+plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/two_nets_vs_sigs.png"%experiment_id)
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/two_nets_vs_muts.png"%experiment_id)
 
 list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
 
-plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/random_accuracy_vs_sigs.png"%experiment_id)
-plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/random_accuracy_vs_muts.png"%experiment_id)
+plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/two_nets_accuracy_vs_sigs.png"%experiment_id)
+plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, "../../plots/%s/two_nets_accuracy_vs_muts.png"%experiment_id)
