@@ -6,10 +6,6 @@ import torch
 
 from utilities.io import read_model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
-from models.classifier import Classifier
-
 class ClassifiedFinetuner:
 
     def __init__(self,
@@ -54,7 +50,7 @@ class ClassifiedFinetuner:
         weights_real = weights[ind_real, ...]
         num_mut_real = num_mut[ind_real]
         real_guess = self.realistic_finetuner(mutation_dist=mut_dist_real,
-                                              weights=weights_real,
+                                              baseline_guess=weights_real,
                                               num_mut=num_mut_real)
 
         # Select and finetune mutations classified as random
@@ -62,7 +58,7 @@ class ClassifiedFinetuner:
         weights_rand = weights[ind_rand, ...]
         num_mut_rand = num_mut[ind_rand]
         rand_guess = self.random_finetuner(mutation_dist=mut_dist_rand,
-                                           weights=weights_rand,
+                                           baseline_guess=weights_rand,
                                            num_mut=num_mut_rand)
 
         # Join predictions and re-order them as originally
