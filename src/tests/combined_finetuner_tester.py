@@ -9,19 +9,10 @@ from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
 experiment_id = "exp_random_2_nets"
 
-finetuner_model_name_low = "finetuner_random_low_random_low"
-finetuner_params_low = {"num_hidden_layers": 2,
-                        "num_units": 600,
-                        "num_classes": 72,
-                        "sigmoid_params": [500,150]}
+test_id = "test_realistic"
 
-finetuner_model_name_large = "finetuner_1.0_large_mixture_1.0_large"
-finetuner_params_large = {"num_hidden_layers": 2,
-                          "num_units": 600,
-                          "num_classes": 72,
-                          "sigmoid_params": [50000, 10000]}
-
-test_id = "test_random"
+large_mum_mut_dir = "../../trained_models/exp_mixture/finetuner_realistic_large_nummut"
+low_mum_mut_dir = "../../trained_models/exp_0/finetuner_realistic"
 
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
 signatures = read_signatures("../../data/data.xlsx")
@@ -29,11 +20,7 @@ signatures = read_signatures("../../data/data.xlsx")
 baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
-finetuner = CombinedFinetuner(experiment_id,
-                finetuner_model_name_low,
-                finetuner_params_low,
-                finetuner_model_name_large,
-                finetuner_params_large)
+finetuner = CombinedFinetuner(low_mum_mut_dir=low_mum_mut_dir, large_mum_mut_dir=large_mum_mut_dir)
 
 finetuner_guess, ind_order = finetuner(input_batch, baseline_guess, label_batch[:,-1])
 label = label_batch[ind_order,:]

@@ -6,28 +6,16 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
+from utilities.io import read_model
 
 class CombinedFinetuner:
     def __init__(self,
-                 experiment_id,
-                 finetuner_model_name_low,
-                 finetuner_params_low,
-                 finetuner_model_name_large,
-                 finetuner_params_large,
-                 models_path="../../trained_models"):
+                 low_mum_mut_dir,
+                 large_mum_mut_dir):
 
         # Instantiate finetuner 1 and read params
-        self.finetuner_low = FineTuner(**finetuner_params_low)
-        self.finetuner_low.load_state_dict(torch.load(os.path.join(
-            models_path, experiment_id, finetuner_model_name_low), map_location=torch.device('cpu')))
-        self.finetuner_low.eval()  #NOTE: Careful! Only for evaluation (train submodels individually)
-
-        # Instantiate finetuner 2 and read params
-        self.finetuner_large = FineTuner(**finetuner_params_large)
-        self.finetuner_large.load_state_dict(torch.load(os.path.join(
-            models_path, experiment_id, finetuner_model_name_large), map_location=torch.device('cpu')))
-        self.finetuner_large.eval()  #NOTE: Careful! Only for evaluation (train submodels individually)
+        self.finetuner_low = read_model(low_mum_mut_dir)
+        self.finetuner_large = read_model(low_mum_mut_dir)
 
     def __call__(self,
                  input_batch,

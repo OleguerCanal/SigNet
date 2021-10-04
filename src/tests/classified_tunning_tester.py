@@ -3,24 +3,22 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modules.classified_tunning import ClassifiedFinetuner
+from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
 from utilities.io import csv_to_tensor, read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
-experiment_id = "exp_random_2_nets"
 
 model_path = "../../trained_models/"
-
-classifier_exp = "exp_classifier/"
-classifier_model = model_path + classifier_exp + "classifier"
-
-random_exp = "exp_0/"
-random_finetuner_model = model_path + random_exp + "finetuner_random"
-
-realistic_exp = "exp_0/"
-realistic_finetuner_model = model_path + realistic_exp + "finetuner_realistic"
-
 experiment_id = "exp_classifier"
+
+# Model ids
+classifier = model_path + "exp_classifier/classifier"
+realistic_finetuner_low_nummut = model_path + "exp_0/finetuner_realistic"
+realistic_finetuner_large_nummut = model_path + "exp_mixture/finetuner_realistic_large_nummut"
+random_finetuner_low_nummut = model_path + "exp_0/finetuner_random"
+random_finetuner_large_nummut = model_path + "exp_0/finetuner_random"
+
 
 test_id = "test_mixed"
 input_batch, label = read_test_data('cpu', 'exp_0', test_id, data_folder="../../data")
@@ -30,9 +28,15 @@ signatures = read_signatures("../../data/data.xlsx")
 baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
-finetuner = ClassifiedFinetuner(classifier_model,
-                 realistic_finetuner_model,
-                 random_finetuner_model)
+realistic_finetuner = CombinedFinetuner(low_mum_mut_dir=realistic_finetuner_low_nummut,
+                                        large_mum_mut_dir=realistic_finetuner_large_nummut)
+
+random_finetuner = CombinedFinetuner(low_mum_mut_dir=random_finetuner_low_nummut,
+                                        large_mum_mut_dir=random_finetuner_large_nummut)
+
+finetuner = ClassifiedFinetuner(classifier=read_model(classifier),
+                                realistic_finetuner=realistic_finetuner,
+                                random_finetuner=random_finetuner)
 
 finetuner_guess = finetuner(input_batch, baseline_guess, label[:,-1].reshape(-1,1))
 
