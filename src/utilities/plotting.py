@@ -36,7 +36,7 @@ def plot_prop_signatures(weights_0, weights_augmented):
     plt.show()
 
 # CLASSIFIER PLOTS:
-def plot_metric_vs_mutations(guess, label, num_muts_list, plot_path = '../../plots/plot_classifier.png'):
+def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path = '../../plots/exp_classifier/performance_classifier.png'):
     fig, axs = plt.subplots(3)
     fig.suptitle("Metrics vs Number of Mutations")
     
@@ -61,7 +61,7 @@ def plot_metric_vs_mutations(guess, label, num_muts_list, plot_path = '../../plo
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
-    #fig.savefig(plot_path)
+    fig.savefig(plot_path)
     
 # FINETUNER PLOTS:
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
