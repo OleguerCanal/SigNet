@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modules.classified_tunning import ClassifiedFinetuner
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
-from utilities.io import csv_to_tensor, read_signatures, read_test_data
+from utilities.io import csv_to_tensor, read_signatures, read_test_data, read_model
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
 
@@ -20,7 +20,7 @@ random_finetuner_low_nummut = model_path + "exp_0/finetuner_random"
 random_finetuner_large_nummut = model_path + "exp_0/finetuner_random"
 
 
-test_id = "test_mixed"
+test_id = "test_realistic"
 input_batch, label = read_test_data('cpu', 'exp_0', test_id, data_folder="../../data")
 
 signatures = read_signatures("../../data/data.xlsx")

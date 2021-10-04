@@ -22,8 +22,8 @@ class ClassifiedFinetuner:
 
         Args:
             classifier (Classifier): Model to discriminate between realistic and random data
-            realistic_finetuner (Finetuner or Combined Finetuner): Model which improves baseline guess for random data
-            random_finetuner (Finetuner or Combined Finetuner): Model which improves baseline guess for random data
+            realistic_finetuner (Finetuner or CombinedFinetuner): Model which improves baseline guess for random data
+            random_finetuner (Finetuner or CombinedFinetuner): Model which improves baseline guess for random data
             classification_cutoff (float, optional): Cuttoff at which we decide something is realistic. Defaults to 0.5.
             device (str, optional): Device to use (cuda or cpu). Defaults to "cpu".
         """
