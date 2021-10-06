@@ -18,7 +18,7 @@ def read_signatures(file, num_classes=72):
     return signatures
 
 
-def csv_to_tensor(file, device):
+def csv_to_tensor(file, device="cpu"):
     input_tensor = torch.tensor(pd.read_csv(
         file, header=None).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
