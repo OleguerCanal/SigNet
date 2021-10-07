@@ -11,7 +11,7 @@ from trainers.classifier_trainer import ClassifierTrainer
 from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
 
 
-experiment_id = "classifier_bayesian"
+experiment_id = "classifier"
 iterations = 40
 
 batch_sizes = Integer(name='batch_size', low=10, high=5000)
@@ -78,8 +78,8 @@ if __name__ == "__main__":
                                       output_file=output_file)  # Store tested points
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
-        n_calls=100,
-        n_random_starts=20,
+        n_calls=200,
+        n_random_starts=50,
         noise=0.01,
         verbose=True,
         plot_results=True)
