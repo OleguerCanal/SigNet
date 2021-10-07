@@ -173,8 +173,12 @@ def read_model(directory):
     
     # Load model weights
     state_dict_file = os.path.join(directory, "state_dict")
-    state_dict = torch.load(f=state_dict_file,
-                            map_location=torch.device('cpu'))
+    try:
+        state_dict = torch.load(f=state_dict_file,
+                                map_location=torch.device('cpu'))
+    except:
+        state_dict = torch.load(f=state_dict_file + ".zip",
+                                map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     model.eval()
     return model
