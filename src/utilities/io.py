@@ -18,7 +18,7 @@ def read_signatures(file, num_classes=72):
     return signatures
 
 
-def csv_to_tensor(file, device):
+def csv_to_tensor(file, device="cpu"):
     input_tensor = torch.tensor(pd.read_csv(
         file, header=None).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
@@ -173,8 +173,12 @@ def read_model(directory):
     
     # Load model weights
     state_dict_file = os.path.join(directory, "state_dict")
-    state_dict = torch.load(f=state_dict_file,
-                            map_location=torch.device('cpu'))
+    try:
+        state_dict = torch.load(f=state_dict_file,
+                                map_location=torch.device('cpu'))
+    except:
+        state_dict = torch.load(f=state_dict_file + ".zip",
+                                map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     model.eval()
     return model
