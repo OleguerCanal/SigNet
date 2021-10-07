@@ -12,7 +12,7 @@ from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
 
 
 experiment_id = "classifier"
-iterations = 40
+iterations = 25
 
 batch_sizes = Integer(name='batch_size', low=10, high=5000)
 learning_rates = Real(name='lr', low=1e-5, high=5e-3)
