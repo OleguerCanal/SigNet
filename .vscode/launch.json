@@ -61,6 +61,15 @@
         }
 
         {
+            "name": "Python: HyperParamOpt Classifier",
+            "type": "python",
+            "request": "launch",
+            "program": "optimize_classifier.py",
+            "cwd": "${workspaceFolder}/src/hyperparam_optimizers",
+            "console": "integratedTerminal"
+        }
+
+        {
             "name": "Python: Model Tester",
             "type": "python",
             "request": "launch",
