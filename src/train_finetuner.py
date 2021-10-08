@@ -10,16 +10,15 @@ from utilities.io import read_data
 
 config = {
     # IDs
-    "experiment_id": "exp_0",
-    "model_id": "0",
+    "experiment_id": "exp_final",
+    "model_id": "01fn_0fp_kl_random",
 
     # Training params
-    "source": "random",
-    "iterations": 40,
+    "source": "random_low",
+    "network_type": "random",
+    "iterations": 10,
     "num_classes": 72,
-    "fp_param": 0.001,
-    "fn_param": 0.001,
-    "sigmoid_params": [5000,1000],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
+    "sigmoid_params": [500,150],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
     "batch_size": 500,
     "lr": 0.0001,
 
@@ -37,7 +36,7 @@ if __name__ == "__main__":
     device = torch.device(dev)
     print("Using device:", dev)
 
-    wandb.init(project='finetuner',
+    wandb.init(project='finetuner_loss',
                entity='sig-net',
                config=config,
                name=config["model_id"])
@@ -49,9 +48,8 @@ if __name__ == "__main__":
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
                                val_data=val_data,
+                               network_type=config["network_type"],
                                num_classes=config["num_classes"],
-                               fp_param=config["fp_param"],
-                               fn_param=config["fn_param"],
                                sigmoid_params=config["sigmoid_params"],
                                device=device,
                                model_path=finetuner_path)
