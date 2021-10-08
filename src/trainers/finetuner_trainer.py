@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from utilities.data_partitions import DataPartitions
 from utilities.io import save_model
-from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics
+from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
 from loggers.finetuner_logger import FinetunerLogger
 
 class FinetunerTrainer:
@@ -23,8 +23,7 @@ class FinetunerTrainer:
                  iterations,
                  train_data,
                  val_data,
-                 fp_param=1e-3,
-                 fn_param=1e-3,
+                 network_type,
                  sigmoid_params = [5000, 2000],
                  loging_path="../runs",
                  num_classes=72,
@@ -33,20 +32,30 @@ class FinetunerTrainer:
                  device=torch.device("cuda:0")):
         self.iterations = iterations  # Now iteration refers to passes through all dataset
         self.num_classes = num_classes
-        self.fp_param = fp_param
-        self.fn_param = fn_param
         self.sigmoid_params = sigmoid_params
         self.device = device
         self.log_freq = log_freq
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
+        self.network_type = network_type
         self.logger = FinetunerLogger()
 
-    def __loss(self, prediction, label, FP, FN):
-        l = get_jensen_shannon(prediction, label)
-        l += self.fp_param*FP / \
-            prediction.shape[0] + self.fn_param*FN/prediction.shape[0]
+    def __loss(self, prediction, label, FP, FN, network_type):
+        if network_type == 'random':
+            fp_param=1e-3
+            fn_param=0.1
+            l = get_kl_divergence(prediction, label)
+            l += fp_param*FP / \
+                prediction.shape[0] + fn_param*FN/prediction.shape[0]
+        elif network_type == 'realistic':
+            fp_param=1e-3
+            fn_param=1e-3
+            l = get_jensen_shannon(prediction, label)
+            l += fp_param*FP / \
+                prediction.shape[0] + fn_param*FN/prediction.shape[0]
+        else:
+            print("ERROR: network type should be either random or realistic")
         return l
 
     def objective(self,
