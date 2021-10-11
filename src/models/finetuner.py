@@ -91,7 +91,7 @@ def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
 
     with torch.no_grad():
         data.prev_guess = finetuner(mutation_dist=data.inputs,
-                                    weights=data.prev_guess,
+                                    baseline_guess=data.prev_guess,
                                     num_mut=data.num_mut)
     del finetuner
     gc.collect()

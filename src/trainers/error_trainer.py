@@ -38,16 +38,20 @@ class ErrorTrainer:
         self.device = device
         self.model_path = model_path
         self.logger = ErrorFinderLogger(
-            path=loging_path,
-            experiment_id="_".join(model_path.split("/")[-2:]))
+            path=None,
+            experiment_id=None)
 
     def __loss(self,
                label,
                pred_lower,
-               pred_upper,
-               lagrange_missclassification=7e-3,
-               lagrange_pnorm=1e4,
-               lagrange_smalltozero=1.0):
+               pred_upper):
+
+        lagrange_missclassification = self.loss_params["lagrange_missclassification"]
+        lagrange_pnorm = self.loss_params["lagrange_pnorm"]
+        pnorm_order = self.loss_params["pnorm_order"] 
+        lagrange_smalltozero = self.loss_params["lagrange_smalltozero"]
+        pnorm_order = pnorm_order if pnorm_order%2 == 1 else pnorm_order + 1
+        
         _EPS = 1e-6
         batch_size = float(pred_lower.shape[0])
         lower = label - pred_lower
@@ -63,14 +67,36 @@ class ErrorTrainer:
             lagrange_missclassification*(lower + upper)
 
         # p-norm by signature to avoid high errors
-        loss_by_mutation = torch.linalg.norm(
-            lagrange_pnorm*loss_by_mutation_signature, ord=5, axis=1)
+        loss_by_mutation = torch.linalg.norm(lagrange_pnorm *\
+            loss_by_mutation_signature, ord=pnorm_order, axis=1)
         loss = torch.mean(loss_by_mutation)
 
         # Send small to 0
         loss += lagrange_smalltozero*\
             torch.mean(torch.abs(pred_upper[label <= _EPS]))
         return loss
+
+    def __meta_loss(self,
+                    label,
+                    pred_lower,
+                    pred_upper):
+        _EPS = 1e-6
+        batch_size = float(pred_lower.shape[0])
+        lower = label - pred_lower
+        upper = pred_upper - label
+        lower = nn.ReLU()(-lower)  # 0 if lower than label
+        upper = nn.ReLU()(-upper)  # 0 if higher than label
+
+        # Get interval length
+        interval_length = torch.mean((pred_upper - pred_lower)**2)
+
+        # If less than 97% in, add penalisation
+        # https://www.wolframalpha.com/input/?i=y+%3D+sigmoid%28%280.97-x%29*2000%29+from+0.95+to+1
+        penalization = torch.mean((lower + upper > 0).to(torch.float32))
+        penalization = nn.Sigmoid()((0.97 - penalization)*2000)
+        meta_loss = interval_length + penalization
+        assert (torch.isnan(meta_loss).any() == False)
+        return meta_loss
 
     def objective(self,
                   batch_size,
@@ -79,9 +105,11 @@ class ErrorTrainer:
                   num_neurons_neg,
                   num_hidden_layers_pos,
                   num_hidden_layers_neg,
+                  loss_params,
                   plot=False):
         print(batch_size, lr, num_neurons_pos, num_hidden_layers_pos,
-              num_neurons_neg, num_hidden_layers_neg)
+              num_neurons_neg, num_hidden_layers_neg, loss_params)
+        self.loss_params = loss_params
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
                                 shuffle=True)
@@ -98,10 +126,10 @@ class ErrorTrainer:
 
         optimizer = optim.Adam(model.parameters(),
                                lr=lr)
-        l_vals = collections.deque(maxlen=100)
+        meta_loss_vals = collections.deque(maxlen=100)
         max_found = -np.inf
         step = 0
-        for iteration in range(self.iterations):
+        for _ in range(self.iterations):
             for _, train_label, train_weight_guess, num_mut in tqdm(dataloader):
                 optimizer.zero_grad()
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
@@ -120,8 +148,11 @@ class ErrorTrainer:
                     val_loss = self.__loss(label=self.val_dataset.labels,
                                            pred_lower=val_pred_lower,
                                            pred_upper=val_pred_upper)
-                    l_vals.append(val_loss.item())
-                    max_found = max(max_found, -np.nanmean(l_vals))
+                    val_meta_loss = self.__meta_loss(label=self.val_dataset.labels,
+                                                     pred_lower=val_pred_lower,
+                                                     pred_upper=val_pred_upper)
+                    meta_loss_vals.append(val_meta_loss.item())
+                    max_found = max(max_found, -np.nanmean(meta_loss_vals))
 
                 if plot and step % log_freq == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
