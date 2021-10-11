@@ -41,22 +41,35 @@ class ErrorTrainer:
             path=loging_path,
             experiment_id="_".join(model_path.split("/")[-2:]))
 
-    def __loss(self, label, pred_lower, pred_upper, lagrange_mult=7e-3):
+    def __loss(self,
+               label,
+               pred_lower,
+               pred_upper,
+               lagrange_missclassification=7e-3,
+               lagrange_pnorm=1e4,
+               lagrange_smalltozero=1.0):
         _EPS = 1e-6
         batch_size = float(pred_lower.shape[0])
         lower = label - pred_lower
         upper = pred_upper - label
-        lower = nn.ReLU()(-lower)
-        upper = nn.ReLU()(-upper)
+        lower = nn.ReLU()(-lower)  # 0 if lower than label
+        upper = nn.ReLU()(-upper)  # 0 if higher than label
 
         interval_length = ((pred_upper - pred_lower)**2)/batch_size
+        
+        # loss = interval_length + lagrange * missclassifications
         loss_by_mutation_signature =\
             interval_length +\
-            lagrange_mult*(lower + upper)
+            lagrange_missclassification*(lower + upper)
+
+        # p-norm by signature to avoid high errors
         loss_by_mutation = torch.linalg.norm(
-            1e4*loss_by_mutation_signature, ord=5, axis=1)
+            lagrange_pnorm*loss_by_mutation_signature, ord=5, axis=1)
         loss = torch.mean(loss_by_mutation)
-        loss += torch.mean(torch.abs(pred_upper[label <= _EPS]))
+
+        # Send small to 0
+        loss += lagrange_smalltozero*\
+            torch.mean(torch.abs(pred_upper[label <= _EPS]))
         return loss
 
     def objective(self,
@@ -123,5 +136,6 @@ class ErrorTrainer:
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
                 step += 1
-        save_model(model=model, directory=self.model_path)
+        if self.model_path is not None:
+            save_model(model=model, directory=self.model_path)
         return max_found

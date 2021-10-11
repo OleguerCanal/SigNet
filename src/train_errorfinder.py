@@ -12,7 +12,8 @@ from utilities.io import read_data
 config = {
     # IDs
     "experiment_id": "exp_0",
-    "model_id": "",
+    "model_id": "test_0",
+    "finetuner_id": "",
 
     # Training params
     "source": "mixed",
@@ -28,24 +29,17 @@ config = {
     "num_neurons_neg": 1000,
 }
 
-# Finetuner args
-fintuner_args = {
-    "num_hidden_layers": 3,
-    "num_units": 600
-}
-
 # Paths
 models_path = os.path.join("../trained_models", config["experiment_id"])
-errorfinder_path = os.path.join(models_path,
-                    "errorfinder_" + config["source"] + "_" + config["model_id"])
-finetuner_path = os.path.join(models_path, "finetuner_" + config["source"])
+errorfinder_path = os.path.join(models_path, config["model_id"])
+finetuner_path = os.path.join(models_path, config["finetuner_id"])
 
 if __name__ == "__main__":
     # Select training device
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Using device:", device)
 
-    wandb.init(project='errorfinder',
+    wandb.init(project='errorfinder_loss',
                entity='sig-net',
                config=config)
 
@@ -54,11 +48,9 @@ if __name__ == "__main__":
                                      source=config["source"],
                                      device="cpu")
 
-    train_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
-                                                   trained_finetuner_file=finetuner_path,
+    train_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
                                                    data=train_data)
-    val_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
-                                                 trained_finetuner_file=finetuner_path,
+    val_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
                                                  data=val_data)
 
     train_data.to(device=device)

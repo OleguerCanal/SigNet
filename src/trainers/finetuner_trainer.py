@@ -41,21 +41,20 @@ class FinetunerTrainer:
         self.network_type = network_type
         self.logger = FinetunerLogger()
 
-    def __loss(self, prediction, label, FP, FN, network_type):
-        if network_type == 'random':
-            fp_param=1e-3
-            fn_param=0.1
+    def __loss(self, prediction, label, FP, FN):
+        assert (self.network_type in ['random', 'realistic'])
+        if self.network_type == 'random':
+            fp_param = 1e-3
+            fn_param = 0.1
             l = get_kl_divergence(prediction, label)
-            l += fp_param*FP / \
-                prediction.shape[0] + fn_param*FN/prediction.shape[0]
-        elif network_type == 'realistic':
-            fp_param=1e-3
-            fn_param=1e-3
+            l += fp_param*FP / prediction.shape[0] +\
+                 fn_param*FN / prediction.shape[0]
+        elif self.network_type == 'realistic':
+            fp_param = 1e-3
+            fn_param = 1e-3
             l = get_jensen_shannon(prediction, label)
-            l += fp_param*FP / \
-                prediction.shape[0] + fn_param*FN/prediction.shape[0]
-        else:
-            print("ERROR: network type should be either random or realistic")
+            l += fp_param*FP / prediction.shape[0] +\
+                 fn_param*FN / prediction.shape[0]
         return l
 
     def objective(self,
@@ -84,7 +83,7 @@ class FinetunerTrainer:
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
         step = 0
-        for iteration in range(self.iterations):
+        for _ in range(self.iterations):
             for train_input, train_label, train_weight_guess, num_mut in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
@@ -92,9 +91,9 @@ class FinetunerTrainer:
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                                     prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
-                                        label=train_label,
-                                        FP=train_FP,
-                                        FN=train_FN)
+                                         label=train_label,
+                                         FP=train_FP,
+                                         FN=train_FN)
 
                 train_loss.backward()
                 optimizer.step()
@@ -108,9 +107,9 @@ class FinetunerTrainer:
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                                                     prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
-                                        label=self.val_dataset.labels,
-                                        FP=val_FP,
-                                        FN=val_FN)
+                                           label=self.val_dataset.labels,
+                                           FP=val_FP,
+                                           FN=val_FN)
                     l_vals.append(val_loss.item())
                     max_found = max(max_found, -np.nanmean(l_vals))
 

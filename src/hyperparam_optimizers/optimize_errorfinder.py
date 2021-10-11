@@ -29,10 +29,6 @@ output_file = "search_results_" + experiment_id + ".csv"
 
 # Finetuner params
 finetuner_path = os.path.join(model_path, "finetuner_" + source)
-fintuner_args = {
-    "num_hidden_layers": 2,
-    "num_units": 1300
-}
 
 if __name__ == "__main__":
 # Select training device
@@ -45,11 +41,9 @@ if __name__ == "__main__":
                                      device="cpu",
                                      data_folder="../../data/")
 
-    train_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
-                                                   trained_finetuner_file=finetuner_path,
+    train_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
                                                    data=train_data)
-    val_data = baseline_guess_to_finetuner_guess(finetuner_args=fintuner_args,
-                                                 trained_finetuner_file=finetuner_path,
+    val_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
                                                  data=val_data)
 
     train_data.to(device=device)

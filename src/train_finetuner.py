@@ -28,7 +28,7 @@ config = {
 }
 
 models_path = os.path.join("../trained_models", config["experiment_id"])
-finetuner_path = os.path.join(models_path,config["model_id"])
+finetuner_path = os.path.join(models_path, config["model_id"])
 
 if __name__ == "__main__":
     dev = "cuda" if torch.cuda.is_available() else "cpu"
