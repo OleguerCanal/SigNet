@@ -21,16 +21,16 @@ num_classes = 72
 
 # Training params
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
-learning_rates = Real(name='lr', low=0.00001, high=0.05)
+learning_rates = Real(name='lr', low=1e-5, high=1e-3)
 neurons_pos = Integer(name='num_neurons_pos', low=20, high=1500)
 layers_pos = Integer(name='num_hidden_layers_pos', low=1, high=10)
 neurons_neg = Integer(name='num_neurons_neg', low=20, high=1500)
 layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=10)
 # Loss params
 lagrange_missclassification_param = Real(name="lagrange_missclassification", low=5e-3, high=1e-2)
-lagrange_pnorm_param = Real(name="pnorm_order", low=1e3, high=1e5)
+lagrange_pnorm_param = Real(name="lagrange_pnorm", low=1e3, high=1e5)
 lagrange_smalltozero_param = Real(name="lagrange_smalltozero", low=0.1, high=10)
-pnorm_order_param = Integer(name="lagrange_pnorm", low=3, high=9)
+pnorm_order_param = Integer(name="pnorm_order", low=3, high=9)
 
 input_file = None
 output_file = "search_results_" + experiment_id + ".csv"

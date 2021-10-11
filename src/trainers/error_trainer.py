@@ -74,6 +74,7 @@ class ErrorTrainer:
         # Send small to 0
         loss += lagrange_smalltozero*\
             torch.mean(torch.abs(pred_upper[label <= _EPS]))
+        # assert(torch.isnan(loss).any() == False)
         return loss
 
     def __meta_loss(self,
@@ -95,7 +96,8 @@ class ErrorTrainer:
         penalization = torch.mean((lower + upper > 0).to(torch.float32))
         penalization = nn.Sigmoid()((0.97 - penalization)*2000)
         meta_loss = interval_length + penalization
-        assert (torch.isnan(meta_loss).any() == False)
+        if torch.isnan(meta_loss).any() == False:
+            return torch.tensor([2.0], dtype=torch.float32)
         return meta_loss
 
     def objective(self,
