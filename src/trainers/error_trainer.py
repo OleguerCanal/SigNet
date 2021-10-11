@@ -74,7 +74,6 @@ class ErrorTrainer:
         # Send small to 0
         loss += lagrange_smalltozero*\
             torch.mean(torch.abs(pred_upper[label <= _EPS]))
-        # assert(torch.isnan(loss).any() == False)
         return loss
 
     def __meta_loss(self,
@@ -88,16 +87,21 @@ class ErrorTrainer:
         lower = nn.ReLU()(-lower)  # 0 if lower than label
         upper = nn.ReLU()(-upper)  # 0 if higher than label
 
+        # Manage this case
+        # assert(torch.isnan(pred_upper).any() == False)  # int len
+        # assert(torch.isnan(pred_lower).any() == False)  # int len
+
         # Get interval length
         interval_length = torch.mean((pred_upper - pred_lower)**2)
 
-        # If less than 97% in, add penalisation
+        # If less than 95% in, add penalization
         # https://www.wolframalpha.com/input/?i=y+%3D+sigmoid%28%280.97-x%29*2000%29+from+0.95+to+1
-        penalization = torch.mean((lower + upper > 0).to(torch.float32))
-        penalization = nn.Sigmoid()((0.97 - penalization)*2000)
+        penalization = torch.mean((lower + upper < _EPS).to(torch.float32))
+        # print("penalization:", penalization)
+        # assert(torch.isnan(penalization).any() == False)  # pen 1
+        penalization = nn.Sigmoid()((0.95 - penalization)*2000)
+        # assert(torch.isnan(penalization).any() == False)  # pen 2
         meta_loss = interval_length + penalization
-        if torch.isnan(meta_loss).any() == False:
-            return torch.tensor([2.0], dtype=torch.float32)
         return meta_loss
 
     def objective(self,
@@ -128,7 +132,7 @@ class ErrorTrainer:
 
         optimizer = optim.Adam(model.parameters(),
                                lr=lr)
-        meta_loss_vals = collections.deque(maxlen=100)
+        meta_loss_vals = collections.deque(maxlen=20)
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
@@ -141,6 +145,9 @@ class ErrorTrainer:
                 train_loss = self.__loss(label=train_label,
                                          pred_lower=train_pred_lower,
                                          pred_upper=train_pred_upper)
+                if torch.isnan(train_loss).any():
+                    print("NANs appeared while training! Ending training now")
+                    return -2.0
                 train_loss.backward()
                 optimizer.step()
 
@@ -168,7 +175,7 @@ class ErrorTrainer:
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
-                step += 1
+                step += batch_size
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
         return max_found

@@ -16,7 +16,7 @@ experiment_id = "errorfinder_realistic_smallnummut"
 source = "realistic"
 data_experiment_id = "exp_0"
 finetuner_model_id = "exp_2_nets/finetuner_realistic"
-iterations = 5
+iterations = 3
 num_classes = 72
 
 # Training params
