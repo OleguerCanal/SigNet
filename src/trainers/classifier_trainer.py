@@ -116,10 +116,11 @@ def train_classifier(config) -> float:
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
     print("Using device:", dev)
 
-    wandb.init(project=config["wandb_project_id"],
-               entity='sig-net',
-               config=config,
-               name=config["model_id"])
+    if config["enable_logging"]:
+        wandb.init(project=config["wandb_project_id"],
+                entity='sig-net',
+                config=config,
+                name=config["model_id"])
 
     train_data, val_data = read_data_classifier(device=dev,
                                                 experiment_id=config["data_id"])

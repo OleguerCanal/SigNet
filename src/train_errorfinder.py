@@ -6,19 +6,20 @@ import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import baseline_guess_to_finetuner_guess
-from trainers.error_trainer import ErrorTrainer
-from utilities.io import read_data
+from trainers.error_trainer import train_errorfinder
+from utilities.io import update_dict
 
+# Default config
 config = {
-    # IDs
+    # IDs & paths
+    "data_id": "exp_0",
     "model_id": "exp_errorfiner_loss/test_0",
-    "data_experiment_id": "exp_0",
     "finetuner_id": "exp_2_nets/finetuner_realistic",
+    "models_dir": "../trained_models",
 
     # Training params
     "source": "mixed",
-    "iterations": 40,
+    "iterations": 1,
     "num_classes": 72,
     "batch_size": 500,
     "lr": 0.0001,
@@ -29,53 +30,79 @@ config = {
         "pnorm_order": 5.0,
     },
 
+    # WANDB params
+    "enable_logging": True,
+    "wandb_project_id": "errorfinder",
+
     # Network params
     "num_hidden_layers_pos": 2,
     "num_neurons_pos": 1000,
     "num_hidden_layers_neg": 2,
     "num_neurons_neg": 1000,
+
+    # Misc
+    "device": "cuda",
 }
 
-# Paths
-models_path = "../trained_models"
-errorfinder_path = os.path.join(models_path, config["model_id"])
-finetuner_path = os.path.join(models_path, config["finetuner_id"])
-
 if __name__ == "__main__":
-    # Select training device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("Using device:", device)
+    # Parse command-line arguments
+    parser = ArgumentParser()
+    parser.add_argument(
+        '--model-id', action='store', nargs=1, type=str, required=False,
+        help=f'Unique id given to the trained model.'
+    )
 
-    wandb.init(project='errorfinder_loss',
-               entity='sig-net',
-               config=config)
+    # Train args
+    parser.add_argument(
+        '--batch_size', action='store', nargs=1, type=int, required=False,
+        help='Training batch size.'
+    )
+    parser.add_argument(
+        '--lr', action='store', nargs=1, type=float, required=False,
+        help='Learning rate.'
+    )
+    
+    # Model args
+    parser.add_argument(
+        '--num_neurons_pos', action='store', nargs=1, type=int, required=False,
+        help='Neurons of the positive error network.'
+    )
+    parser.add_argument(
+        '--num_hidden_layers_pos', action='store', nargs=1, type=int, required=False,
+        help='Layers of the positive error network.'
+    )
+    parser.add_argument(
+        '--num_neurons_neg', action='store', nargs=1, type=int, required=False,
+        help='Neurons of the negative error network.'
+    )
+    parser.add_argument(
+        '--num_hidden_layers_neg', action='store', nargs=1, type=int, required=False,
+        help='Layers of the negative error network.'
+    )
 
-    # Load data
-    train_data, val_data = read_data(experiment_id=config["data_experiment_id"],
-                                     source=config["source"],
-                                     device="cpu")
+    # Loss args
+    parser.add_argument(
+        '--lagrange_missclassification', action='store', nargs=1, type=float, required=False,
+        help='Weight of misclassification in the loss.'
+    )
+    parser.add_argument(
+        '--lagrange_pnorm', action='store', nargs=1, type=float, required=False,
+        help='Weight of big errors in the loss.'
+    )
+    parser.add_argument(
+        '--lagrange_smalltozero', action='store', nargs=1, type=float, required=False,
+        help='Weight of not sending small values to zero in the loss.'
+    )
+    parser.add_argument(
+        '--pnorm_order', action='store', nargs=1, type=int, required=False,
+        help='Norm used in the loss.'
+    )
+    _args = parser.parse_args()
 
-    train_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
-                                                   data=train_data)
-    val_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
-                                                 data=val_data)
+    # Update config 
+    config = update_dict(config=config, args=_args)
+    config["loss_params"] = update_dict(config=config["loss_params"], args=_args)
 
-    train_data.to(device=device)
-    val_data.to(device=device)
-    torch.cuda.empty_cache()
-
-    trainer = ErrorTrainer(iterations=config["iterations"],  # Passes through all dataset
-                           train_data=train_data,
-                           val_data=val_data,
-                           num_classes=config["num_classes"],
-                           device=device,
-                           model_path=errorfinder_path)
-
-    min_val = trainer.objective(batch_size=config["batch_size"],
-                                lr=config["lr"],
-                                num_neurons_pos=config["num_neurons_pos"],
-                                num_neurons_neg=config["num_neurons_neg"],
-                                num_hidden_layers_pos=config["num_hidden_layers_pos"],
-                                num_hidden_layers_neg=config["num_hidden_layers_neg"],
-                                loss_params=config["loss_params"],
-                                plot=True)
+    print(config)
+    score = train_errorfinder(config=config)
+    print(score)

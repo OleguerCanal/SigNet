@@ -179,3 +179,54 @@ class ErrorTrainer:
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
         return max_found
+
+
+def train_errorfinder(config) -> float:
+    from utilities.io import read_data
+    from models.finetuner import baseline_guess_to_finetuner_guess
+
+    # Select training device
+    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
+    device = torch.device(dev)
+    print("Using device:", device)
+
+    # Set paths
+    errorfinder_path = os.path.join(config["models_dir"], config["model_id"])
+    finetuner_path = os.path.join(config["models_dir"], config["finetuner_id"])
+
+    if config["enable_logging"]:
+        wandb.init(project=config["wandb_project_id"],
+                entity='sig-net',
+                config=config,
+                name=config["model_id"])
+
+    # Load data
+    train_data, val_data = read_data(experiment_id=config["data_id"],
+                                     source=config["source"],
+                                     device="cpu")
+
+    train_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
+                                                   data=train_data)
+    val_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
+                                                 data=val_data)
+
+    train_data.to(device=device)
+    val_data.to(device=device)
+    torch.cuda.empty_cache()
+
+    trainer = ErrorTrainer(iterations=config["iterations"],  # Passes through all dataset
+                           train_data=train_data,
+                           val_data=val_data,
+                           num_classes=config["num_classes"],
+                           device=device,
+                           model_path=errorfinder_path)
+
+    min_val = trainer.objective(batch_size=config["batch_size"],
+                                lr=config["lr"],
+                                num_neurons_pos=config["num_neurons_pos"],
+                                num_neurons_neg=config["num_neurons_neg"],
+                                num_hidden_layers_pos=config["num_hidden_layers_pos"],
+                                num_hidden_layers_neg=config["num_hidden_layers_neg"],
+                                loss_params=config["loss_params"],
+                                plot=config["enable_logging"])
+    return min_val

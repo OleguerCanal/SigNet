@@ -201,3 +201,10 @@ def save_model(model, directory):
     # Store state_dict
     state_dict_file = os.path.join(directory, "state_dict")
     torch.save(model.state_dict(), state_dict_file)
+
+
+def update_dict(config, args):
+    for arg in vars(args):
+        if getattr(args, arg) is not None and arg in config:
+            config[arg] = getattr(args, arg)[0]
+    return config
