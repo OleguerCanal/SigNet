@@ -77,5 +77,14 @@
             "cwd": "${workspaceFolder}/src/tests",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Python: Search Test",
+            "type": "python",
+            "request": "launch",
+            "program": "search_test.py",
+            "cwd": "${workspaceFolder}/src/hyperparam_optimizers",
+            "console": "integratedTerminal"
+        }
     ]
 }
