@@ -5,6 +5,7 @@ from skopt.space import Real, Integer, Categorical
 import torch
 import wandb
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data
 from trainers.finetuner_trainer import FinetunerTrainer

@@ -102,3 +102,39 @@ class ClassifierTrainer:
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
         return max_found
+
+
+def train_classifier(config) -> float:
+    """Train a classification model and get the validation score
+
+    Args:
+        config (dict): Including all the needed args
+        to load data, and train the model 
+    """
+    from utilities.io import read_data_classifier
+
+    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
+    print("Using device:", dev)
+
+    wandb.init(project=config["wandb_project_id"],
+               entity='sig-net',
+               config=config,
+               name=config["model_id"])
+
+    train_data, val_data = read_data_classifier(device=dev,
+                                                experiment_id=config["data_id"])
+
+    trainer = ClassifierTrainer(iterations=config["iterations"],  # Passes through all dataset
+                               train_data=train_data,
+                               val_data=val_data,
+                               sigmoid_params=config["sigmoid_params"],
+                               device=torch.device(dev),
+                               model_path=os.path.join(config["models_dir"], config["model_id"]))
+
+    min_val = trainer.objective(batch_size=config["batch_size"],
+                                lr=config["lr"],
+                                num_hidden_layers=config["num_hidden_layers"],
+                                num_units=config["num_neurons"],
+                                plot=config["enable_logging"])
+
+    return min_val
