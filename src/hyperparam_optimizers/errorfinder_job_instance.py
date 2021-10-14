@@ -42,26 +42,27 @@ class ErrorfinderJobInstance(SearchJobInstance):
         args += " --lagrange_pnorm=" + str(lagrange_pnorm)
         args += " --lagrange_smalltozero=" + str(lagrange_smalltozero) 
         args += " --pnorm_order=" + str(pnorm_order) 
-        shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_finetuner.py " + args
+        shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_errorfinder.py " + args
 
         command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/error_" + str(self.id) + ".sh'" 
         command2 = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/error_" + str(self.id) + ".sh'" 
         self.process = subprocess.Popen(command, shell=True)
+        time.sleep(1)
         self.process = subprocess.Popen(command2, shell=True)
-        print("DONE!")
+        print("Launch DONE!")
 
     def get_result(self):
         import shlex
-        command = "ssh cserranocolome@ant-login.linux.crg.es"
-        command += "cat signatures-net/temp/score_%s.txt"%self.id
+        command = "ssh cserranocolome@ant-login.linux.crg.es "
+        command += "cat signatures-net/tmp/score_%s.txt"%self.id
         output = float(subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")[0])
         return output
 
     def done(self):
         import shlex
-        command = "ssh cserranocolome@ant-login.linux.crg.es"
-        command += "ls signatures-net/temp/"
+        command = "ssh cserranocolome@ant-login.linux.crg.es "
+        command += "ls signatures-net/tmp/"
         output = subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")
         is_done = "score_%s.txt"%self.id in output
