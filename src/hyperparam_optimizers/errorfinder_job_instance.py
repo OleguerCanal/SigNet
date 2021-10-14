@@ -59,8 +59,8 @@ class ErrorfinderJobInstance(SearchJobInstance):
         print("Job " + self.id + ": Running qsub...")
         submit_job_process.wait()
         if submit_job_process.returncode != 0:
-            # Error creating the .sh file
-            print("There was an error creating the .sh file!")
+            # Error running qsub
+            print("There was an error running qsub!")
             return 1
         print("Job " + self.id + ": qsub finished without errors!")
         return 0
