@@ -147,3 +147,5 @@ runs_old/
 wandb
 
 nohup.out
+
+tmp/

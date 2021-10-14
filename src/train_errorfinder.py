@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Parse command-line arguments
     parser = ArgumentParser()
     parser.add_argument(
-        '--model-id', action='store', nargs=1, type=str, required=False,
+        '--model_id', action='store', nargs=1, type=str, required=False,
         help=f'Unique id given to the trained model.'
     )
 
@@ -105,4 +105,6 @@ if __name__ == "__main__":
 
     print(config)
     score = train_errorfinder(config=config)
-    print(score)
+    fout = open("../tmp/score_%s.txt"%config["model_id"])
+    fout.write(str(score))
+    fout.close()

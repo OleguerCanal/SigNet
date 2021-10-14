@@ -7,7 +7,7 @@ import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
+from HyperParameterOptimizer import GaussianProcessSearch, ParallelSearcher
 from models.finetuner import FineTuner, baseline_guess_to_finetuner_guess
 from trainers.error_trainer import ErrorTrainer
 from utilities.io import read_data
