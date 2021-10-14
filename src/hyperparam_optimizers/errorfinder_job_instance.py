@@ -46,23 +46,23 @@ class ErrorfinderJobInstance(SearchJobInstance):
 
         create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/error_" + str(self.id) + ".sh'" 
         create_sh_process = subprocess.Popen(create_sh_command, shell=True)
-        print("Job " + self.id + ": Creating .sh file...")
+        print("Job " + str(self.id) + ": Creating .sh file...")
         create_sh_process.wait()
         if create_sh_process.returncode != 0:
             # Error creating the .sh file
             print("There was an error creating the .sh file!")
             return 1
-        print("Job " + self.id + ": .sh file created!")
+        print("Job " + str(self.id) + ": .sh file created!")
 
         submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/error_" + str(self.id) + ".sh'" 
         submit_job_process = subprocess.Popen(submit_job_command, shell=True)
-        print("Job " + self.id + ": Running qsub...")
+        print("Job " + str(self.id) + ": Running qsub...")
         submit_job_process.wait()
         if submit_job_process.returncode != 0:
             # Error running qsub
             print("There was an error running qsub!")
             return 1
-        print("Job " + self.id + ": qsub finished without errors!")
+        print("Job " + str(self.id) + ": qsub finished without errors!")
         return 0
 
     def get_result(self):
