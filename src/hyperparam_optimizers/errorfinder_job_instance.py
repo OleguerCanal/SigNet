@@ -44,12 +44,26 @@ class ErrorfinderJobInstance(SearchJobInstance):
         args += " --pnorm_order=" + str(pnorm_order) 
         shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_errorfinder.py " + args
 
-        command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/error_" + str(self.id) + ".sh'" 
-        command2 = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/error_" + str(self.id) + ".sh'" 
-        self.process = subprocess.Popen(command, shell=True)
-        time.sleep(1)
-        self.process = subprocess.Popen(command2, shell=True)
-        print("Launch DONE!")
+        create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/error_" + str(self.id) + ".sh'" 
+        create_sh_process = subprocess.Popen(create_sh_command, shell=True)
+        print("Job " + self.id + ": Creating .sh file...")
+        create_sh_process.wait()
+        if create_sh_process.returncode != 0:
+            # Error creating the .sh file
+            print("There was an error creating the .sh file!")
+            return 1
+        print("Job " + self.id + ": .sh file created!")
+
+        submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/error_" + str(self.id) + ".sh'" 
+        submit_job_process = subprocess.Popen(submit_job_command, shell=True)
+        print("Job " + self.id + ": Running qsub...")
+        submit_job_process.wait()
+        if submit_job_process.returncode != 0:
+            # Error creating the .sh file
+            print("There was an error creating the .sh file!")
+            return 1
+        print("Job " + self.id + ": qsub finished without errors!")
+        return 0
 
     def get_result(self):
         import shlex
