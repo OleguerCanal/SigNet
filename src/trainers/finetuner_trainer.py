@@ -131,3 +131,42 @@ class FinetunerTrainer:
                 step += 1
         save_model(model=model, directory=self.model_path)
         return max_found
+
+def train_finetuner(config) -> float:
+    from utilities.io import read_data
+    from models.finetuner import baseline_guess_to_finetuner_guess
+
+    # Select training device
+    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
+    device = torch.device(dev)
+    print("Using device:", device)
+
+    # Set paths
+    finetuner_path = os.path.join(config["models_dir"], config["model_id"])
+
+    if config["enable_logging"]:
+        wandb.init(project=config["wandb_project_id"],
+                entity='sig-net',
+                config=config,
+                name=config["model_id"])
+
+    # Load data
+    train_data, val_data = read_data(experiment_id=config["data_id"],
+                                     source=config["source"],
+                                     device="cpu")
+
+    trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
+                               train_data=train_data,
+                               val_data=val_data,
+                               network_type=config["network_type"],
+                               num_classes=config["num_classes"],
+                               sigmoid_params=config["sigmoid_params"],
+                               device=device,
+                               model_path=finetuner_path)
+
+    min_val = trainer.objective(batch_size=config["batch_size"],
+                                lr=config["lr"],
+                                num_hidden_layers=config["num_hidden_layers"],
+                                num_units=config["num_neurons"],
+                                plot=True)
+    return min_val
