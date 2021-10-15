@@ -46,10 +46,10 @@ class ErrorTrainer:
                pred_lower,
                pred_upper):
 
-        lagrange_missclassification = self.loss_params["lagrange_missclassification"]
-        lagrange_pnorm = self.loss_params["lagrange_pnorm"]
-        pnorm_order = self.loss_params["pnorm_order"] 
-        lagrange_smalltozero = self.loss_params["lagrange_smalltozero"]
+        lagrange_missclassification = float(self.loss_params["lagrange_missclassification"])
+        lagrange_pnorm = float(self.loss_params["lagrange_pnorm"])
+        pnorm_order = int(self.loss_params["pnorm_order"] )
+        lagrange_smalltozero = float(self.loss_params["lagrange_smalltozero"])
         pnorm_order = pnorm_order if pnorm_order%2 == 1 else pnorm_order + 1
         
         _EPS = 1e-6

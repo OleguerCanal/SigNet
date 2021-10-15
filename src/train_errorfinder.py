@@ -7,46 +7,18 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.error_trainer import train_errorfinder
-from utilities.io import update_dict
+from utilities.io import update_dict, read_config
 
-# Default config
-config = {
-    # IDs & paths
-    "data_id": "exp_0",
-    "model_id": "exp_errorfiner_loss/test_0",
-    "finetuner_id": "exp_2_nets/finetuner_realistic",
-    "models_dir": "../trained_models",
-
-    # Training params
-    "source": "mixed",
-    "iterations": 1,
-    "num_classes": 72,
-    "batch_size": 500,
-    "lr": 0.0001,
-    "loss_params": {
-        "lagrange_missclassification": 7e-3,
-        "lagrange_pnorm": 1e4,
-        "lagrange_smalltozero": 1.0,
-        "pnorm_order": 5.0,
-    },
-
-    # WANDB params
-    "enable_logging": True,
-    "wandb_project_id": "errorfinder",
-
-    # Network params
-    "num_hidden_layers_pos": 2,
-    "num_neurons_pos": 1000,
-    "num_hidden_layers_neg": 2,
-    "num_neurons_neg": 1000,
-
-    # Misc
-    "device": "cuda",
-}
+DEFAULT_CONFIG_FILE = ["configs/error_finder.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
     parser = ArgumentParser()
+    parser.add_argument(
+        '--config_file', action='store', nargs=1, type=str, required=False, default=DEFAULT_CONFIG_FILE,
+        help=f'Path to yaml file containing all needed parameters.\nThey can be overwritten by command-line arguments'
+    )
+
     parser.add_argument(
         '--model_id', action='store', nargs=1, type=str, required=False,
         help=f'Unique id given to the trained model.'
@@ -99,11 +71,12 @@ if __name__ == "__main__":
     )
     _args = parser.parse_args()
 
-    # Update config 
+    # Read & config
+    config = read_config(path=getattr(_args, "config_file")[0])
     config = update_dict(config=config, args=_args)
     config["loss_params"] = update_dict(config=config["loss_params"], args=_args)
-
-    print(config)
+    
+    print("Using config:", config)
     score = train_errorfinder(config=config)
     fout = open("../tmp/score_%s.txt"%config["model_id"], 'w')
     fout.write(str(score))
