@@ -31,7 +31,8 @@ class ErrorfinderJobInstance(SearchJobInstance):
         self.passed_args = locals()
 
         shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/errorfinder_%s.out"%str(self.id) + '\n' + '\n'
-        args = "--model_id=" + str(self.id)
+        args = "--config_file='configs/error_finder_bayesian.yaml'" # Base config file
+        args += " --model_id=" + str(self.id)
         args += " --batch_size=" + str(batch_size)
         args += " --lr=" + str(lr)
         args += " --num_neurons_pos=" + str(num_neurons_pos)

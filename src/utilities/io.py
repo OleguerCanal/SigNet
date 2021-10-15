@@ -1,5 +1,6 @@
 import os
 import pathlib
+import yaml
 
 import json
 import pandas as pd
@@ -208,3 +209,8 @@ def update_dict(config, args):
         if getattr(args, arg) is not None and arg in config:
             config[arg] = getattr(args, arg)[0]
     return config
+
+def read_config(path):
+    with open(path, 'r') as stream:
+        data = yaml.safe_load(stream)
+    return data["config"]
