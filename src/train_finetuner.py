@@ -24,6 +24,20 @@ if __name__ == "__main__":
         help=f'Unique id given to the trained model.'
     )
 
+    # Data args
+    parser.add_argument(
+        '--source', action='store', nargs=1, type=int, required=False,
+        help='Data source.'
+    )
+    parser.add_argument(
+        '--network_type', action='store', nargs=1, type=float, required=False,
+        help='Network type: either random or realistic.'
+    )
+    parser.add_argument(
+        '--sigmoid_params', action='store', nargs=1, type=float, required=False,
+        help='Sigmoid parameters for normalization.'
+    )
+
     # Train args
     parser.add_argument(
         '--batch_size', action='store', nargs=1, type=int, required=False,
@@ -49,7 +63,6 @@ if __name__ == "__main__":
     # Read & config
     config = read_config(path=getattr(_args, "config_file")[0])
     config = update_dict(config=config, args=_args)
-    config["loss_params"] = update_dict(config=config["loss_params"], args=_args)
     
     print("Using config:", config)
     score = train_finetuner(config=config)

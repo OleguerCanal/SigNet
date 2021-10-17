@@ -15,8 +15,8 @@ experiment_id = "finetuner_random"
 # Training params
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
 learning_rates = Real(name='lr', low=1e-5, high=5e-3)
-neurons = Integer(name='num_neurons', low=20, high=800)
-layers = Integer(name='num_hidden_layers', low=1, high=10)
+neurons = Integer(name='num_neurons', low=50, high=800)
+layers = Integer(name='num_hidden_layers', low=1, high=8)
 
 input_file = "search_results/search_results_" + experiment_id + ".csv"
 output_file = "search_results/search_results_" + experiment_id + "_final.csv"
