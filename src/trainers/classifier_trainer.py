@@ -55,7 +55,7 @@ class ClassifierTrainer:
                                 batch_size=int(batch_size),
                                 shuffle=True)
         model = Classifier(num_hidden_layers=int(num_hidden_layers),
-                          num_neurons=int(num_neurons),
+                          num_units=int(num_neurons),
                           sigmoid_params=self.sigmoid_params)
         model.to(self.device)
 
