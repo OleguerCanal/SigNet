@@ -21,10 +21,12 @@ class FinetunerJobInstance(SearchJobInstance):
                lr,
                num_neurons,
                num_hidden_layers,
+               source = "realistic_low",
+               network_type = "realistic",
                plot=False):
         self.passed_args = locals()
 
-        self.file_name = "finetuner_random"
+        self.file_name = "finetuner_%s"%network_type
         shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/%s_%s.out"%(self.file_name, str(self.id)) + '\n' + '\n'
         args = "--config_file='configs/finetuner_bayesian.yaml'" # Base config file
         args += " --model_id=" + str(self.id)
@@ -32,6 +34,8 @@ class FinetunerJobInstance(SearchJobInstance):
         args += " --lr=" + str(lr)
         args += " --num_neurons=" + str(num_neurons)
         args += " --num_hidden_layers=" + str(num_hidden_layers)
+        args += " --network_type=" + str(network_type)
+        args += " --source=" + str(source)
         shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_finetuner.py " + args
 
         create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/%s_"%self.file_name + str(self.id) + ".sh'" 

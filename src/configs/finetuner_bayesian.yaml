@@ -5,8 +5,8 @@ config:
     models_dir: "../trained_models"
 
     # Training params
-    source: "random_low"
-    network_type: "random"
+    source: "realistic_low"
+    network_type: "realistic"
     iterations: 30
     num_classes: 72
     sigmoid_params: [500,150]
