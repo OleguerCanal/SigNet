@@ -26,15 +26,15 @@ if __name__ == "__main__":
 
     # Data args
     parser.add_argument(
-        '--source', action='store', nargs=1, type=int, required=False,
+        '--source', action='store', nargs=1, type=str, required=False,
         help='Data source.'
     )
     parser.add_argument(
-        '--network_type', action='store', nargs=1, type=float, required=False,
+        '--network_type', action='store', nargs=1, type=str, required=False,
         help='Network type: either random or realistic.'
     )
     parser.add_argument(
-        '--sigmoid_params', action='store', nargs=1, type=float, required=False,
+        '--sigmoid_params', action='store', nargs=1, type=list, required=False,
         help='Sigmoid parameters for normalization.'
     )
 
