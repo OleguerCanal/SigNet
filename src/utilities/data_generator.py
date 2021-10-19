@@ -127,14 +127,14 @@ class DataGenerator:
             # Compute resulting signature
             signature = torch.einsum("ij,j->i", (self.signatures, label))
 
-            # Sample
-            if ind_range_muts[i] != -1:
-                num_mut = np.random.randint(range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
-            else:
-                num_mut = -1
-
+            # Sample (NOTE: This bit is a mess, we should rethink it)
             if set == "test":
                 num_mut = num_muts[i]
+            else:
+                if ind_range_muts[i] != -1:
+                    num_mut = np.random.randint(range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
+                else:
+                    num_mut = -1
 
             if num_mut != -1:
                 sample = self.__sample_from_sig(signature=signature,

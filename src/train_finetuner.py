@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
 from utilities.io import update_dict, read_config
 
-DEFAULT_CONFIG_FILE = ["configs/finetuner_bayesian.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner_cosmic_v2.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     config = read_config(path=getattr(_args, "config_file")[0])
     config = update_dict(config=config, args=_args)
     
+    print("Using config file:", getattr(_args, "config_file")[0])
     print("Using config:", config)
     score = train_finetuner(config=config)
     fout = open("../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"]), 'w')
