@@ -16,6 +16,7 @@ class DataGenerator:
                  shuffle=True):
         self.signatures = signatures
         self.total_signatures = signatures.shape[1]
+        print("Total signatures:", self.total_signatures)
         self.shuffle = shuffle
         if seed is not None:
             torch.seed = seed
@@ -85,34 +86,32 @@ class DataGenerator:
         assert(min_n_signatures > 0 and max_n_signatures <= self.total_signatures)
 
         if set == "train":
-            batch_size = 120000
             range_muts = [15, 100, 500, 5000, 50000]
             ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3] * \
                 20000 + [-1]*20000     # The -1 means real distribution
+            batch_size = len(ind_range_muts)
         elif set == "val":
-            batch_size = 12000
             range_muts = [15, 100, 500, 5000, 50000]
             # The -1 means real distribution
             ind_range_muts = [0]*3000 + [1]*3000 + \
                 [2]*2000 + [3]*2000 + [-1]*2000
+            batch_size = len(ind_range_muts)
         elif set == "test":
-            batch_size = 15000
             num_muts = [25]*1000 + [50]*1000 + [100]*1000 + [150]*1000 +\
                 [200]*1000 + [250]*1000 + [500]*1000 + [1000]*1000 +\
                 [2000]*1000 + [5000]*1000 + [10000]*1000 + [20000] * 1000 +\
                 [50000]*1000 + [-1]*2000    # The -1 means real distribution
-
+            batch_size = len(num_muts)
+        
         input_batch = torch.empty((batch_size, 96))
         label_batch = torch.empty((batch_size, self.total_signatures + 1))
 
         for i in range(batch_size):
             # Pick the number of involved signatures
-            n_signatures = np.random.randint(
-                min_n_signatures, max_n_signatures + 1)
+            n_signatures = np.random.randint(min_n_signatures, max_n_signatures + 1)
 
             # Select n_signatures
-            signature_ids = torch.randperm(self.total_signatures)[
-                :n_signatures]
+            signature_ids = torch.randperm(self.total_signatures)[:n_signatures]
 
             # Assign weights randomly
             weights = torch.rand(size=(n_signatures,))
@@ -123,15 +122,17 @@ class DataGenerator:
                 if weights[j] < 0.1:
                     weights[j] = 0
             weights = weights/torch.sum(weights)
-            label = torch.zeros(self.total_signatures).scatter_(
-                dim=0, index=signature_ids, src=weights)
+            label = torch.zeros(self.total_signatures).scatter_(dim=0, index=signature_ids, src=weights)
 
             # Compute resulting signature
             signature = torch.einsum("ij,j->i", (self.signatures, label))
 
             # Sample
-            num_mut = np.random.randint(
-                range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
+            if ind_range_muts[i] != -1:
+                num_mut = np.random.randint(range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
+            else:
+                num_mut = -1
+
             if set == "test":
                 num_mut = num_muts[i]
 
