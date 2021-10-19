@@ -6,7 +6,7 @@ from sklearn.metrics import confusion_matrix
 import torch
 
 from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics
-# from utilities.io import read_methods_realistic_data, read_realistic_test_methods
+from utilities.io import create_dir
 
 # from utilities.metrics import get_classification_metrics, get_pi_metrics
 
@@ -65,38 +65,39 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
     
 # FINETUNER PLOTS:
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
-    m = -1
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Mutations")
     
     num_muts = np.unique(label[:,-1].detach().numpy())
-    # num_muts = num_muts[num_muts<100000]  # NOTE: Why this? Are they sorted?
-    for metric in list_of_metrics:
-        m += 1
-        values = np.zeros((len(list_of_methods), len(num_muts)))
 
-        for k in range(len(list_of_methods)):
-            for i in range(len(num_muts)):
-                if label[2000*i:2000*(i+1), :-1].shape[0] == 0:  # TODO: There is a bug in this for loop, we should take a look
-                    continue
-                metrics = get_classification_metrics(label_batch=label[2000*i:2000*(i+1), :-1], prediction_batch=list_of_guesses[k][2000*i:2000*(i+1),:])
-                values[k,i] = metrics[metric]
+    for metric_index, metric in enumerate(list_of_metrics):
+        values = np.zeros((len(list_of_methods), len(num_muts)))
+        for method_index in range(len(list_of_methods)):
+            for i, num_mut in enumerate(num_muts):
+                indexes = label[:, -1] == num_mut
+                metrics = get_classification_metrics(label_batch=label[indexes, :-1],
+                                                     prediction_batch=list_of_guesses[method_index][indexes, :])
+                values[method_index, i] = metrics[metric]
         
-        handles = axs[m].plot(np.log10(num_muts), np.transpose(values))
-        axs[m].set_ylabel(metric)
-        if m == len(list_of_metrics)-1:
-            axs[m].set_xlabel("log(N)")
+        handles = axs[metric_index].plot(np.log10(num_muts), np.transpose(values))
+        axs[metric_index].set_ylabel(metric)
+        if metric_index == len(list_of_metrics) - 1:
+            axs[metric_index].set_xlabel("log(N)")
 
         # Shrink current axis by 3%
-        box = axs[m].get_position()
-        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+        box = axs[metric_index].get_position()
+        axs[metric_index].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+    
     fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
+    create_dir(plot_path)
     fig.savefig(plot_path)
 
 def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
+    #TODO: Adapt this function to work like plot_metric_vs_mutations
+    
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     

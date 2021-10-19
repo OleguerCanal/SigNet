@@ -30,22 +30,19 @@ if __name__ == "__main__":
 
     # RANDOM DATA
     # Train
-    # input_batch, label_batch = data_generator.make_random_set(
-    #     "train", normalize=True)
-
-    # tensor_to_csv(input_batch, "../data/%s/train_random_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/train_random_label.csv"%experiment_id)
+    input_batch, label_batch = data_generator.make_random_set(
+        "train", normalize=True)
+    tensor_to_csv(input_batch, "../data/%s/train_random_input.csv"%experiment_id)
+    tensor_to_csv(label_batch, "../data/%s/train_random_label.csv"%experiment_id)
 
     # Val
-    # input_batch, label_batch = data_generator.make_random_set(
-    # "val", normalize=True)
-
-    # tensor_to_csv(input_batch, "../data/%s/val_random_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/val_random_label.csv"%experiment_id)
+    input_batch, label_batch = data_generator.make_random_set(
+    "val", normalize=True)
+    tensor_to_csv(input_batch, "../data/%s/val_random_input.csv"%experiment_id)
+    tensor_to_csv(label_batch, "../data/%s/val_random_label.csv"%experiment_id)
 
     # Test
     input_batch, label_batch = data_generator.make_random_set(
     "test", normalize=True)
-
-    tensor_to_csv(input_batch, "../data/%s/test_random_input.csv"%experiment_id)
-    tensor_to_csv(label_batch, "../data/%s/test_random_label.csv"%experiment_id)
+    tensor_to_csv(input_batch, "../data/%s/test/test_random_input.csv"%experiment_id)
+    tensor_to_csv(label_batch, "../data/%s/test/test_random_label.csv"%experiment_id)
