@@ -70,13 +70,15 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     fig.suptitle("Metrics vs Number of Mutations")
     
     num_muts = np.unique(label[:,-1].detach().numpy())
-    num_muts = num_muts[num_muts<100000]
+    # num_muts = num_muts[num_muts<100000]  # NOTE: Why this? Are they sorted?
     for metric in list_of_metrics:
         m += 1
         values = np.zeros((len(list_of_methods), len(num_muts)))
 
         for k in range(len(list_of_methods)):
             for i in range(len(num_muts)):
+                if label[2000*i:2000*(i+1), :-1].shape[0] == 0:  # TODO: There is a bug in this for loop, we should take a look
+                    continue
                 metrics = get_classification_metrics(label_batch=label[2000*i:2000*(i+1), :-1], prediction_batch=list_of_guesses[k][2000*i:2000*(i+1),:])
                 values[k,i] = metrics[metric]
         
@@ -105,6 +107,8 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
 
         for k in range(len(list_of_methods)):
             for i in range(len(num_sigs)):
+                if label[num_sigs_ind==i+1, :-1].shape[0] == 0:  # TODO: There is a bug in this for loop, we should take a look
+                    continue
                 metrics = get_classification_metrics(label_batch=label[num_sigs_ind==i+1, :-1], prediction_batch=list_of_guesses[k][num_sigs_ind==i+1,:])
                 values[k,i] = metrics[metric]
         
