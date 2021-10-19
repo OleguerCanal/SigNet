@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.metrics import *
 from utilities.io import read_signatures, read_cosmic_v2_signatures
 
-class YapsaInspiredBaseline:
+class Baseline:
 
     def __init__(self, signatures):
         self.signatures = signatures.cpu().detach().numpy()
@@ -38,11 +38,10 @@ class YapsaInspiredBaseline:
         guessed_labels = torch.stack(result)
         return guessed_labels
 
-
-def create_baseline_dataset(data_path, input_file, output_file):
+def create_baseline_dataset(input_file, output_file, data_path="../../data/"):
     # signatures = read_signatures(data_path + "data.xlsx")
     signatures = read_cosmic_v2_signatures(data_path + "data_v2.xlsx")
-    sf = YapsaInspiredBaseline(signatures)
+    sf = Baseline(signatures)
 
     input_data = torch.tensor(pd.read_csv(
         data_path + input_file, header=None).values, dtype=torch.float)
@@ -53,33 +52,15 @@ def create_baseline_dataset(data_path, input_file, output_file):
     df.to_csv(data_path + output_file, header=False, index=False)
     print("Done!")
 
-
-def create_huge_baseline_dataset(data_path, input_file, output_file):
-    signatures = read_signatures(data_path + "data.xlsx")
-    sf = YapsaInspiredBaseline(signatures)
-
-    x = np.linspace(0, int(1e7), num=1000, dtype=int)
-    for i in tqdm(range(len(x)-1)):
-        input_data = torch.tensor(pd.read_csv(
-            data_path + input_file, header=None, skiprows=x[i], nrows=x[i+1] - x[i]).values, dtype=torch.float)
-        sol_i = sf.get_weights_batch(input_data)
-        df = pd.DataFrame(sol_i)
-        df.to_csv(data_path + output_file, header=False, index=False, mode='a')
-        del sol_i
-        gc.collect()
-    print("Done!")
-
-
 if __name__ == "__main__":
-    data_path = "../../data/"
-    training_data_in_file = "/train_val_test_sets/train_random_input.csv"
-    validation_data_in_file = "/train_val_test_sets/val_random_input.csv"
-    test_data_in_file = "/train_val_test_sets/test_random_input.csv"
+    training_data_in_file = "/exp_split/train_random_input.csv"
+    validation_data_in_file = "/exp_split/val_random_input.csv"
+    # test_data_in_file = "/exp_split/test_random_input.csv"
 
-    training_data_out_file = "/train_val_test_sets/train_random_baseline_yapsa.csv"
-    validation_data_out_file = "/train_val_test_sets/val_random_baseline_yapsa.csv"
-    test_data_out_file = "/train_val_test_sets/test_random_baseline_yapsa.csv"
+    training_data_out_file = "/exp_split/train_random_baseline.csv"
+    validation_data_out_file = "/exp_split/val_random_baseline.csv"
+    # test_data_out_file = "/exp_split/test_random_baseline.csv"
 
-    create_baseline_dataset(data_path, training_data_in_file, training_data_out_file)
-    create_baseline_dataset(data_path, validation_data_in_file, validation_data_out_file)
-    create_baseline_dataset(data_path, test_data_in_file, test_data_out_file)
+    create_baseline_dataset(training_data_in_file, training_data_out_file)
+    create_baseline_dataset(validation_data_in_file, validation_data_out_file)
+    # create_baseline_dataset(test_data_in_file, test_data_out_file)

@@ -6,6 +6,23 @@ from snorkel import classification
 import torch
 import torch.nn as nn
 
+
+# USED IN CLASSIFIER
+def accuracy(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(prediction == label)/torch.numel(prediction)*100
+
+def false_realistic(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(label[prediction == 1] == 0)/torch.numel(label[prediction == 1])*100
+
+def false_random(prediction, label):
+    threshold = 0.5
+    prediction = (prediction>threshold).float()*1
+    return torch.sum(label[prediction == 0] == 1)/torch.numel(label[prediction == 0])*100
+
 # USED IN FINE TUNER
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
@@ -183,6 +200,23 @@ def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-
     # Compute and return loss
     loss = MPIW + lagrange_mult*constrain
     return loss, PICP_h, MPIW
+
+
+def get_entropy(data):
+    """Return average entropy across 
+    """
+    _EPS = 1e-9
+    return -torch.sum(data * torch.log(data + _EPS))/data.shape[0]
+
+def get_std(data):
+    """Return average std across 
+    """
+    return torch.mean(torch.std(data, axis=1))
+
+def get_present_sigs(data):
+    """Return average std across 
+    """
+    return torch.mean(torch.count(data, axis=1))
 
 if __name__ == "__main__":
     torch.seed = 0

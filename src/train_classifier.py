@@ -6,10 +6,10 @@ import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
+from trainers.classifier_trainer import train_classifier
 from utilities.io import update_dict, read_config
 
-DEFAULT_CONFIG_FILE = ["configs/finetuner_bayesian.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/classifier_bayesian.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -26,15 +26,7 @@ if __name__ == "__main__":
 
     # Data args
     parser.add_argument(
-        '--source', action='store', nargs=1, type=str, required=False,
-        help='Data source.'
-    )
-    parser.add_argument(
-        '--network_type', action='store', nargs=1, type=str, required=False,
-        help='Network type: either random or realistic.'
-    )
-    parser.add_argument(
-        '--sigmoid_params', action='store', nargs=1, type=list, required=False,
+        '--sigmoid_params', action='store', nargs=1, type=float, required=False,
         help='Sigmoid parameters for normalization.'
     )
 
@@ -65,7 +57,7 @@ if __name__ == "__main__":
     config = update_dict(config=config, args=_args)
     
     print("Using config:", config)
-    score = train_finetuner(config=config)
-    fout = open("../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"]), 'w')
+    score = train_classifier(config=config)
+    fout = open("../tmp/classifier_score_%s.txt"%config["model_id"], 'w')
     fout.write(str(score))
     fout.close()

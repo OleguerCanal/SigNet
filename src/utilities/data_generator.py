@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
 
-from models.yapsa_inspired_baseline import YapsaInspiredBaseline
+from models.baseline import Baseline
 from utilities.weight_augmenter import WeightAugmenter
 
 class DataGenerator:
@@ -40,7 +40,7 @@ class DataGenerator:
            to the provided examples.
         """
         # Get initial guess
-        baseline = YapsaInspiredBaseline(self.signatures)
+        baseline = Baseline(self.signatures)
         baseline_guess = baseline.get_weights_batch(examples_input)
 
         # Perform weight augmentation

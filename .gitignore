@@ -147,3 +147,6 @@ runs_old/
 wandb
 
 nohup.out
+
+tmp/
+src/hyperparam_optimizers/search_results/

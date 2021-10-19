@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from torch.nn.modules.activation import Sigmoid
 
 class FineTuner(nn.Module):
 
@@ -8,10 +8,16 @@ class FineTuner(nn.Module):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.05):
+                 cutoff=0.05,
+                 sigmoid_params = [5000, 2000]):
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "FineTuner"
         super(FineTuner, self).__init__()
         self._cutoff = cutoff
         self._EPS = 1e-6
+        self.sigmoid_params = sigmoid_params
 
         # Num units of the mutations path
         num_units_branch_mut = 10
@@ -38,18 +44,18 @@ class FineTuner(nn.Module):
 
     def forward(self,
                 mutation_dist,
-                weights,
+                baseline_guess,
                 num_mut):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
         mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
-        weights = self.activation(self.layer1_1(weights))
+        weights = self.activation(self.layer1_1(baseline_guess))
         weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
-        num_mut = torch.log10(num_mut)
+        num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
         assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))
@@ -75,18 +81,17 @@ class FineTuner(nn.Module):
         return comb
 
 
-def baseline_guess_to_finetuner_guess(finetuner_args, trained_finetuner_file, data):
+def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
     # Load finetuner and compute guess_1
     import gc
-    finetuner = FineTuner(**finetuner_args)
+    from utilities.io import read_model
+
+    finetuner = read_model(directory=trained_finetuner_dir)
     finetuner.to("cpu")
-    finetuner.load_state_dict(torch.load(
-        trained_finetuner_file, map_location=torch.device('cpu')))
-    finetuner.eval()
 
     with torch.no_grad():
         data.prev_guess = finetuner(mutation_dist=data.inputs,
-                                    weights=data.prev_guess,
+                                    baseline_guess=data.prev_guess,
                                     num_mut=data.num_mut)
     del finetuner
     gc.collect()
