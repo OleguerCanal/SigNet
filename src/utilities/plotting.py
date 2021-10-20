@@ -96,35 +96,31 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     fig.savefig(plot_path)
 
 def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
-    #TODO: Adapt this function to work like plot_metric_vs_mutations
-    
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     
-    num_sigs = list(range(1, 11))
     num_sigs_ind = torch.sum(label[:, :-1]>0, 1)
-    for m, metric in enumerate(list_of_metrics):
+    num_sigs = np.unique(num_sigs_ind.detach().numpy())
+    for metric_index, metric in enumerate(list_of_metrics):
         values = np.zeros((len(list_of_methods), len(num_sigs)))
-
-        for k in range(len(list_of_methods)):
-            for i in range(len(num_sigs)):
-                if label[num_sigs_ind==i+1, :-1].shape[0] == 0:  # TODO: There is a bug in this for loop, we should take a look
-                    continue
-                metrics = get_classification_metrics(label_batch=label[num_sigs_ind==i+1, :-1], prediction_batch=list_of_guesses[k][num_sigs_ind==i+1,:])
-                values[k,i] = metrics[metric]
+        for method_index in range(len(list_of_methods)):
+            for i, sigs_index in enumerate(num_sigs):
+                metrics = get_classification_metrics(label_batch=label[num_sigs_ind==sigs_index, :-1], prediction_batch=list_of_guesses[method_index][num_sigs_ind==sigs_index,:])
+                values[method_index,i] = metrics[metric]
         
-        handles = axs[m].plot(num_sigs, np.transpose(values))
-        axs[m].set_ylabel(metric)
-        if m == len(list_of_metrics)-1:
-            axs[m].set_xlabel("N")
+        handles = axs[metric_index].plot(num_sigs, np.transpose(values))
+        axs[metric_index].set_ylabel(metric)
+        if metric_index == len(list_of_metrics)-1:
+            axs[metric_index].set_xlabel("N")
 
         # Shrink current axis by 3%
-        box = axs[m].get_position()
-        axs[m].set_position([box.x0, box.y0, box.width * 0.97, box.height])
+        box = axs[metric_index].get_position()
+        axs[metric_index].set_position([box.x0, box.y0, box.width * 0.97, box.height])
     fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
+    create_dir(plot_path)
     fig.savefig(plot_path)
 
 # ERRORLEARNER PLOTS:
