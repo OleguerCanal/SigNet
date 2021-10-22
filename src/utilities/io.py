@@ -13,7 +13,7 @@ from models.error_finder import ErrorFinder
 def read_signatures(file, num_classes=72):
     signatures_data = pd.read_excel(file)
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, num_classes + 2)][:num_classes]
+                  for i in range(1, num_classes + 1)][:num_classes]
     signatures = torch.stack(signatures).t()
     return signatures
 
