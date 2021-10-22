@@ -13,10 +13,10 @@ from classifier_job_instance import ClassifierJobInstance
 experiment_id = "classifier"
 
 # Training params
-batch_sizes = Integer(name='batch_size', low=10, high=5000)
+batch_sizes = Integer(name='batch_size', low=50, high=5000)
 learning_rates = Real(name='lr', low=1e-5, high=1e-3)
 neurons = Integer(name='num_neurons', low=50, high=1000)
-layers = Integer(name='num_hidden_layers', low=1, high=8)
+layers = Integer(name='num_hidden_layers', low=1, high=6)
 
 input_file = "search_results/search_results_" + experiment_id + ".csv"
 output_file = "search_results/search_results_" + experiment_id + "_final.csv"
@@ -38,6 +38,6 @@ if __name__ == "__main__":
         n_calls=500,
         n_random_starts=5,
         noise=0.01,
-        n_parallel_jobs=5,
+        n_parallel_jobs=8,
         verbose=True,
         plot_results=True)

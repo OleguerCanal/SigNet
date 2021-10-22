@@ -12,10 +12,11 @@ from scipy.optimize import nnls
 import torch
 from tqdm import tqdm
 
+from models.slow_baseline import SlowBaseline
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.metrics import *
-from utilities.io import read_signatures, read_cosmic_v2_signatures
+from utilities.metrics import get_jensen_shannon
+from utilities.io import create_dir, read_signatures
 
 class Baseline:
 
@@ -38,19 +39,23 @@ class Baseline:
         guessed_labels = torch.stack(result)
         return guessed_labels
 
-def create_baseline_dataset(input_file, output_file, data_path="../../data/"):
-    # signatures = read_signatures(data_path + "data.xlsx")
-    signatures = read_cosmic_v2_signatures(data_path + "data_v2.xlsx")
-    sf = Baseline(signatures)
+def create_baseline_dataset(input_file, output_file, signatures_path, which_baseline = "nnls"):
+    signatures = read_signatures(signatures_path)
+
+    if which_baseline == "nnls":
+        sf = Baseline(signatures)
+    else:
+        sf = SlowBaseline(signatures, metric=get_jensen_shannon)
 
     input_data = torch.tensor(pd.read_csv(
-        data_path + input_file, header=None).values, dtype=torch.float)
+        input_file, header=None).values, dtype=torch.float)
     sol = sf.get_weights_batch(input_data)
     sol = sol.detach().numpy()
 
     df = pd.DataFrame(sol)
-    df.to_csv(data_path + output_file, header=False, index=False)
-    print("Done!")
+    create_dir(output_file)
+    df.to_csv(output_file, header=False, index=False)
+    print("Baseline Done!")
 
 if __name__ == "__main__":
     training_data_in_file = "/exp_v2/train_random_input.csv"
