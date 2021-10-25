@@ -77,6 +77,7 @@ class DataGenerator:
 
     def make_random_set(self,
                         set,
+                        large_low,
                         min_n_signatures=1,
                         max_n_signatures=10,
                         normalize=True):
@@ -86,21 +87,23 @@ class DataGenerator:
         assert(min_n_signatures > 0 and max_n_signatures <= self.total_signatures)
 
         if set == "train":
-            range_muts = [15, 100, 500, 5000, 50000]
-            ind_range_muts = [0]*30000 + [1]*30000 + [2]*20000 + [3] * \
-                20000 + [-1]*20000     # The -1 means real distribution
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
+                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000
+            elif large_low == 'large':
+                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + [3] * 50000 + [-1]*50000     # The -1 means real distribution
             batch_size = len(ind_range_muts)
         elif set == "val":
-            range_muts = [15, 100, 500, 5000, 50000]
-            # The -1 means real distribution
-            ind_range_muts = [0]*3000 + [1]*3000 + \
-                [2]*2000 + [3]*2000 + [-1]*2000
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000]
+            elif large_low == 'large':
+                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+            ind_range_muts = [0]*1000 + [1]*1000 + [2]*1000 + [3]*1000 + [-1]*1000 # The -1 means real distribution
             batch_size = len(ind_range_muts)
         elif set == "test":
-            num_muts = [25]*1000 + [50]*1000 + [100]*1000 + [150]*1000 +\
-                [200]*1000 + [250]*1000 + [500]*1000 + [1000]*1000 +\
-                [2000]*1000 + [5000]*1000 + [10000]*1000 + [20000] * 1000 +\
-                [50000]*1000 + [-1]*2000    # The -1 means real distribution
+            num_muts = [25]*100 + [50]*100 + [100]*100 + [250]*100 + [500]*100 + [1e3]*100 +\
+                [5e3]*100 + [1e4]*100 + [5e4]*100 + [1e5]*100    # The -1 means real distribution
             batch_size = len(num_muts)
         
         input_batch = torch.empty((batch_size, 96))
@@ -138,17 +141,17 @@ class DataGenerator:
 
             if num_mut != -1:
                 sample = self.__sample_from_sig(signature=signature,
-                                                num_mut=num_mut,
+                                                num_mut=int(num_mut),
                                                 normalize=normalize)
                 # Store
                 input_batch[i, :] = sample
-                label_batch[i, :] = torch.cat([label, torch.tensor([num_mut])])
+                label_batch[i, :] = torch.cat([label, torch.tensor([float(num_mut)])])
             else:
                 # Store
                 input_batch[i, :] = signature
                 # For the real distribution we say we have more than 1e5 mutations
                 label_batch[i, :] = torch.cat(
-                    [label, torch.tensor([np.random.randint(1e5, 1e6)])])
+                    [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
             if i % 1000 == 0:
                 print(i)
 
