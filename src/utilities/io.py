@@ -18,7 +18,7 @@ def read_signatures(file):
     # Sort according to cosmic mutation types order
     signatures_data = sort_signatures(file)
 
-    num_sigs = len(signatures_data.columns)-1
+    num_sigs = len(signatures_data.columns) - 1
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
                   for i in range(1, num_sigs + 1)][:num_sigs]
     signatures = torch.stack(signatures).t()
