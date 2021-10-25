@@ -27,7 +27,7 @@ class ClassifierJobInstance(SearchJobInstance):
         self.file_name = "classifier"
         shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/%s_%s.out"%(self.file_name, str(self.id)) + '\n' + '\n'
         args = "--config_file='configs/classifier_bayesian.yaml'" # Base config file
-        args += " --model_id=" + self.file_name + "_" + str(self.id)
+        args += " --model_id=" + str(self.id)
         args += " --batch_size=" + str(batch_size)
         args += " --lr=" + str(lr)
         args += " --num_neurons=" + str(num_neurons)
