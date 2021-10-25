@@ -153,7 +153,7 @@ def train_finetuner(config) -> float:
     # Load data
     train_data, val_data = read_data(experiment_id=config["data_id"],
                                      source=config["source"],
-                                     device="cpu")
+                                     device=dev)
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

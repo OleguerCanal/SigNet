@@ -18,6 +18,12 @@ def read_signatures(file, num_classes=72):
     signatures = torch.stack(signatures).t()
     return signatures
 
+def read_cosmic_v2_signatures(file):
+    signatures_data = pd.read_excel(file)
+    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
+                  for i in range(1, 31)]
+    signatures = torch.stack(signatures).t()
+    return signatures
 
 def csv_to_tensor(file, device="cpu"):
     input_tensor = torch.tensor(pd.read_csv(
@@ -28,8 +34,7 @@ def csv_to_tensor(file, device="cpu"):
     return input_tensor.float().to(device)
 
 def tensor_to_csv(data_tensor, output_path):
-    directory = os.path.dirname(output_path)
-    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    create_dir(output_path)
     df = data_tensor.detach().numpy()
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
@@ -214,3 +219,7 @@ def read_config(path):
     with open(path, 'r') as stream:
         data = yaml.safe_load(stream)
     return data["config"]
+
+def create_dir(filepath):
+    directory = os.path.dirname(filepath)
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
