@@ -3,8 +3,8 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.baseline import Baseline
-from utilities.io import read_methods_guesses, read_signatures, read_test_data, read_model
-from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
+from utilities.io import read_signatures, read_test_data, read_model
+from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mutations, plot_metric_vs_sigs
 
 experiment_id = "exp_final"
 test_id = "test_random"
