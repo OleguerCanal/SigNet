@@ -7,9 +7,9 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.classifier_trainer import train_classifier
-from utilities.io import update_dict, read_config
+from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/classifier_bayesian.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/classifier.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -58,6 +58,4 @@ if __name__ == "__main__":
     
     print("Using config:", config)
     score = train_classifier(config=config)
-    fout = open("../tmp/classifier_score_%s.txt"%config["model_id"], 'w')
-    fout.write(str(score))
-    fout.close()
+    write_result(score, "../tmp/classifier_score_%s.txt"%config["model_id"])

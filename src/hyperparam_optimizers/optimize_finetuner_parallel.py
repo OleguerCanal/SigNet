@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from HyperParameterOptimizer import GaussianProcessSearch, ParallelSearcher
 from finetuner_job_instance import FinetunerJobInstance
 
-experiment_id = "finetuner_realistic"
+experiment_id = "finetuner_random"
 
 # Training params
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
@@ -38,6 +38,6 @@ if __name__ == "__main__":
         n_calls=500,
         n_random_starts=5,
         noise=0.01,
-        n_parallel_jobs=5,
+        n_parallel_jobs=8,
         verbose=True,
         plot_results=True)

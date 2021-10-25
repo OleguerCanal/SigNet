@@ -7,9 +7,10 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
-from utilities.io import update_dict, read_config
+from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/finetuner_cosmic_v2.yaml"]
+# DEFAULT_CONFIG_FILE = ["configs/finetuner_cosmic_v2.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner_random.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -67,6 +68,4 @@ if __name__ == "__main__":
     print("Using config file:", getattr(_args, "config_file")[0])
     print("Using config:", config)
     score = train_finetuner(config=config)
-    fout = open("../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"]), 'w')
-    fout.write(str(score))
-    fout.close()
+    write_result(score, "../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"])

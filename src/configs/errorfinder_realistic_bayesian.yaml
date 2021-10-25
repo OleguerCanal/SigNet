@@ -2,11 +2,11 @@ config:
     # IDs & paths
     data_id: "exp_final"
     model_id: "errorfinder_bayesian"
-    finetuner_id: "01fn_0001fp_kl_random"
+    finetuner_id: "errorfinder_realistic"
     models_dir: "../trained_models"
 
     # Training params
-    source: "random_low"
+    source: "realistic_low"
     iterations: 5
     num_classes: 72
     batch_size: 500

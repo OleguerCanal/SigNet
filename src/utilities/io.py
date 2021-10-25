@@ -223,3 +223,10 @@ def read_config(path):
 def create_dir(filepath):
     directory = os.path.dirname(filepath)
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+
+def write_result(result, filepath):
+    directory = os.path.dirname(filepath)
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    fout = open(filepath, 'w')
+    fout.write(str(result))
+    fout.close()

@@ -21,8 +21,8 @@ class FinetunerJobInstance(SearchJobInstance):
                lr,
                num_neurons,
                num_hidden_layers,
-               source = "realistic_low",
-               network_type = "realistic",
+               source = "random_low",
+               network_type = "random",
                plot=False):
         self.passed_args = locals()
 
