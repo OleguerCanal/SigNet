@@ -12,9 +12,8 @@ from scipy.optimize import nnls
 import torch
 from tqdm import tqdm
 
-from models.slow_baseline import SlowBaseline
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.slow_baseline import SlowBaseline
 from utilities.metrics import get_jensen_shannon
 from utilities.io import create_dir, read_signatures
 
