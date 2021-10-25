@@ -11,19 +11,33 @@ from models.classifier import Classifier
 from models.finetuner import FineTuner
 from models.error_finder import ErrorFinder
 
-def read_signatures(file, num_classes=72):
-    signatures_data = pd.read_excel(file)
+def read_signatures(file):
+    """
+    File must contain first column with mutations types X[Y>Z]W and the rest of the columns must be the set of signatures
+    """
+    # Sort according to cosmic mutation types order
+    signatures_data = sort_signatures(file)
+
+    num_sigs = len(signatures_data.columns) - 1
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(2, num_classes + 2)][:num_classes]
+                  for i in range(1, num_sigs + 1)][:num_sigs]
     signatures = torch.stack(signatures).t()
     return signatures
 
-def read_cosmic_v2_signatures(file):
+def sort_signatures(file, output_file=None, mutation_type_order = "../../data/mutation_type_order.xlsx"):
     signatures_data = pd.read_excel(file)
-    signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
-                  for i in range(1, 31)]
-    signatures = torch.stack(signatures).t()
-    return signatures
+    mutation_order = pd.read_excel(mutation_type_order)
+
+    # Sort according to cosmic mutation types order
+    signatures_data.rename(columns = {list(signatures_data)[0]:'Type'}, inplace=True)
+    signatures_data = signatures_data.set_index('Type')
+    signatures_data = signatures_data.reindex(index=mutation_order['Type'])
+    signatures_data = signatures_data.reset_index()
+
+    if output_file is not None:
+        create_dir(output_file)
+        signatures_data.to_csv(output_file, index=False)
+    return signatures_data
 
 def csv_to_tensor(file, device="cpu"):
     input_tensor = torch.tensor(pd.read_csv(

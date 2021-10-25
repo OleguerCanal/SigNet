@@ -12,12 +12,12 @@ install.packages("devtools")
 devtools::install_github("WuyangFF95/SynSigRun")
 library(SynSigRun)
  
-
+cosmic_version = "v2"
 if(cosmic_version == "v3"){
     path_to_sigs = "../../data/data.xlsx"
     
   }else if(cosmic_version == "v2"){
-    path_to_sigs = "../../data/data_v2.xlsx"
+    path_to_sigs = "../../data/exp_v2/other_methods/data_v2.csv"
     
   }else{
     print("Error: not implemented for this version of COSMIC")
@@ -25,9 +25,10 @@ if(cosmic_version == "v3"){
 }
 
 dataset <- "test"
+experiment_id <- "exp_v2"
 RundecompTumor2SigAttributeOnly(
  input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
- gt.sigs.file = path_to_sigs,
+ gt.sigs.file = "../../data/exp_v2/other_methods/data_v2.csv",
  paste("../../data/", experiment_id, "/other_methods/decompTumor2Sig_test", sep=""),
  seedNumber = 1,
  test.only = FALSE,
