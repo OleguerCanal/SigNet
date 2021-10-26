@@ -5,6 +5,7 @@ from skopt.space import Real, Integer, Categorical
 import torch
 import wandb
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data
 from trainers.finetuner_trainer import FinetunerTrainer
@@ -20,7 +21,7 @@ fn_param = 1e-3
 
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
 learning_rates = Real(name='lr', low=1e-5, high=5e-3)
-num_units = Integer(name='num_units', low=50, high=800)
+num_units = Integer(name='num_neurons', low=50, high=800)
 num_hidden_layers = Integer(name='num_hidden_layers', low=1, high=8)
 
 input_file = None  # Use None to start from zero

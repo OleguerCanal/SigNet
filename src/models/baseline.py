@@ -12,10 +12,10 @@ from scipy.optimize import nnls
 import torch
 from tqdm import tqdm
 
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.metrics import *
-from utilities.io import read_signatures
+from models.slow_baseline import SlowBaseline
+from utilities.metrics import get_jensen_shannon
+from utilities.io import create_dir, read_signatures
 
 class Baseline:
 
@@ -38,46 +38,33 @@ class Baseline:
         guessed_labels = torch.stack(result)
         return guessed_labels
 
+def create_baseline_dataset(input_file, output_file, signatures_path, which_baseline = "nnls"):
+    signatures = read_signatures(signatures_path)
 
-def create_baseline_dataset(input_file, output_file, data_path="../../data/"):
-    signatures = read_signatures(data_path + "data.xlsx")
-    sf = Baseline(signatures)
+    if which_baseline == "nnls":
+        sf = Baseline(signatures)
+    else:
+        sf = SlowBaseline(signatures, metric=get_jensen_shannon)
 
     input_data = torch.tensor(pd.read_csv(
-        data_path + input_file, header=None).values, dtype=torch.float)
+        input_file, header=None).values, dtype=torch.float)
     sol = sf.get_weights_batch(input_data)
     sol = sol.detach().numpy()
 
     df = pd.DataFrame(sol)
-    df.to_csv(data_path + output_file, header=False, index=False)
-    print("Done!")
-
-
-def create_huge_baseline_dataset(input_file, output_file, data_path="../../data/"):
-    signatures = read_signatures(data_path + "data.xlsx")
-    sf = Baseline(signatures)
-
-    x = np.linspace(0, int(1e7), num=1000, dtype=int)
-    for i in tqdm(range(len(x)-1)):
-        input_data = torch.tensor(pd.read_csv(
-            data_path + input_file, header=None, skiprows=x[i], nrows=x[i+1] - x[i]).values, dtype=torch.float)
-        sol_i = sf.get_weights_batch(input_data)
-        df = pd.DataFrame(sol_i)
-        df.to_csv(data_path + output_file, header=False, index=False, mode='a')
-        del sol_i
-        gc.collect()
-    print("Done!")
-
+    create_dir(output_file)
+    df.to_csv(output_file, header=False, index=False)
+    print("Baseline Done!")
 
 if __name__ == "__main__":
-    training_data_in_file = "/exp_split/train_random_input.csv"
-    validation_data_in_file = "/exp_split/val_random_input.csv"
-    # test_data_in_file = "/exp_split/test_random_input.csv"
+    training_data_in_file = "/exp_v2/train_random_input.csv"
+    validation_data_in_file = "/exp_v2/val_random_input.csv"
+    test_data_in_file = "/exp_v2/test/test_random_input.csv"
 
-    training_data_out_file = "/exp_split/train_random_baseline.csv"
-    validation_data_out_file = "/exp_split/val_random_baseline.csv"
-    # test_data_out_file = "/exp_split/test_random_baseline.csv"
+    training_data_out_file = "/exp_v2/train_random_baseline.csv"
+    validation_data_out_file = "/exp_v2/val_random_baseline.csv"
+    test_data_out_file = "/exp_v2/test/test_random_baseline.csv"
 
     create_baseline_dataset(training_data_in_file, training_data_out_file)
     create_baseline_dataset(validation_data_in_file, validation_data_out_file)
-    # create_baseline_dataset(test_data_in_file, test_data_out_file)
+    create_baseline_dataset(test_data_in_file, test_data_out_file)

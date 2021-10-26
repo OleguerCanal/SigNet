@@ -1,61 +1,71 @@
 import os
 import sys
 
+from argparse import ArgumentParser
 import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from trainers.finetuner_trainer import FinetunerTrainer
-from utilities.io import read_data
+from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
+from utilities.io import update_dict, read_config, write_result
 
-config = {
-    # IDs
-    "experiment_id": "exp_final",
-    "model_id": "01fn_0fp_kl_random",
-
-    # Training params
-    "source": "random_low",
-    "network_type": "random",
-    "iterations": 10,
-    "num_classes": 72,
-    "sigmoid_params": [500,150],      # Low num muts: [500, 150]. Large num muts: [50000, 10000]
-    "batch_size": 500,
-    "lr": 0.0001,
-
-    # Network params
-    "num_hidden_layers": 2,
-    "num_neurons": 600,
-}
-
-models_path = os.path.join("../trained_models", config["experiment_id"])
-finetuner_path = os.path.join(models_path,config["model_id"])
+# DEFAULT_CONFIG_FILE = ["configs/finetuner_cosmic_v2.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner_random.yaml"]
 
 if __name__ == "__main__":
-    dev = "cuda" if torch.cuda.is_available() else "cpu"
-    # dev = "cpu"
-    device = torch.device(dev)
-    print("Using device:", dev)
+    # Parse command-line arguments
+    parser = ArgumentParser()
+    parser.add_argument(
+        '--config_file', action='store', nargs=1, type=str, required=False, default=DEFAULT_CONFIG_FILE,
+        help=f'Path to yaml file containing all needed parameters.\nThey can be overwritten by command-line arguments'
+    )
 
-    wandb.init(project='finetuner_loss',
-               entity='sig-net',
-               config=config,
-               name=config["model_id"])
+    parser.add_argument(
+        '--model_id', action='store', nargs=1, type=str, required=False,
+        help=f'Unique id given to the trained model.'
+    )
 
-    train_data, val_data = read_data(device=dev,
-                                     experiment_id=config["experiment_id"],
-                                     source=config["source"])
+    # Data args
+    parser.add_argument(
+        '--source', action='store', nargs=1, type=str, required=False,
+        help='Data source.'
+    )
+    parser.add_argument(
+        '--network_type', action='store', nargs=1, type=str, required=False,
+        help='Network type: either random or realistic.'
+    )
+    parser.add_argument(
+        '--sigmoid_params', action='store', nargs=1, type=list, required=False,
+        help='Sigmoid parameters for normalization.'
+    )
 
-    trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
-                               train_data=train_data,
-                               val_data=val_data,
-                               network_type=config["network_type"],
-                               num_classes=config["num_classes"],
-                               sigmoid_params=config["sigmoid_params"],
-                               device=device,
-                               model_path=finetuner_path)
+    # Train args
+    parser.add_argument(
+        '--batch_size', action='store', nargs=1, type=int, required=False,
+        help='Training batch size.'
+    )
+    parser.add_argument(
+        '--lr', action='store', nargs=1, type=float, required=False,
+        help='Learning rate.'
+    )
+    
+    # Model args
+    parser.add_argument(
+        '--num_neurons', action='store', nargs=1, type=int, required=False,
+        help='Neurons of the positive error network.'
+    )
+    parser.add_argument(
+        '--num_hidden_layers', action='store', nargs=1, type=int, required=False,
+        help='Layers of the positive error network.'
+    )
 
-    min_val = trainer.objective(batch_size=config["batch_size"],
-                                lr=config["lr"],
-                                num_hidden_layers=config["num_hidden_layers"],
-                                num_units=config["num_neurons"],
-                                plot=True)
+    _args = parser.parse_args()
+
+    # Read & config
+    config = read_config(path=getattr(_args, "config_file")[0])
+    config = update_dict(config=config, args=_args)
+    
+    print("Using config file:", getattr(_args, "config_file")[0])
+    print("Using config:", config)
+    score = train_finetuner(config=config)
+    write_result(score, "../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"])

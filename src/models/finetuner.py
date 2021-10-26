@@ -81,18 +81,17 @@ class FineTuner(nn.Module):
         return comb
 
 
-def baseline_guess_to_finetuner_guess(finetuner_args, trained_finetuner_file, data):
+def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
     # Load finetuner and compute guess_1
     import gc
-    finetuner = FineTuner(**finetuner_args)
+    from utilities.io import read_model
+
+    finetuner = read_model(directory=trained_finetuner_dir)
     finetuner.to("cpu")
-    finetuner.load_state_dict(torch.load(
-        trained_finetuner_file, map_location=torch.device('cpu')))
-    finetuner.eval()
 
     with torch.no_grad():
         data.prev_guess = finetuner(mutation_dist=data.inputs,
-                                    weights=data.prev_guess,
+                                    baseline_guess=data.prev_guess,
                                     num_mut=data.num_mut)
     del finetuner
     gc.collect()
