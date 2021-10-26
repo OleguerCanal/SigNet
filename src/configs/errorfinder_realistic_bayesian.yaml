@@ -1,12 +1,12 @@
 config:
     # IDs & paths
-    data_id: "exp_0"
-    model_id: "exp_errorfiner_loss/test_0"
-    finetuner_id: "exp_2_nets/finetuner_realistic"
+    data_id: "exp_final"
+    model_id: "errorfinder_bayesian"
+    finetuner_id: "errorfinder_realistic"
     models_dir: "../trained_models"
 
     # Training params
-    source: "mixed"
+    source: "realistic_low"
     iterations: 5
     num_classes: 72
     batch_size: 500
@@ -19,7 +19,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder"
+    wandb_project_id: "errorfinder_bayesian"
 
     # Network params
     num_hidden_layers_pos: 2
@@ -28,4 +28,4 @@ config:
     num_neurons_neg: 1000
 
     # Misc
-    device: "cuda"
+    device: "cpu"

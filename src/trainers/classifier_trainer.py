@@ -46,16 +46,16 @@ class ClassifierTrainer:
                   batch_size,
                   lr,
                   num_hidden_layers,
-                  num_units,
+                  num_neurons,
                   plot=False):
 
-        print(batch_size, lr, num_hidden_layers, num_units)
+        print(batch_size, lr, num_hidden_layers, num_neurons)
 
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
                                 shuffle=True)
         model = Classifier(num_hidden_layers=int(num_hidden_layers),
-                          num_units=int(num_units),
+                          num_units=int(num_neurons),
                           sigmoid_params=self.sigmoid_params)
         model.to(self.device)
 
@@ -135,7 +135,7 @@ def train_classifier(config) -> float:
     min_val = trainer.objective(batch_size=config["batch_size"],
                                 lr=config["lr"],
                                 num_hidden_layers=config["num_hidden_layers"],
-                                num_units=config["num_neurons"],
+                                num_neurons=config["num_neurons"],
                                 plot=config["enable_logging"])
 
     return min_val

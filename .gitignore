@@ -149,3 +149,5 @@ wandb
 nohup.out
 
 tmp/
+src/hyperparam_optimizers/search_results/
+src/generate_realistic_data/*_output*

@@ -7,18 +7,18 @@ from models.baseline import Baseline
 from utilities.io import read_signatures, read_test_data
 from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 
-experiment_id = "exp_random_2_nets"
+experiment_id = "exp_v2"
 
-test_id = "test_realistic"
+test_id = "test"
 
-large_mum_mut_dir = "../../trained_models/exp_mixture/finetuner_realistic_large_nummut"
-low_mum_mut_dir = "../../trained_models/exp_0/finetuner_realistic"
+large_mum_mut_dir = "../../trained_models/%s/finetuner_realistic_large_v2"%experiment_id
+low_mum_mut_dir = "../../trained_models/%s/finetuner_realistic_low_v2"%experiment_id
 
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
-signatures = read_signatures("../../data/data.xlsx")
+signatures = read_signatures("../../data/data_v2.xlsx")
 
 baseline = Baseline(signatures)
-baseline_guess = baseline.get_weights_batch(input_batch)
+baseline_guess = baseline.get_weights_batch(input_batch, n_workers=1)
 
 finetuner = CombinedFinetuner(low_mum_mut_dir=low_mum_mut_dir, large_mum_mut_dir=large_mum_mut_dir)
 

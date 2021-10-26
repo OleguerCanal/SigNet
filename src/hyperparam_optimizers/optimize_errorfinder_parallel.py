@@ -45,9 +45,9 @@ if __name__ == "__main__":
 
     searcher = ParallelSearcher(optimizer=gp_search, job_class=ErrorfinderJobInstance)
     searcher.optimize(
-        n_calls=200,
+        n_calls=500,
         n_random_starts=100,
         noise=0.01,
-        n_parallel_jobs=3,
+        n_parallel_jobs=5,
         verbose=True,
         plot_results=True)

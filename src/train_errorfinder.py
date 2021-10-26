@@ -7,9 +7,9 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.error_trainer import train_errorfinder
-from utilities.io import update_dict, read_config
+from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/error_finder.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/errorfinder.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -78,6 +78,4 @@ if __name__ == "__main__":
     
     print("Using config:", config)
     score = train_errorfinder(config=config)
-    fout = open("../tmp/score_%s.txt"%config["model_id"], 'w')
-    fout.write(str(score))
-    fout.close()
+    write_result(score, "../tmp/errorfinder_score_%s.txt"%config["model_id"])

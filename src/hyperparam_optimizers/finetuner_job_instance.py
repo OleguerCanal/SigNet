@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from HyperParameterOptimizer import SearchJobInstance
 
 
-class ErrorfinderJobInstance(SearchJobInstance):
+class FinetunerJobInstance(SearchJobInstance):
     def __init__(self, id):
         super().__init__(id)
         with open('job_details.txt', 'r') as file:
@@ -19,33 +19,26 @@ class ErrorfinderJobInstance(SearchJobInstance):
     def launch(self,
                batch_size,
                lr,
-               num_neurons_pos,
-               num_hidden_layers_pos,
-               num_neurons_neg,
-               num_hidden_layers_neg ,
-               lagrange_missclassification,
-               lagrange_pnorm,
-               lagrange_smalltozero,
-               pnorm_order,
+               num_neurons,
+               num_hidden_layers,
+               source = "random_low",
+               network_type = "random",
                plot=False):
         self.passed_args = locals()
 
-        shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/errorfinder_%s.out"%str(self.id) + '\n' + '\n'
-        args = "--config_file='configs/error_finder_bayesian.yaml'" # Base config file
+        self.file_name = "finetuner_%s"%network_type
+        shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/%s_%s.out"%(self.file_name, str(self.id)) + '\n' + '\n'
+        args = "--config_file='configs/finetuner_bayesian.yaml'" # Base config file
         args += " --model_id=" + str(self.id)
         args += " --batch_size=" + str(batch_size)
         args += " --lr=" + str(lr)
-        args += " --num_neurons_pos=" + str(num_neurons_pos)
-        args += " --num_hidden_layers_pos=" + str(num_hidden_layers_pos)
-        args += " --num_neurons_neg=" + str(num_neurons_neg)
-        args += " --num_hidden_layers_neg=" + str(num_hidden_layers_neg)
-        args += " --lagrange_missclassification=" + str(lagrange_missclassification)
-        args += " --lagrange_pnorm=" + str(lagrange_pnorm)
-        args += " --lagrange_smalltozero=" + str(lagrange_smalltozero) 
-        args += " --pnorm_order=" + str(pnorm_order) 
-        shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_errorfinder.py " + args
+        args += " --num_neurons=" + str(num_neurons)
+        args += " --num_hidden_layers=" + str(num_hidden_layers)
+        args += " --network_type=" + str(network_type)
+        args += " --source=" + str(source)
+        shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_finetuner.py " + args
 
-        create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/errorfinder_" + str(self.id) + ".sh'" 
+        create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/%s_"%self.file_name + str(self.id) + ".sh'" 
         create_sh_process = subprocess.Popen(create_sh_command, shell=True)
         print("Job " + str(self.id) + ": Creating .sh file...")
         create_sh_process.wait()
@@ -55,7 +48,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
             return 1
         print("Job " + str(self.id) + ": .sh file created!")
 
-        submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/errorfinder_" + str(self.id) + ".sh'" 
+        submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N %s_"%self.file_name + str(self.id) + " signatures-net/tmp/%s_"%self.file_name + str(self.id) + ".sh'" 
         submit_job_process = subprocess.Popen(submit_job_command, shell=True)
         print("Job " + str(self.id) + ": Running qsub...")
         submit_job_process.wait()
@@ -69,7 +62,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
     def get_result(self):
         import shlex
         command = "ssh cserranocolome@ant-login.linux.crg.es "
-        command += "cat signatures-net/tmp/errorfinder_score_%s.txt"%self.id
+        command += "cat signatures-net/tmp/%s_score_%s.txt"%(self.file_name, self.id)
         output = float(subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")[0])
         return output
@@ -80,7 +73,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
         command += "ls signatures-net/tmp/"
         output = subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")
-        is_done = "errorfinder_score_%s.txt"%self.id in output
+        is_done = "%s_score_%s.txt"%(self.file_name, self.id) in output
         return is_done
 
     def kill(self):
@@ -92,5 +85,5 @@ class ErrorfinderJobInstance(SearchJobInstance):
 
 
 if __name__ == '__main__':
-    errorfinder_job_instance = ErrorfinderJobInstance(1)
-    errorfinder_job_instance.launch(500, 1e-4, 300, 3, 200, 2, 7e-3, 1e4, 1.0, 5.0, plot=True)
+    finetuner_job_instance = FinetunerJobInstance(1)
+    finetuner_job_instance.launch(500, 1e-4, 300, 3, plot=True)
