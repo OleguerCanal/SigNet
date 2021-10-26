@@ -68,4 +68,4 @@ if __name__ == "__main__":
     print("Using config file:", getattr(_args, "config_file")[0])
     print("Using config:", config)
     score = train_finetuner(config=config)
-    write_result(score, "../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"])
+    write_result(score, "../tmp/finetuner_%s_score_%s.txt"%(config["network_type"],config["model_id"]))
