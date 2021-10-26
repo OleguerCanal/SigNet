@@ -1,16 +1,16 @@
 config:
     # IDs & paths
     data_id: "exp_final"
-    model_id: "finetuner_realistic_large"
+    model_id: "finetuner_realistic_low"
     models_dir: "../trained_models/exp_final"
 
     # Training params
-    source: "realistic_large"
+    source: "realistic_low"
     network_type: "realistic"
     iterations: 70
     num_classes: 72
-    # sigmoid_params: [500,150]
-    sigmoid_params: [50000, 10000]
+    sigmoid_params: [500,150]
+    # sigmoid_params: [50000, 10000]
     batch_size: 283
     lr: 0.0015
 
