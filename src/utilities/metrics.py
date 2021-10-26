@@ -11,17 +11,19 @@ import torch.nn as nn
 def accuracy(prediction, label):
     threshold = 0.5
     prediction = (prediction>threshold).float()*1
-    return torch.sum(prediction == label)/torch.numel(prediction)*100
+    return torch.true_divide(torch.sum(prediction == label),torch.numel(prediction))*100
 
 def false_realistic(prediction, label):
+    EPS = 1e-4
     threshold = 0.5
     prediction = (prediction>threshold).float()*1
-    return torch.sum(label[prediction == 1] == 0)/torch.numel(label[prediction == 1])*100
+    return torch.true_divide(torch.sum(label[prediction == 1] == 0),(torch.numel(label[prediction == 1])+ EPS))*100 
 
 def false_random(prediction, label):
+    EPS = 1e-4
     threshold = 0.5
     prediction = (prediction>threshold).float()*1
-    return torch.sum(label[prediction == 0] == 1)/torch.numel(label[prediction == 0])*100
+    return torch.true_divide(torch.sum(label[prediction == 0] == 1),(torch.numel(label[prediction == 0])+ EPS))*100 
 
 # USED IN FINE TUNER
 def get_MSE(predicted_label, true_label):
@@ -73,19 +75,20 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     batch_size = float(label_batch.shape[0])
     label_mask = (label_batch > cutoff).type(torch.int).float()
     prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
-    fp = torch.sum(label_mask - prediction_mask < -0.1)/batch_size
-    fn = torch.sum(label_mask - prediction_mask > 0.1)/batch_size
+    fp = torch.sum(label_mask - prediction_mask < -0.1)/(batch_size*label_batch.shape[1])
+    fn = torch.sum(label_mask - prediction_mask > 0.1)/(batch_size*label_batch.shape[1])
     tp = torch.sum(torch.einsum("bi,bi->b", prediction_mask, label_mask))
     tn = torch.sum(torch.einsum("bi,bi->b", 1 - prediction_mask, 1 - label_mask))
     sensitivity = tp/torch.sum(label_mask)
     specificity = tn/torch.sum(1 - label_mask)
     accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
+    precision = tp / (tp + fp)
     mae = torch.abs(label_batch - prediction_batch)
-    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/batch_size
-    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/batch_size
+    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/(tp + fp)
+    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/(tn + fn)
     # Q95_p = torch.quantile(mae[label])
-    return {"fp": fp, "fn": fn,
-            "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100.,
+    return {"fp": fp*100, "fn": fn*100,
+            "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100., "precision %": precision*100.,
             "MAE_p": MAE_p, "MAE_n": MAE_n}
 
 def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
