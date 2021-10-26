@@ -1,5 +1,6 @@
 import os
 import pathlib
+from torch.utils import data
 import yaml
 
 import json
@@ -11,12 +12,12 @@ from models.classifier import Classifier
 from models.finetuner import FineTuner
 from models.error_finder import ErrorFinder
 
-def read_signatures(file):
+def read_signatures(file, mutation_type_order = "../../data/mutation_type_order.xlsx"):
     """
     File must contain first column with mutations types X[Y>Z]W and the rest of the columns must be the set of signatures
     """
     # Sort according to cosmic mutation types order
-    signatures_data = sort_signatures(file)
+    signatures_data = sort_signatures(file, mutation_type_order = mutation_type_order)
 
     num_sigs = len(signatures_data.columns) - 1
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
@@ -143,7 +144,7 @@ def read_methods_guesses(device, experiment_id, test_id, methods, data_folder=".
     methods_guesses = []
     for method in methods:
         methods_guesses.append(csv_to_tensor(
-            path + "/methods/%s_guess.csv" % (method), device))
+            path + "/other_methods/%s_guess.csv" % (method), device))
 
     label = csv_to_tensor(path + "/%s_label.csv" % (test_id), device)
 

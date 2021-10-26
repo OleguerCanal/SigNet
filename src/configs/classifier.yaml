@@ -1,6 +1,6 @@
 config:
     # IDs & paths
-    data_id: "exp_classifier"
+    data_id: "exp_final/classifier"
     model_id: "classifier"
     models_dir: "../trained_models"
 
@@ -8,16 +8,16 @@ config:
     iterations: 30
     num_classes: 72
     sigmoid_params: [5000,1000]
-    batch_size: 500
-    lr: 0.0001
+    batch_size: 100
+    lr: 0.00043
 
     # WANDB params
     enable_logging: True
     wandb_project_id: "classifier"
 
     # Network params
-    num_hidden_layers: 2
-    num_neurons: 300
+    num_hidden_layers: 3
+    num_neurons: 260
 
     # Misc
     device: "cpu"

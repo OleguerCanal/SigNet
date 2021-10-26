@@ -85,16 +85,14 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, plot_
     Plot:
     MAE_p   MAE_n
     FP      FN
-
     and in another plot
-    Accuracy
-    Sensitivity
-    Specificity
+    Accuracy    Precision
+    Sensitivity Specificity
     '''
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn", "accuracy %", "sens: tp/p %", "spec: tn/n %"]
+    list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
     values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
     for method_index in range(len(list_of_methods)):
@@ -107,6 +105,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, plot_
 
     marker_size = 3
     line_width = 0.5
+    legend_adjustment = 0.75
     axs[0,0].plot(np.log10(num_muts), np.transpose(values[:,:,0]), marker='o',linewidth=line_width, markersize=marker_size)
     axs[0,1].plot(np.log10(num_muts), np.transpose(values[:,:,1]), marker='o',linewidth=line_width, markersize=marker_size)
     axs[1,0].plot(np.log10(num_muts), np.transpose(values[:,:,2]), marker='o',linewidth=line_width, markersize=marker_size)
@@ -117,50 +116,69 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, plot_
     fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
+        # axes.ticklabel_format(axis="both", style="sci")
 
-    fig.legend(loc=7, labels=list_of_methods)
+
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    fig.subplots_adjust(right=0.78)   
+    fig.subplots_adjust(right=legend_adjustment)   
     plt.show()
 
     ############################################################################################
     
-    fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(8,6))
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
-    list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
+    list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
-    axs[0].plot(np.log10(num_muts), np.transpose(values[:,:,4]), marker='o',linewidth=line_width, markersize=marker_size)
-    axs[1].plot(np.log10(num_muts), np.transpose(values[:,:,5]), marker='o',linewidth=line_width, markersize=marker_size)
-    axs[2].plot(np.log10(num_muts), np.transpose(values[:,:,6]), marker='o',linewidth=line_width, markersize=marker_size)
+    axs[0,0].plot(np.log10(num_muts), np.transpose(values[:,:,4]), marker='o',linewidth=line_width, markersize=marker_size)
+    axs[0,1].plot(np.log10(num_muts), np.transpose(values[:,:,5]), marker='o',linewidth=line_width, markersize=marker_size)
+    axs[1,0].plot(np.log10(num_muts), np.transpose(values[:,:,6]), marker='o',linewidth=line_width, markersize=marker_size)
+    axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,7]), marker='o',linewidth=line_width, markersize=marker_size)
 
     xlabel = 'log(N)'
-    ylabel = ["Accuracy (%)", "Sensitivity (%)", "Specificity (%)"]
+    ylabel = ["Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)"]
     fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
+        # axes.ticklabel_format(axis="y", style="sci")
+        
 
-    fig.legend(loc=7, labels=list_of_methods)
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    fig.subplots_adjust(right=0.78)   
+    fig.subplots_adjust(right=legend_adjustment)   
     plt.show()
 
     ############################################################################################
     mean_values = np.mean(values, axis=1)
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(8,6))
-    list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
-    axs[0].bar(range(len(list_of_metrics)), mean_values[0,:4], align='center', width=0.2)
-    axs[0].bar(np.array(range(len(list_of_metrics)))+0.2,  mean_values[1,:4], width=0.2, align='center')
-    axs[0].set_xticks(range(len(list_of_metrics)))
-    axs[0].set_xticklabels(list_of_metrics)
+    # fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(8,6), sharex=True)
+    fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(8,6))
 
-    list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
-    axs[1].bar(range(len(list_of_metrics)), mean_values[0,4:], align='center', width=0.2)
-    axs[1].bar(np.array(range(len(list_of_metrics)))+0.2,  mean_values[1,4:], width=0.2, align='center')
-    axs[1].set_xticks(range(len(list_of_metrics)))
-    axs[1].set_xticklabels(list_of_metrics)
-    fig.legend(loc=7, labels=list_of_methods)
+    width = 1/(len(list_of_methods)+3)
+    list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
+    for method_index in range(len(list_of_methods)):
+        axs[0].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,4:], align='center', width=width)
+    axs[0].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    axs[0].set_xticklabels(["Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)"])
+    axs[0].hlines(100, axs[0].get_xlim()[0], axs[0].get_xlim()[1],linestyles = 'dashed', color = 'gray', label='_nolegend_')
+
+    list_of_metrics = ["MAE_p", "MAE_n"] 
+    for method_index in range(len(list_of_methods)):
+        axs[1].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,:2], align='center', width=width)
+    axs[1].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    axs[1].set_xticklabels(["MAE postives", "MAE negatives"])
+
+    list_of_metrics = ["fp", "fn"] 
+    for method_index in range(len(list_of_methods)):
+        axs[2].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,2:4], align='center', width=width)
+    axs[2].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    axs[2].set_xticklabels(["FP", "FN"])
+    
+    for i, axes in enumerate(axs.flat):
+        stylize_axes(axes, '', '', 'Metrics')
+
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    fig.subplots_adjust(right=0.78)   
+    fig.subplots_adjust(right=legend_adjustment)   
     plt.show()
     # # create_dir(plot_path)
     # fig.savefig(plot_path)
