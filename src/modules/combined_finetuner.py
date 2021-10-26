@@ -44,6 +44,7 @@ class CombinedFinetuner:
             guess_large = self.finetuner_large(
                 input_batch_large, baseline_guess_large, num_mut_large)
             finetuner_guess = torch.cat((guess_low, guess_large), dim=0)
+            ind_order = [float(el) for el in ind_order]
             finetuner_guess = torch.cat(
                 (finetuner_guess, torch.tensor(ind_order).reshape(-1, 1)), dim=1)
             finetuner_guess = finetuner_guess[finetuner_guess[:, -1].sort()[1]]
