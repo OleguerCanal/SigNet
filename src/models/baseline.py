@@ -1,3 +1,4 @@
+
 from concurrent.futures import ProcessPoolExecutor
 import copy
 import os
@@ -38,7 +39,8 @@ class Baseline:
         guessed_labels = torch.stack(result)
         return guessed_labels
 
-def create_baseline_dataset(input_file, output_file, signatures_path, which_baseline = "nnls"):
+
+def create_baseline_dataset(input_file, output_file, signatures_path, which_baseline="nnls"):
     signatures = read_signatures(signatures_path)
 
     if which_baseline == "nnls":
@@ -56,15 +58,35 @@ def create_baseline_dataset(input_file, output_file, signatures_path, which_base
     df.to_csv(output_file, header=False, index=False)
     print("Baseline Done!")
 
+
 if __name__ == "__main__":
-    training_data_in_file = "/exp_v2/train_random_input.csv"
-    validation_data_in_file = "/exp_v2/val_random_input.csv"
-    test_data_in_file = "/exp_v2/test/test_random_input.csv"
+    source = "realistic"
+    data_folder = "../../data/"
+    signatures_file = data_folder + "data_v2.xlsx"
 
-    training_data_out_file = "/exp_v2/train_random_baseline.csv"
-    validation_data_out_file = "/exp_v2/val_random_baseline.csv"
-    test_data_out_file = "/exp_v2/test/test_random_baseline.csv"
+    in_files = [
+        # random
+        "/exp_v2/train_random_input.csv",
+        "/exp_v2/val_random_input.csv",
 
-    create_baseline_dataset(training_data_in_file, training_data_out_file)
-    create_baseline_dataset(validation_data_in_file, validation_data_out_file)
-    create_baseline_dataset(test_data_in_file, test_data_out_file)
+        # realistic large
+        "/exp_v2/train_realistic_large_input.csv",
+        "/exp_v2/val_realistic_large_input.csv",
+
+        # realistic low
+        "/exp_v2/train_realistic_low_input.csv",
+        "/exp_v2/val_realistic_low_input.csv",
+
+        # tests
+        "/exp_v2/test/test_input.csv",
+        "/exp_v2/test_random/test_random_input.csv",
+        "/exp_v2/test_realistic/test_realistic_input.csv",
+    ]
+
+    for in_file in in_files:
+        in_file = data_folder + in_file
+        out_file = in_file.replace("input", "baseline")
+        create_baseline_dataset(input_file=in_file,
+                                output_file=out_file,
+                                signatures_path=signatures_file,
+                                which_baseline="nnls")
