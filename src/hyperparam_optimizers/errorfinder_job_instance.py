@@ -56,7 +56,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
             return 1
         print("Job " + str(self.id) + ": .sh file created!")
 
-        submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + str(self.id) + " signatures-net/tmp/errorfinder_" + str(self.id) + ".sh'" 
+        submit_job_command = "ssh cserranocolome@ant-login.linux.crg.es 'qsub -N errorfinder_" + self.source + "_" + str(self.id) + " signatures-net/tmp/errorfinder_" + self.source + "_" + str(self.id) + ".sh'" 
         submit_job_process = subprocess.Popen(submit_job_command, shell=True)
         print("Job " + str(self.id) + ": Running qsub...")
         submit_job_process.wait()
