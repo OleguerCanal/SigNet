@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from HyperParameterOptimizer import GaussianProcessSearch, ParallelSearcher
 from errorfinder_job_instance import ErrorfinderJobInstance
 
-experiment_id = "errorfinder_random_parallel"
+experiment_id = "errorfinder_realistic_parallel"
 
 # Training params
 batch_sizes = Integer(name='batch_size', low=50, high=1000)
