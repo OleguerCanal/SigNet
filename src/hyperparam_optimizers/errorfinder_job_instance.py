@@ -29,9 +29,10 @@ class ErrorfinderJobInstance(SearchJobInstance):
                pnorm_order,
                plot=False):
         self.passed_args = locals()
+        self.source = "random_low"
 
-        shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/errorfinder_%s.out"%str(self.id) + '\n' + '\n'
-        args = "--config_file='configs/error_finder_bayesian.yaml'" # Base config file
+        shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/errorfinder_%s_%s.out"%(self.source, str(self.id)) + '\n' + '\n'
+        args = "--config_file='configs/errorfinder_random_bayesian.yaml'" # Base config file
         args += " --model_id=" + str(self.id)
         args += " --batch_size=" + str(batch_size)
         args += " --lr=" + str(lr)
@@ -45,7 +46,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
         args += " --pnorm_order=" + str(pnorm_order) 
         shell_file += "cd signatures-net/src/ ; conda activate sigs_env ; python train_errorfinder.py " + args
 
-        create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/errorfinder_" + str(self.id) + ".sh'" 
+        create_sh_command = "echo '" + shell_file + "' | ssh cserranocolome@ant-login.linux.crg.es -T 'cat  > signatures-net/tmp/errorfinder_" + self.source + "_" + str(self.id) + ".sh'" 
         create_sh_process = subprocess.Popen(create_sh_command, shell=True)
         print("Job " + str(self.id) + ": Creating .sh file...")
         create_sh_process.wait()
@@ -69,7 +70,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
     def get_result(self):
         import shlex
         command = "ssh cserranocolome@ant-login.linux.crg.es "
-        command += "cat signatures-net/tmp/errorfinder_score_%s.txt"%self.id
+        command += "cat signatures-net/tmp/errorfinder_score_%s_%s.txt"%(self.source,str(self.id))
         output = float(subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")[0])
         return output
@@ -80,7 +81,7 @@ class ErrorfinderJobInstance(SearchJobInstance):
         command += "ls signatures-net/tmp/"
         output = subprocess.check_output(
             shlex.split(command)).decode('utf-8').split("\n")
-        is_done = "errorfinder_score_%s.txt"%self.id in output
+        is_done = "errorfinder_score_%s_%s.txt"%(self.source,str(self.id)) in output
         return is_done
 
     def kill(self):

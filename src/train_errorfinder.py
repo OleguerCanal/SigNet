@@ -78,4 +78,4 @@ if __name__ == "__main__":
     
     print("Using config:", config)
     score = train_errorfinder(config=config)
-    write_result(score, "../tmp/errorfinder_score_%s.txt"%config["model_id"])
+    write_result(score, "../tmp/errorfinder_score_%s_%s.txt"%(config["source"],config["model_id"]))

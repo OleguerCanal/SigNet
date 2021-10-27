@@ -2,8 +2,8 @@ config:
     # IDs & paths
     data_id: "exp_final"
     model_id: "errorfinder_bayesian"
-    finetuner_id: "errorfinder_random"
-    models_dir: "../trained_models"
+    finetuner_id: "finetuner_random_low"
+    models_dir: "../trained_models/exp_final"
 
     # Training params
     source: "random_low"
