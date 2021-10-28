@@ -7,10 +7,10 @@ config:
 
     # Training params
     source: "realistic_low"
-    iterations: 8
+    iterations: 5
     num_classes: 72
     batch_size: 923
-    lr: 0.0009456
+    lr: 0.0001
     loss_params: 
         lagrange_missclassification: 0.005027
         lagrange_pnorm: 30499.236
