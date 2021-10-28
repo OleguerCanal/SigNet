@@ -1,7 +1,7 @@
 config:
     # IDs & paths
-    data_id: "exp_classifier"
-    model_id: "classifier"
+    data_id: "exp_v2/classifier"
+    model_id: "classifier_v2"
     models_dir: "../trained_models"
 
     # Training params

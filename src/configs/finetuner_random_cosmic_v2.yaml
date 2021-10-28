@@ -1,16 +1,16 @@
 config:
     # IDs & paths
     data_id: "exp_v2"
-    model_id: "finetuner_random_large_v2"
+    model_id: "finetuner_random_low_v2"
     models_dir: "../trained_models/exp_v2"
 
     # Training params
-    source: "random_large"
+    source: "random_low"
     network_type: "random"
     iterations: 30
     num_classes: 30
-    # sigmoid_params: [500,150]
-    sigmoid_params: [50000, 10000]
+    sigmoid_params: [500,150]
+    # sigmoid_params: [50000, 10000]
     batch_size: 227
     lr: 0.0002
 
