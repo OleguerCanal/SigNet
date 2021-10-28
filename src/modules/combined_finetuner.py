@@ -51,3 +51,20 @@ class CombinedFinetuner:
             finetuner_guess = finetuner_guess[:, :-1]
 
         return finetuner_guess
+
+
+def baseline_guess_to_combined_finetuner_guess(finetuner_low_dir, finetuner_large_dir, data):
+    # Load finetuner and compute guess_1
+    import gc
+
+    combined_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_low_dir,
+                                           large_mum_mut_dir=finetuner_large_dir)
+
+    with torch.no_grad():
+        data.prev_guess = combined_finetuner(mutation_dist=data.inputs,
+                                    baseline_guess=data.prev_guess,
+                                    num_mut=data.num_mut)
+    del combined_finetuner
+    gc.collect()
+    torch.cuda.empty_cache()
+    return data
