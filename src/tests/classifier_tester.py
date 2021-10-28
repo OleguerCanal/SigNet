@@ -12,7 +12,7 @@ from utilities.plotting import plot_metric_vs_mutations_classifier
 from utilities.io import csv_to_tensor, read_model
 
 
-experiment_id = "exp_classifier"
+experiment_id = "exp_final/classifier"
 
 classifier_model_name = "classifier"
 
@@ -20,7 +20,7 @@ input = csv_to_tensor("../../data/" + experiment_id + "/test_input.csv", device=
 num_mut = csv_to_tensor("../../data/" + experiment_id + "/test_num_mut.csv", device='cpu')
 label = csv_to_tensor("../../data/" + experiment_id + "/test_label.csv", device='cpu')
 
-classifier = read_model("../../trained_models/%s/%s"%(experiment_id,classifier_model_name))
+classifier = read_model("../../trained_models/%s"%(classifier_model_name))
 
 classifier_guess = classifier(input, num_mut)
 
