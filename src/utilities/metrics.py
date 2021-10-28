@@ -86,8 +86,8 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
     precision = tp / (tp + fp)
     mae = torch.abs(label_batch - prediction_batch)
-    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/(tp + fp)
-    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/(tn + fn)
+    MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/(tp + fn)
+    MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/(tn + fp)
     # Q95_p = torch.quantile(mae[label])
     return {"fpr": fpr*100, "fnr": fnr*100,
             "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100., "precision %": precision*100.,
