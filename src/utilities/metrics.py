@@ -75,10 +75,12 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     batch_size = float(label_batch.shape[0])
     label_mask = (label_batch > cutoff).type(torch.int).float()
     prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
-    fp = torch.sum(label_mask - prediction_mask < -0.1)/(batch_size*label_batch.shape[1])
-    fn = torch.sum(label_mask - prediction_mask > 0.1)/(batch_size*label_batch.shape[1])
+    fp = torch.sum(label_mask - prediction_mask < -0.1)
+    fn = torch.sum(label_mask - prediction_mask > 0.1)
     tp = torch.sum(torch.einsum("bi,bi->b", prediction_mask, label_mask))
     tn = torch.sum(torch.einsum("bi,bi->b", 1 - prediction_mask, 1 - label_mask))
+    fpr = fp/(tn + fp)
+    fnr = fn/(tp + fn)
     sensitivity = tp/torch.sum(label_mask)
     specificity = tn/torch.sum(1 - label_mask)
     accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
@@ -87,7 +89,7 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/(tp + fp)
     MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/(tn + fn)
     # Q95_p = torch.quantile(mae[label])
-    return {"fp": fp*100, "fn": fn*100,
+    return {"fpr": fpr*100, "fnr": fnr*100,
             "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100., "precision %": precision*100.,
             "MAE_p": MAE_p, "MAE_n": MAE_n}
 
