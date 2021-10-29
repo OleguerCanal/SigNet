@@ -229,4 +229,5 @@ def train_errorfinder(config) -> float:
                                 num_hidden_layers_neg=config["num_hidden_layers_neg"],
                                 loss_params=config["loss_params"],
                                 plot=config["enable_logging"])
+    wandb.log({"val_meta_loss": min_val})
     return min_val

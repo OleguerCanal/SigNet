@@ -7,7 +7,7 @@ config:
 
     # Training params
     source: "realistic_low"
-    iterations: 5
+    iterations: 8
     num_classes: 72
     batch_size: 923
     lr: 0.0001
