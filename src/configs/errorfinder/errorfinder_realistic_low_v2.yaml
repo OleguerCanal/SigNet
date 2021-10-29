@@ -1,0 +1,31 @@
+config:
+    # IDs & paths
+    data_id: "exp_v2"
+    model_id: "errorfinder_realistic_low_v2"
+    finetuner_id: "finetuner_realistic_low_v2"
+    models_dir: "../trained_models/exp_v2"
+
+    # Training params
+    source: "realistic_low"
+    iterations: 8
+    num_classes: 72
+    batch_size: 923
+    lr: 0.0001
+    loss_params: 
+        lagrange_missclassification: 0.005027
+        lagrange_pnorm: 30499.236
+        lagrange_smalltozero: 1.98
+        pnorm_order: 3.0
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "errorfinder_final"
+
+    # Network params
+    num_hidden_layers_pos: 5
+    num_neurons_pos: 708
+    num_hidden_layers_neg: 2
+    num_neurons_neg: 1279
+
+    # Misc
+    device: "cpu"
