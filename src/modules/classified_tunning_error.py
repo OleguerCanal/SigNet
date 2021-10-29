@@ -33,8 +33,8 @@ class ClassifiedFinetunerErrorfinder:
         self.realistic_finetuner = realistic_finetuner
         self.random_finetuner = random_finetuner
 
-        self.realistic_errorfinder = read_model(realistic_errorfinder)
-        self.random_errorfinder = read_model(random_errorfinder)
+        self.realistic_errorfinder = realistic_errorfinder
+        self.random_errorfinder = random_errorfinder
 
     def __call__(self,
                  mutation_dist,

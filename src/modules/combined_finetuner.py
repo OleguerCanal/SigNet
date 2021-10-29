@@ -28,14 +28,14 @@ class CombinedFinetuner:
         """
         num_mut = num_mut.view(-1)
         ind = np.array(range(mutation_dist.size()[0]))
-        ind_order = ind[num_mut < 1e3]
-        ind_order = np.concatenate((ind_order, ind[num_mut >= 1e3]))
-        input_batch_low = mutation_dist[num_mut < 1e3, ]
-        input_batch_large = mutation_dist[num_mut >= 1e3, ]
-        baseline_guess_low = baseline_guess[num_mut < 1e3, ]
-        baseline_guess_large = baseline_guess[num_mut >= 1e3, ]
-        num_mut_low = num_mut[num_mut < 1e3, ]
-        num_mut_large = num_mut[num_mut >= 1e3, ]
+        ind_order = ind[num_mut <= 1e3]
+        ind_order = np.concatenate((ind_order, ind[num_mut > 1e3]))
+        input_batch_low = mutation_dist[num_mut <= 1e3, ]
+        input_batch_large = mutation_dist[num_mut > 1e3, ]
+        baseline_guess_low = baseline_guess[num_mut <= 1e3, ]
+        baseline_guess_large = baseline_guess[num_mut > 1e3, ]
+        num_mut_low = num_mut[num_mut <= 1e3, ]
+        num_mut_large = num_mut[num_mut > 1e3, ]
         num_mut_low = num_mut_low.reshape(-1, 1)
         num_mut_large = num_mut_large.reshape(-1, 1)
         with torch.no_grad():
