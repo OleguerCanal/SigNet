@@ -2,12 +2,12 @@ config:
     # IDs & paths
     data_id: "exp_v2"
     model_id: "errorfinder_realistic_large_v2"
-    finetuner_id: "finetuner_realistic_large_v2"
+    finetuner_id: "finetuner_realistic_large_v2_03"
     models_dir: "../trained_models/exp_v2"
 
     # Training params
     source: "realistic_large"
-    iterations: 8
+    iterations: 10
     num_classes: 72
     batch_size: 923
     lr: 0.0009456

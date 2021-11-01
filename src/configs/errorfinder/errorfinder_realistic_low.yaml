@@ -7,14 +7,14 @@ config:
 
     # Training params
     source: "realistic_low"
-    iterations: 8
+    iterations: 20
     num_classes: 72
-    batch_size: 923
-    lr: 0.0001
+    batch_size: 720
+    lr: 0.00001
     loss_params: 
-        lagrange_missclassification: 0.005027
-        lagrange_pnorm: 30499.236
-        lagrange_smalltozero: 1.98
+        lagrange_missclassification: 0.005
+        lagrange_pnorm: 1000
+        lagrange_smalltozero: 0.1
         pnorm_order: 3.0
 
     # WANDB params
@@ -22,10 +22,10 @@ config:
     wandb_project_id: "errorfinder_final"
 
     # Network params
-    num_hidden_layers_pos: 5
-    num_neurons_pos: 708
-    num_hidden_layers_neg: 2
-    num_neurons_neg: 1279
+    num_hidden_layers_pos: 10
+    num_neurons_pos: 528
+    num_hidden_layers_neg: 4
+    num_neurons_neg: 1435
 
     # Misc
     device: "cpu"

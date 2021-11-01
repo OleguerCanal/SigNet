@@ -168,5 +168,6 @@ def train_finetuner(config) -> float:
                                 lr=config["lr"],
                                 num_hidden_layers=config["num_hidden_layers"],
                                 num_units=config["num_neurons"],
-                                plot=True)
+                                plot=True,
+                                model_path=)
     return min_val
