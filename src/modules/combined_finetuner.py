@@ -28,14 +28,14 @@ class CombinedFinetuner:
         """
         num_mut = num_mut.view(-1)
         ind = np.array(range(mutation_dist.size()[0]))
-        ind_order = ind[num_mut < 1e3]
-        ind_order = np.concatenate((ind_order, ind[num_mut >= 1e3]))
-        input_batch_low = mutation_dist[num_mut < 1e3, ]
-        input_batch_large = mutation_dist[num_mut >= 1e3, ]
-        baseline_guess_low = baseline_guess[num_mut < 1e3, ]
-        baseline_guess_large = baseline_guess[num_mut >= 1e3, ]
-        num_mut_low = num_mut[num_mut < 1e3, ]
-        num_mut_large = num_mut[num_mut >= 1e3, ]
+        ind_order = ind[num_mut <= 1e3]
+        ind_order = np.concatenate((ind_order, ind[num_mut > 1e3]))
+        input_batch_low = mutation_dist[num_mut <= 1e3, ]
+        input_batch_large = mutation_dist[num_mut > 1e3, ]
+        baseline_guess_low = baseline_guess[num_mut <= 1e3, ]
+        baseline_guess_large = baseline_guess[num_mut > 1e3, ]
+        num_mut_low = num_mut[num_mut <= 1e3, ]
+        num_mut_large = num_mut[num_mut > 1e3, ]
         num_mut_low = num_mut_low.reshape(-1, 1)
         num_mut_large = num_mut_large.reshape(-1, 1)
         with torch.no_grad():
@@ -51,3 +51,20 @@ class CombinedFinetuner:
             finetuner_guess = finetuner_guess[:, :-1]
 
         return finetuner_guess
+
+
+def baseline_guess_to_combined_finetuner_guess(finetuner_low_dir, finetuner_large_dir, data):
+    # Load finetuner and compute guess_1
+    import gc
+
+    combined_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_low_dir,
+                                           large_mum_mut_dir=finetuner_large_dir)
+
+    with torch.no_grad():
+        data.prev_guess = combined_finetuner(mutation_dist=data.inputs,
+                                    baseline_guess=data.prev_guess,
+                                    num_mut=data.num_mut)
+    del combined_finetuner
+    gc.collect()
+    torch.cuda.empty_cache()
+    return data

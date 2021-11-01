@@ -6,12 +6,14 @@ import torch
 
 from utilities.io import read_model
 
-class ClassifiedFinetuner:
+class ClassifiedFinetunerErrorfinder:
 
     def __init__(self,
                  classifier,
                  realistic_finetuner,
                  random_finetuner,
+                 realistic_errorfinder,
+                 random_errorfinder,
                  classification_cutoff=0.5,
                  device="cpu"):
         """Instantiate a ClassifiedFinetuner
@@ -30,6 +32,9 @@ class ClassifiedFinetuner:
         self.classifier = classifier
         self.realistic_finetuner = realistic_finetuner
         self.random_finetuner = random_finetuner
+
+        self.realistic_errorfinder = realistic_errorfinder
+        self.random_errorfinder = random_errorfinder
 
     def __call__(self,
                  mutation_dist,
@@ -52,6 +57,7 @@ class ClassifiedFinetuner:
         real_guess = self.realistic_finetuner(mutation_dist=mut_dist_real,
                                               baseline_guess=weights_real,
                                               num_mut=num_mut_real)
+        real_error_upper, real_error_lower = self.realistic_errorfinder(real_guess, num_mut_real)
 
         # Select and finetune mutations classified as random
         mut_dist_rand = mutation_dist[ind_rand, ...]
@@ -60,11 +66,25 @@ class ClassifiedFinetuner:
         rand_guess = self.random_finetuner(mutation_dist=mut_dist_rand,
                                            baseline_guess=weights_rand,
                                            num_mut=num_mut_rand)
+        rand_error_upper, rand_error_lower = self.random_errorfinder(rand_guess, num_mut_rand)
 
         # Join predictions and re-order them as originally
         joined_guess = torch.cat((real_guess, rand_guess), dim=0)
-        ind_order = torch.from_numpy(ind_order).type(torch.float).reshape(-1, 1)
-        joined_guess = torch.cat((joined_guess, ind_order), dim=1)
+        joined_upper = torch.cat((real_error_upper, rand_error_upper), dim=0)
+        joined_lower = torch.cat((real_error_lower, rand_error_lower), dim=0)
+        ind_order = [float(el) for el in ind_order]
+        joined_guess = torch.cat(
+            (joined_guess, torch.tensor(ind_order).reshape(-1, 1)), dim=1)
         joined_guess = joined_guess[joined_guess[:, -1].sort()[1]]
         joined_guess = joined_guess[:, :-1]
-        return joined_guess
+
+        joined_upper = torch.cat(
+            (joined_upper, torch.tensor(ind_order).reshape(-1, 1)), dim=1)
+        joined_upper = joined_upper[joined_upper[:, -1].sort()[1]]
+        joined_upper = joined_upper[:, :-1]
+
+        joined_lower = torch.cat(
+            (joined_lower, torch.tensor(ind_order).reshape(-1, 1)), dim=1)
+        joined_lower = joined_lower[joined_lower[:, -1].sort()[1]]
+        joined_lower = joined_lower[:, :-1]
+        return joined_guess, joined_upper, joined_lower

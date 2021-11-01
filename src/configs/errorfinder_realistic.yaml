@@ -1,13 +1,14 @@
 config:
     # IDs & paths
     data_id: "exp_final"
-    model_id: "errorfinder"
-    finetuner_id: "01fn_0001fp_kl_random"
-    models_dir: "../trained_models"
+    model_id: "errorfinder_realistic"
+    finetuner_low_id: "finetuner_realistic_low"
+    finetuner_large_id: "finetuner_realistic_large"
+    models_dir: "../trained_models/exp_final"
 
     # Training params
-    source: "random_low"
-    iterations: 5
+    source: "realistic_low"
+    iterations: 20
     num_classes: 72
     batch_size: 500
     lr: 0.0001

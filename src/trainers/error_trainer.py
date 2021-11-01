@@ -7,7 +7,9 @@ import sys
 
 import numpy as np
 import pandas as pd
+
 import torch
+from torch import linalg
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -67,7 +69,7 @@ class ErrorTrainer:
             lagrange_missclassification*(lower + upper)
 
         # p-norm by signature to avoid high errors
-        loss_by_mutation = torch.linalg.norm(lagrange_pnorm *\
+        loss_by_mutation = linalg.norm(lagrange_pnorm *\
             loss_by_mutation_signature, ord=pnorm_order, axis=1)
         loss = torch.mean(loss_by_mutation)
 
@@ -183,7 +185,7 @@ class ErrorTrainer:
 
 def train_errorfinder(config) -> float:
     from utilities.io import read_data
-    from models.finetuner import baseline_guess_to_finetuner_guess
+    from modules.combined_finetuner import baseline_guess_to_combined_finetuner_guess
 
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
@@ -192,7 +194,8 @@ def train_errorfinder(config) -> float:
 
     # Set paths
     errorfinder_path = os.path.join(config["models_dir"], config["model_id"])
-    finetuner_path = os.path.join(config["models_dir"], config["finetuner_id"])
+    finetuner_low_path = os.path.join(config["models_dir"], config["finetuner_low_id"])
+    finetuner_large_path = os.path.join(config["models_dir"], config["finetuner_large_id"])
 
     if config["enable_logging"]:
         wandb.init(project=config["wandb_project_id"],
@@ -205,10 +208,12 @@ def train_errorfinder(config) -> float:
                                      source=config["source"],
                                      device="cpu")
 
-    train_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
-                                                   data=train_data)
-    val_data = baseline_guess_to_finetuner_guess(trained_finetuner_dir=finetuner_path,
-                                                 data=val_data)
+    train_data = baseline_guess_to_combined_finetuner_guess(finetuner_low_dir=finetuner_low_path,
+                                                            finetuner_large_dir=finetuner_large_path,
+                                                            data=train_data)
+    val_data = baseline_guess_to_combined_finetuner_guess(finetuner_low_dir=finetuner_low_path,
+                                                            finetuner_large_dir=finetuner_large_path,
+                                                            data=val_data)
 
     train_data.to(device=device)
     val_data.to(device=device)

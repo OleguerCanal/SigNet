@@ -1,17 +1,17 @@
 config:
     # IDs & paths
     data_id: "exp_v2"
-    model_id: "finetuner_realistic_low_v2"
+    model_id: "finetuner_realistic_low_v2_03"
     models_dir: "../trained_models/exp_v2"
 
     # Training params
     source: "realistic_low"
     network_type: "realistic"
-    iterations: 70
+    iterations: 15
     num_classes: 30
     sigmoid_params: [500,150]
     # sigmoid_params: [50000, 10000]
-    batch_size: 283
+    batch_size: 500
     lr: 0.0015
 
     # WANDB params
@@ -20,7 +20,7 @@ config:
 
     # Network params
     num_hidden_layers: 3
-    num_neurons: 50
+    num_neurons: 200
 
     # Misc
     device: "cuda"

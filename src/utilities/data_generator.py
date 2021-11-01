@@ -30,8 +30,8 @@ class DataGenerator:
             samples = c.sample(sample_shape=sample_shape).type(torch.float32)
             n_bins = signature.shape[0]
             sample = torch.histc(samples, bins=n_bins, min=0, max=n_bins - 1)
-        if normalize:
-            sample = sample/float(num_mut)
+            if normalize:
+                sample = sample/float(num_mut)
         return sample
 
     def make_similar_set(self,

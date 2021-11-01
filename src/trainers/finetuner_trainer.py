@@ -51,8 +51,8 @@ class FinetunerTrainer:
                  fn_param*FN / prediction.shape[0]
         elif self.network_type == 'realistic':
             fp_param = 1e-3
-            fn_param = 1e-3
-            l = get_jensen_shannon(prediction, label)
+            fn_param = 0.25
+            l = get_kl_divergence(prediction, label)
             l += fp_param*FP / prediction.shape[0] +\
                  fn_param*FN / prediction.shape[0]
         return l
