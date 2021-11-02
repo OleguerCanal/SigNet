@@ -33,7 +33,10 @@ if __name__ == "__main__":
         '--lr', action='store', nargs=1, type=float, required=False,
         help='Learning rate.'
     )
-    
+    parser.add_argument(
+        '--sigmoid_params', action='store', nargs=1, type=list, required=False,
+        help='Sigmoid parameters for normalization.'
+    )
     # Model args
     parser.add_argument(
         '--num_neurons_pos', action='store', nargs=1, type=int, required=False,

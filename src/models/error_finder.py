@@ -6,8 +6,10 @@ class SignedErrorFinder(nn.Module):
     def __init__(self,
                  num_classes=72,
                  num_hidden_layers=2,
-                 num_units=400):
+                 num_units=400,
+                 sigmoid_params = [5000, 2000]):
         super(SignedErrorFinder, self).__init__()
+        self.sigmoid_params = sigmoid_params
         # Num units of the weights path
         num_units_branch_1 = int(num_units*0.9)
         # Num units of the mutations path
@@ -44,7 +46,7 @@ class SignedErrorFinder(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Mutations head
-        num_mutations = nn.Sigmoid()((num_mutations-30000)/7000)  # Normalize
+        num_mutations = nn.Sigmoid()((num_mutations-self.sigmoid_params[0])/self.sigmoid_params[1])
         num_mutations = self.activation(self.layer1_2(num_mutations))
 
         # Concatenate
