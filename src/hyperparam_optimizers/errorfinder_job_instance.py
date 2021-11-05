@@ -29,10 +29,10 @@ class ErrorfinderJobInstance(SearchJobInstance):
                pnorm_order,
                plot=False):
         self.passed_args = locals()
-        self.source = "realistic_low"
+        self.source = "random_low"
 
         shell_file = self.job_details + "#$ -o signatures-net/tmp/Cluster/errorfinder_%s_%s.out"%(self.source, str(self.id)) + '\n' + '\n'
-        args = "--config_file='configs/errorfinder_realistic_bayesian.yaml'" # Base config file
+        args = "--config_file='configs/errorfinder_random_bayesian.yaml'" # Base config file
         args += " --model_id=" + str(self.id)
         args += " --batch_size=" + str(batch_size)
         args += " --lr=" + str(lr)

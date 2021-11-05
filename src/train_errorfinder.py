@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.error_trainer import train_errorfinder
 from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/errorfinder_realistic.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/errorfinder_random_bayesian.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -22,6 +22,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model_id', action='store', nargs=1, type=str, required=False,
         help=f'Unique id given to the trained model.'
+    )
+    parser.add_argument(
+        '--source', action='store', nargs=1, type=str, required=False,
+        help=f'Data source to use in the training.'
     )
 
     # Train args
