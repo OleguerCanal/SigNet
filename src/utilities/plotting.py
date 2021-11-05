@@ -396,7 +396,7 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
     plt.show()
     return conf_mat
 
-def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
+def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots(figsize=(12,8))
     guessed_error_neg = guessed_labels - pred_lower
@@ -408,7 +408,9 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names):
     ax.set_title('Signature decomposition')
     ax.set_ylim([0,1])
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    fig.savefig(plot_path)
+    plt.close()
 
 def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     num_classes = len(guessed_labels)

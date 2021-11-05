@@ -101,12 +101,12 @@ if __name__ == "__main__":
     classifier = model_path + "classifier"
     finetuner_realistic_low = model_path + experiment_id + "/finetuner_realistic_low"
     finetuner_realistic_large = model_path + experiment_id + "/finetuner_realistic_large"
-    finetuner_random_low = model_path + experiment_id + "/finetuner_random_low"
-    finetuner_random_large = model_path + experiment_id + "/finetuner_random_large"
-    errorfinder_random_low = model_path + experiment_id + "/errorfinder_random_low"
-    errorfinder_random_large = model_path + experiment_id + "/errorfinder_random_large"
+    finetuner_random_low = model_path + experiment_id + "/finetuner_realistic_low"
+    finetuner_random_large = model_path + experiment_id + "/finetuner_realistic_large"
+    errorfinder_random_low = model_path + experiment_id + "/errorfinder_realistic_low"
+    errorfinder_random_large = model_path + experiment_id + "/errorfinder_realistic_large"
     errorfinder_realistic_low = model_path + experiment_id + "/errorfinder_realistic_low"
-    errorfinder_realistic_large = model_path + experiment_id + "/errorfinder_random_large"
+    errorfinder_realistic_large = model_path + experiment_id + "/errorfinder_realistic_large"
 
     # Things with real data:
     path_opportunities = "../../data/data_donors/abundances_trinucleotides.txt"
@@ -122,14 +122,19 @@ if __name__ == "__main__":
                     path_opportunities = path_opportunities,
                     signatures_path = "../../data/data.xlsx")
 
-    mutation_data = torch.tensor(pd.read_csv("../../data/data_donors/MC3_data/MC3_ACC_data_total.csv", header=None).values, dtype=torch.float)
+    # mutation_data = torch.tensor(pd.read_csv("../../data/case_study/data_by_tissue/all_tissues_input.csv", header=None).values, dtype=torch.float)
+    mutation_data = torch.tensor(pd.read_csv("../../data/case_study/data_by_donor/all_donors_input.csv", header=None).values, dtype=torch.float)
+    allfiles = [f for f in os.listdir("../../data/case_study/data_by_donor")]
     weight_guess, upper_bound, lower_bound = signet(mutation_vec=mutation_data)
 
-    plot_weights(weight_guess[0, :].detach().numpy(), upper_bound[0, :].detach().numpy(), lower_bound[0, :].detach().numpy(), list(pd.read_excel("../../data/data.xlsx").columns)[1:])
+    tissues = ["AdiposeTissue","AdrenalGland","Bladder","BloodVessel","Brain","Breast","CervixUteri","Colon","Esophagus","Heart","Kidney",
+                    "Liver","Lung","Muscle","Nerve","Ovary","Pancreas","Pituitary","Prostate","SalivaryGland","Skin","SmallIntestine",
+                    "Spleen","Stomach","Testis","Thyroid","Uterus","Vagina"]
+    for i in range(mutation_data.size(0)):
+        plot_weights(weight_guess[i, :].detach().numpy(), upper_bound[i, :].detach().numpy(), lower_bound[i, :].detach().numpy(), list(pd.read_excel("../../data/data.xlsx").columns)[1:], '../../plots/case_study/skin/%s.png'%allfiles[i])
 
-    deconstructSigs_batch = torch.tensor(pd.read_csv("../../data/data_donors/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
-
-    plot_weights_comparison(deconstructSigs_batch[0,:].detach().numpy(), weight_guess[0,:].detach().numpy(), upper_bound[0,:].detach().numpy(), lower_bound[0,:].detach().numpy(), list(pd.read_excel("../../data/data.xlsx").columns)[1:], '')
+    # deconstructSigs_batch = torch.tensor(pd.read_csv("../../data/data_donors/MC3_ACC_deconstructSigs.csv", header=None).values, dtype=torch.float)
+    # plot_weights_comparison(deconstructSigs_batch[0,:].detach().numpy(), weight_guess[0,:].detach().numpy(), upper_bound[0,:].detach().numpy(), lower_bound[0,:].detach().numpy(), list(pd.read_excel("../../data/data.xlsx").columns)[1:], '')
     
     # df = weight_guess.detach().numpy()
     # df = pd.DataFrame(df)
