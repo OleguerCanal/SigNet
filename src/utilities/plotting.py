@@ -56,7 +56,6 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
     fig, axs = plt.subplots(3, figsize=(8,6))
     fig.suptitle("Metrics vs Number of Mutations")
     
-    # num_muts_list = num_muts_list[num_muts_list<=100000]
     num_muts = np.unique(num_muts_list.detach().numpy())
     
     marker_size = 3
