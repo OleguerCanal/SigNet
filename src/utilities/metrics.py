@@ -17,7 +17,7 @@ def false_realistic(prediction, label):
     EPS = 1e-4
     threshold = 0.5
     prediction = (prediction>threshold).float()*1
-    return torch.true_divide(torch.sum(label[prediction == 1] == 0),(torch.numel(label)+ EPS))*100 
+    return torch.true_divide(torch.sum(label[prediction == 1] == 0),(torch.numel(label) + EPS))*100 
 
 def false_random(prediction, label):
     EPS = 1e-4
