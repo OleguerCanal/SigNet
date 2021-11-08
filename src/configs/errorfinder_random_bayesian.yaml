@@ -2,7 +2,8 @@ config:
     # IDs & paths
     data_id: "exp_final"
     model_id: "errorfinder_bayesian"
-    finetuner_id: "finetuner_random_low"
+    finetuner_low_id: "finetuner_random_low"
+    finetuner_large_id: "finetuner_random_large"
     models_dir: "../trained_models/exp_final"
 
     # Training params
@@ -21,7 +22,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder_bayesian"
+    wandb_project_id: "errorfinder_bayesian_new"
 
     # Network params
     num_hidden_layers_pos: 2
