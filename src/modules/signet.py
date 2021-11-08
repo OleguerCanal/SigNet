@@ -35,13 +35,13 @@ class SigNet:
 
         self.classifier = classifier
         self.finetuner_random_low = finetuner_random_low
-        self.finetuner_random_large= finetuner_random_large
-        self.finetuner_realistic_low= finetuner_realistic_low
-        self.finetuner_realistic_large= finetuner_realistic_large
-        self.errorfinder_random_low= errorfinder_random_low
-        self.errorfinder_random_large= errorfinder_random_large
-        self.errorfinder_realistic_low= errorfinder_realistic_low
-        self.errorfinder_realistic_large= errorfinder_realistic_large
+        self.errorfinder_random_low = errorfinder_random_low
+        self.finetuner_random_large = finetuner_random_large
+        self.finetuner_realistic_low = finetuner_realistic_low
+        self.finetuner_realistic_large = finetuner_realistic_large
+        self.errorfinder_random_large = errorfinder_random_large
+        self.errorfinder_realistic_low = errorfinder_realistic_low
+        self.errorfinder_realistic_large = errorfinder_realistic_large
 
         if path_opportunities != None:
             self.opp = create_opportunities(path_opportunities)
