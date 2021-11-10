@@ -64,13 +64,9 @@ class SigNet:
             num_mutations = torch.sum(mutation_vec, dim=1)
 
             if self.opportunities_name_or_path is not None:
-                normalized_mutation_vec = normalize_data(
-                    mutation_vec, self.opportunities_name_or_path)
-                normalized_mutation_vec = normalized_mutation_vec / \
-                    torch.sum(normalized_mutation_vec, dim=1).reshape(-1, 1)
-            else:
-                normalized_mutation_vec = mutation_vec / \
-                    torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+                mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
+            normalized_mutation_vec = \
+                mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1, 1)
 
             # Run signature_finder
 
