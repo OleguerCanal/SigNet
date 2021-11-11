@@ -137,6 +137,7 @@ trained_models/
 cluster/
 parameters.txt
 *.sh
+!train.sh
 signatures-nets.e*
 results/
 plots/*
