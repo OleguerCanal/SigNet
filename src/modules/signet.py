@@ -56,7 +56,8 @@ class SigNet:
             self.opp = None
 
     def __call__(self,
-                 mutation_vec):
+                 mutation_vec,
+                 numpy=True):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
@@ -83,7 +84,9 @@ class SigNet:
             finetuner_guess, upper_bound, lower_bound = self.finetuner_errorfinder(
                 normalized_mutation_vec, baseline_guess, num_mutations.reshape(-1, 1))
 
-        return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy()
+        if numpy:
+            return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy()
+        return finetuner_guess, upper_bound, lower_bound
 
 
 if __name__ == "__main__":
