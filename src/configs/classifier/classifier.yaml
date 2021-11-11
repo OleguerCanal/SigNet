@@ -1,8 +1,8 @@
 config:
     # IDs & paths
     data_id: "exp_final/classifier"
-    model_id: "classifier"
-    models_dir: "../trained_models"
+    model_id: "classifier_2"
+    models_dir: "../trained_models/exp_final_2/"
 
     # Training params
     iterations: 30
@@ -20,4 +20,4 @@ config:
     num_neurons: 260
 
     # Misc
-    device: "cpu"
+    device: "cuda"

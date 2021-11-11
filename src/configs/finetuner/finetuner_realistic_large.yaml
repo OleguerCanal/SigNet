@@ -1,16 +1,15 @@
 config:
     # IDs & paths
     data_id: "exp_final"
-    model_id: "finetuner_realistic_low"
-    models_dir: "../trained_models/exp_final"
+    model_id: "finetuner_realistic_large"
+    models_dir: "../trained_models/exp_final_2"
 
     # Training params
-    source: "realistic_low"
+    source: "realistic_large"
     network_type: "realistic"
     iterations: 70
     num_classes: 72
-    sigmoid_params: [500,150]
-    # sigmoid_params: [50000, 10000]
+    sigmoid_params: [50000, 10000]
     batch_size: 283
     lr: 0.0015
 
@@ -23,4 +22,4 @@ config:
     num_neurons: 50
 
     # Misc
-    device: "cpu"
+    device: "cuda"

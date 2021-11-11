@@ -1,23 +1,23 @@
 config:
     # IDs & paths
     data_id: "exp_final"
-    model_id: "errorfinder_random"
-    finetuner_low_id: "finetuner_random_low"
-    finetuner_large_id: "finetuner_random_large"
-    models_dir: "../trained_models/exp_final"
+    model_id: "errorfinder_realistic_low"
+    finetuner_low_id: "finetuner_realistic_low"
+    finetuner_large_id: "finetuner_realistic_large"
+    models_dir: "../trained_models/exp_final_2"
 
     # Training params
-    source: "random_low"
-    iterations: 20
+    source: "realistic_low"
+    iterations: 5
     num_classes: 72
     batch_size: 500
     lr: 0.0001
     sigmoid_params: [500,150]
     # sigmoid_params: [50000, 10000]
     loss_params: 
-        lagrange_missclassification: 7e-3
+        lagrange_missclassification: 1e-1
         lagrange_pnorm: 1e4
-        lagrange_smalltozero: 1.0
+        lagrange_smalltozero: 0
         pnorm_order: 5.0
 
     # WANDB params
@@ -31,4 +31,4 @@ config:
     num_neurons_neg: 1000
 
     # Misc
-    device: "cpu"
+    device: "cuda"
