@@ -1,7 +1,6 @@
 import os
 import sys
 
-import numpy as np
 import torch
 
 from utilities.io import read_model
@@ -45,10 +44,10 @@ class ClassifiedFinetunerErrorfinder:
                                          num_mut=num_mut).view(-1)
 
         # Remember input indexes
-        ind = np.array(range(mutation_dist.size()[0]))
+        ind = torch.tensor(range(mutation_dist.size()[0]))
         ind_real = ind[classification >= self.classification_cutoff]
         ind_rand = ind[classification < self.classification_cutoff]
-        ind_order = np.concatenate((ind_real, ind_rand))
+        ind_order = torch.cat((ind_real, ind_rand))
 
         # Select and finetune mutations classified as real
         mut_dist_real = mutation_dist[ind_real, ...]

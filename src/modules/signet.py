@@ -65,11 +65,11 @@ class SigNet:
 
             if self.opportunities_name_or_path is not None:
                 mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
+
             normalized_mutation_vec = \
                 mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1, 1)
 
             # Run signature_finder
-
             baseline_guess = self.baseline.get_weights_batch(
                 normalized_mutation_vec, n_workers=1)
 
@@ -80,7 +80,7 @@ class SigNet:
 
 
 if __name__ == "__main__":
-
+  
     config = {"input_data": None,
               "normalization": "exome",
               "output": "Output",
@@ -128,6 +128,7 @@ if __name__ == "__main__":
     create_dir(output_path+ "/whatever.txt")
     df = pd.DataFrame(weight_guess)
     df.to_csv(output_path + "/all_donors_guesses.csv", header=False, index=False)
+
 
     # Plot figures
     if plot_figs:
