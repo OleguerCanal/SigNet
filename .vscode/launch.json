@@ -86,5 +86,14 @@
             "cwd": "${workspaceFolder}/src/hyperparam_optimizers",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Python: Signet",
+            "type": "python",
+            "request": "launch",
+            "program": "signet.py",
+            "cwd": "${workspaceFolder}/src/modules",
+            "console": "integratedTerminal"
+        }
     ]
 }

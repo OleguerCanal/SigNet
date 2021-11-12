@@ -9,7 +9,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.plotting import plot_weights
 from utilities.normalize_data import create_opportunities, normalize_data
-from utilities.io import read_model, read_signatures
+from utilities.io import read_model, read_signatures, csv_to_tensor
 from models.baseline import Baseline
 from modules.combined_errorfinder import CombinedErrorfinder
 from modules.combined_finetuner import CombinedFinetuner
@@ -22,10 +22,10 @@ class SigNet:
                  finetuner_random_large="../../trained_models/exp_final/finetuner_random_large",
                  finetuner_realistic_low="../../trained_models/exp_final/finetuner_realistic_low",
                  finetuner_realistic_large="../../trained_models/exp_final/finetuner_realistic_large",
-                 errorfinder_random_low="../../trained_models/exp_final/errofinder_random_low",
-                 errorfinder_random_large="../../trained_models/exp_final/errofinder_random_large",
-                 errorfinder_realistic_low="../../trained_models/exp_final/errofinder_realistic_low",
-                 errorfinder_realistic_large="../../trained_models/exp_final/errofinder_realistic_large",
+                 errorfinder_random_low="../../trained_models/exp_final/errorfinder_random_low",
+                 errorfinder_random_large="../../trained_models/exp_final/errorfinder_random_large",
+                 errorfinder_realistic_low="../../trained_models/exp_final/errorfinder_realistic_low",
+                 errorfinder_realistic_large="../../trained_models/exp_final/errorfinder_realistic_large",
                  path_opportunities=None,
                  signatures_path="../../data/data.xlsx"):
 
@@ -67,16 +67,11 @@ class SigNet:
             num_mutations = torch.sum(mutation_vec, dim=1)
 
             if self.opp is not None:
-                normalized_mutation_vec = normalize_data(
-                    mutation_vec, self.opp)
-                normalized_mutation_vec = normalized_mutation_vec / \
-                    torch.sum(normalized_mutation_vec, dim=1).reshape(-1, 1)
-            else:
-                normalized_mutation_vec = mutation_vec / \
-                    torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+                mutation_vec = normalize_data(mutation_vec, self.opp)
+            normalized_mutation_vec = \
+                mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1, 1)
 
             # Run signature_finder
-
             baseline_guess = self.baseline.get_weights_batch(
                 normalized_mutation_vec, n_workers=1)
 
@@ -90,18 +85,20 @@ if __name__ == "__main__":
 
     # Things with real data:
     path_opportunities = "../../data/data_donors/abundances_trinucleotides.txt"
+    # path_opportunities = None
     signet = SigNet(path_opportunities=path_opportunities,
                     signatures_path="../../data/data.xlsx")
 
     # mutation_data = torch.tensor(pd.read_csv("../../data/case_study/data_by_tissue/all_tissues_input.csv", header=None).values, dtype=torch.float)
     mutation_data = torch.tensor(pd.read_csv(
         "../../data/case_study/data_by_donor/all_donors_input.csv", header=None).values, dtype=torch.float)
-    allfiles = [f for f in os.listdir("../../data/case_study/data_by_donor")]
+    # mutation_data = csv_to_tensor("../../data/exp_final/test/test_input.csv")
     weight_guess, upper_bound, lower_bound = signet(mutation_vec=mutation_data)
 
     tissues = ["AdiposeTissue", "AdrenalGland", "Bladder", "BloodVessel", "Brain", "Breast", "CervixUteri", "Colon", "Esophagus", "Heart", "Kidney",
                "Liver", "Lung", "Muscle", "Nerve", "Ovary", "Pancreas", "Pituitary", "Prostate", "SalivaryGland", "Skin", "SmallIntestine",
                "Spleen", "Stomach", "Testis", "Thyroid", "Uterus", "Vagina"]
+    allfiles = [f for f in os.listdir("../../data/case_study/data_by_donor")]
     for i in range(mutation_data.size(0)):
         plot_weights(weight_guess[i, :], upper_bound[i, :], lower_bound[i, :], list(pd.read_excel(
             "../../data/data.xlsx").columns)[1:], '../../plots/case_study/skin/%s.png' % allfiles[i])

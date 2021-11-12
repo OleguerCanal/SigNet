@@ -1,7 +1,6 @@
 import os
 import sys
 
-import numpy as np
 import pandas as pd
 import torch
 
@@ -20,15 +19,10 @@ class CombinedErrorfinder:
     def __call__(self,
                  finetuner_guess,
                  num_mut):
-        """Get weights of each signature in lexicographic wrt 1-mer
-
-        Args:
-            mutation_vec (np.array(batch_size, 96)): Batch of mutation vectors to decompose
-        """
         num_mut = num_mut.view(-1)
-        ind = np.array(range(finetuner_guess.size()[0]))
+        ind = torch.tensor(range(finetuner_guess.size()[0]))
         ind_order = ind[num_mut <= 1e3]
-        ind_order = np.concatenate((ind_order, ind[num_mut > 1e3]))
+        ind_order = torch.cat((ind_order, ind[num_mut > 1e3]))
         finetuner_guess_low = finetuner_guess[num_mut <= 1e3, ]
         finetuner_guess_large = finetuner_guess[num_mut > 1e3, ]
         num_mut_low = num_mut[num_mut <= 1e3, ]
