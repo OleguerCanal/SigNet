@@ -2,7 +2,14 @@ import numpy as np
 import pandas as pd
 import torch
 
-def normalize_data(input_file, abundances):
+def normalize_data(input_file, opportunities_name_or_path):
+    if opportunities_name_or_path == 'exome':
+        abundances = create_opportunities('../../data/data_donors/abundances_trinucleotides.txt')
+    elif opportunities_name_or_path == 'genome':
+        abundances = create_opportunities('../../data/data_donors/3mer_WG_hg37.txt')
+    else:
+        abundances = create_opportunities(opportunities_name_or_path)
+
     abundances_tensor = torch.Tensor(abundances)
     return torch.div(input_file, abundances_tensor)
 
@@ -44,17 +51,3 @@ def complement(base):
         return "C"
     if base == "T":
         return "A"
-
-
-
-# Example:
-# data = torch.tensor(pd.read_csv("../data/test_input_w01.csv", header=None).values, dtype=torch.float)
-# label_mut_batch = torch.tensor(pd.read_csv("../data/test_label_w01.csv", header=None).values, dtype=torch.float)
-# label_batch = label_mut_batch[:,:72]
-# num_mut = torch.reshape(label_mut_batch[:,72], (list(label_mut_batch.size())[0],1))
-# data_total = data*num_mut
-# data_2 = data_total[:2,:]
-# print(data_2)
-# opp = create_opportunities("../data/3mer_rn6.txt")
-# normalized_data = normalize_data(data_2, opp) 
-# print(normalized_data)
