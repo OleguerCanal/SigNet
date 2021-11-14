@@ -50,7 +50,6 @@ class ClassifiedFinetunerErrorfinder:
         classification = self.classifier(mutation_dist=mutation_dist,
                                          num_mut=num_mut).view(-1)
         
-        classification = torch.zeros(classification.shape, dtype=classification.dtype)
         # This is for debugging purposes
         self.classification_results = (classification >= self.classification_cutoff).to(torch.int64)
 

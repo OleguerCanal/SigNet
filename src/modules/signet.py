@@ -60,7 +60,8 @@ class SigNet:
 
     def __call__(self,
                  mutation_vec,
-                 numpy=True):
+                 numpy=True,
+                 nworkers=1):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
@@ -81,9 +82,7 @@ class SigNet:
 
             # Run signature_finder
             self.baseline_guess = self.baseline.get_weights_batch(
-                normalized_mutation_vec, n_workers=1)  # hack to be able to access it for benchmarking purposes
-
-            # print(self.baseline_guess)
+                normalized_mutation_vec, n_workers=nworkers)  # hack to be able to access it for benchmarking purposes
 
             finetuner_guess, upper_bound, lower_bound = self.finetuner_errorfinder(
                 normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))

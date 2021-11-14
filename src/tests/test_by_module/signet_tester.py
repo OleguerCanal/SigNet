@@ -11,14 +11,14 @@ from utilities.plotting import plot_all_metrics_vs_mutations, plot_interval_metr
 
 # Read data
 data_folder = "../../../data/"
-# inputs, label = read_test_data(device='cpu',
-#                                experiment_id="exp_final",
-#                                test_id="test",
-#                                data_folder=data_folder)
+inputs, label = read_test_data(device='cpu',
+                               experiment_id="exp_final",
+                               test_id="test",
+                               data_folder=data_folder)
 
-data_path = data_folder + "exp_final/test_realistic/"
-inputs = csv_to_tensor(data_path + "test_realistic_input.csv", device='cpu')
-label = csv_to_tensor(data_path + "test_realistic_label.csv", device='cpu')
+# data_path = data_folder + "exp_final/test_realistic/"
+# inputs = csv_to_tensor(data_path + "test_realistic_input.csv", device='cpu')
+# label = csv_to_tensor(data_path + "test_realistic_label.csv", device='cpu')
 
 # data_path = data_folder + "exp_final/test_random/"
 # inputs = csv_to_tensor(data_path + "test_random_input.csv", device='cpu')
@@ -43,7 +43,7 @@ signet = SigNet(classifier=path + "classifier",
 
 print("model read")
 
-finetuner_guess, upper_bound, lower_bound = signet(inputs, numpy=False)
+finetuner_guess, upper_bound, lower_bound = signet(inputs*label[:, -1].reshape(-1, 1), numpy=False)
 
 print("forwarded")
 # plot_all_metrics_vs_mutations(list_of_methods=['Baseline', 'Finetuner'],
@@ -61,8 +61,8 @@ plot_metric_vs_mutations(list_of_metrics=["accuracy %", "sens: tp/p %", "spec: t
                          label=label,
                          show=True)
 
-# plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, show=True)
-# plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
+plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, show=True)
+plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
 # plot_interval_metrics_vs_sigs(label, upper_bound, lower_bound, '')
 
 # errorfiner_realistic = read_model(model_path + experiment_id + "/errorfinder_realistic")
