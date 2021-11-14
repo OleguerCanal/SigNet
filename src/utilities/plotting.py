@@ -81,7 +81,7 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
     # fig.savefig(plot_path)
     
 # FINETUNER PLOTS:
-def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path):
+def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, show=False):
     '''
     Plot:
     MAE_p   MAE_n
@@ -124,8 +124,9 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
     # create_dir(folder_path)
-    # plt.show()
-    plt.savefig(folder_path + '/metrics_low.svg')
+    # if show:
+    #     plt.show()
+    # plt.savefig(folder_path + '/metrics_low.svg')
     plt.close()
     ############################################################################################
     
@@ -150,7 +151,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
     # plt.show()
-    plt.savefig(folder_path + '/metrics_high.svg')
+    # plt.savefig(folder_path + '/metrics_high.svg')
     plt.close()
 
     ############################################################################################
@@ -183,13 +184,14 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
 
     fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    fig.subplots_adjust(right=legend_adjustment)   
-    plt.show()
+    fig.subplots_adjust(right=legend_adjustment)
+    if show:
+        plt.show()
     # plt.savefig(folder_path + '/metrics_mean.png')
     plt.close()
 
 
-def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
+def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False):
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Mutations")
     
@@ -216,11 +218,13 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
     fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
-    plt.show()
-    # create_dir(plot_path)
-    fig.savefig(plot_path)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        # create_dir(plot_path)
+        fig.savefig(plot_path)
 
-def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path):
+def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False):
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Signatures")
     
@@ -244,12 +248,14 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
     fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
-    plt.show()
-    # create_dir(plot_path)
-    fig.savefig(plot_path)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        # create_dir(plot_path)
+        fig.savefig(plot_path)
 
 # ERRORLEARNER PLOTS:
-def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path):
+def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path=None, show=False):
     fig, axs = plt.subplots(2,2, figsize=(8,6))
     # fig.suptitle("Interval Metrics vs Number of Mutations")
 
@@ -275,10 +281,12 @@ def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path)
         stylize_axes(axes, '', xlabels[0], ylabels[i])
 
     fig.tight_layout()
-    # plt.show()
-    fig.savefig(plot_path)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
 
-def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_path):
+def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_path=None, show=False):
     fig, axs = plt.subplots(2,2)
     fig.suptitle("Interval metrics vs Number of Signatures")
 
@@ -308,10 +316,12 @@ def plot_interval_metrics_vs_sigs(label, pred_upper, pred_lower, plot_path):
 
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
-    plt.show()
-    # fig.savefig(plot_path)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
 
-def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, plot_path): # Returns x,y
+def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, plot_path=None, show=False): # Returns x,y
     label_batch = label_batch[:,:-1]
     lower = label_batch - pred_lower
     upper = pred_upper - label_batch
@@ -330,11 +340,13 @@ def plot_interval_performance(label_batch, pred_upper, pred_lower, sigs_names, p
     ax.set_xticklabels(sigs_names, rotation='vertical')
 
     fig.tight_layout()
-    # plt.show()
-    fig.savefig(plot_path)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
     return range(num_classes), 100*num_error
 
-def plot_interval_width_vs_mutations(label, upper, lower, plot = True): # Returns x,y
+def plot_interval_width_vs_mutations(label, upper, lower, show=True): # Returns x,y
     num_muts = np.unique(label[:,-1].detach().numpy())
     mean_width = np.zeros((len(num_muts)))
     for i in range(len(num_muts)):

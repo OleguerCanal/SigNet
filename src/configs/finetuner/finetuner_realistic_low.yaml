@@ -1,0 +1,25 @@
+config:
+    # IDs & paths
+    data_id: "exp_final"
+    model_id: "finetuner_realistic_low"
+    models_dir: "../trained_models/exp_final_2"
+
+    # Training params
+    source: "realistic_low"
+    network_type: "realistic"
+    iterations: 70
+    num_classes: 72
+    sigmoid_params: [500,150]
+    batch_size: 283
+    lr: 0.0015
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "finetuner_realistic"
+
+    # Network params
+    num_hidden_layers: 3
+    num_neurons: 50
+
+    # Misc
+    device: "cuda"
