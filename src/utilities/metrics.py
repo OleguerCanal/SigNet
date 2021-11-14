@@ -9,21 +9,24 @@ import torch.nn as nn
 
 # USED IN CLASSIFIER
 def accuracy(prediction, label):
-    threshold = 0.5
-    prediction = (prediction>threshold).float()*1
-    return torch.true_divide(torch.sum(prediction == label),torch.numel(prediction))*100
+    assert(prediction.shape == label.shape)
+    assert(prediction.dtype == torch.int64)
+    # assert(label.dtype == torch.int64)
+    return (torch.sum(prediction == label)/torch.numel(prediction))*100.
 
 def false_realistic(prediction, label):
-    EPS = 1e-4
-    threshold = 0.5
-    prediction = (prediction>threshold).float()*1
-    return torch.true_divide(torch.sum(label[prediction == 1] == 0),(torch.numel(label) + EPS))*100 
+    assert(prediction.shape == label.shape)
+    assert(prediction.dtype == torch.int64)
+    # assert(label.dtype == torch.int64)
+    # print(label[prediction == 1])
+    # print(torch.sum(label[prediction == 1] == 0))
+    return torch.true_divide(torch.sum(label[prediction == 1] == 0), (torch.numel(label)))*100 
 
 def false_random(prediction, label):
-    EPS = 1e-4
-    threshold = 0.5
-    prediction = (prediction>threshold).float()*1
-    return torch.true_divide(torch.sum(label[prediction == 0] == 1),(torch.numel(label) + EPS))*100 
+    assert(prediction.shape == label.shape)
+    assert(prediction.dtype == torch.int64)
+    # assert(label.dtype == torch.int64)
+    return torch.true_divide(torch.sum(label[prediction == 0] == 1), (torch.numel(label)))*100 
 
 # USED IN FINE TUNER
 def get_MSE(predicted_label, true_label):

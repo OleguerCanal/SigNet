@@ -15,7 +15,7 @@ config:
    # sigmoid_params: [500,150]
    sigmoid_params: [50000, 10000]
    loss_params:
-       lagrange_missclassification: 0.0092
+       lagrange_missclassification: 0.00451
        lagrange_pnorm: 1000
        lagrange_smalltozero: 4.64
        pnorm_order: 3.0

@@ -73,8 +73,8 @@
             "name": "Python: Model Tester",
             "type": "python",
             "request": "launch",
-            "program": "model_tester.py",
-            "cwd": "${workspaceFolder}/src/tests",
+            "program": "signet_tester.py",
+            "cwd": "${workspaceFolder}/src/tests/test_by_module/",
             "console": "integratedTerminal"
         }
 

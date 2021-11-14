@@ -27,9 +27,11 @@ class SigNet:
                  errorfinder_realistic_low="../../trained_models/exp_final/errofinder_realistic_low",
                  errorfinder_realistic_large="../../trained_models/exp_final/errofinder_realistic_large",
                  path_opportunities=None,
-                 signatures_path="../../data/data.xlsx"):
+                 signatures_path="../../data/data.xlsx",
+                 mutation_type_order="../../data/mutation_type_order.xlsx"):
 
-        signatures = read_signatures(signatures_path)
+        signatures = read_signatures(file=signatures_path,
+                                     mutation_type_order=mutation_type_order)
         self.baseline = Baseline(signatures)
 
         realistic_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
@@ -37,6 +39,7 @@ class SigNet:
 
         random_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_random_low,
                                              large_mum_mut_dir=finetuner_random_large)
+
 
         realistic_errorfinder = CombinedErrorfinder(low_mum_mut_dir=errorfinder_realistic_low,
                                                     large_mum_mut_dir=errorfinder_realistic_large)
@@ -77,12 +80,13 @@ class SigNet:
                     torch.sum(mutation_vec, dim=1).reshape(-1, 1)
 
             # Run signature_finder
+            self.baseline_guess = self.baseline.get_weights_batch(
+                normalized_mutation_vec, n_workers=1)  # hack to be able to access it for benchmarking purposes
 
-            baseline_guess = self.baseline.get_weights_batch(
-                normalized_mutation_vec, n_workers=1)
+            # print(self.baseline_guess)
 
             finetuner_guess, upper_bound, lower_bound = self.finetuner_errorfinder(
-                normalized_mutation_vec, baseline_guess, num_mutations.reshape(-1, 1))
+                normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))
 
         if numpy:
             return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy()

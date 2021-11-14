@@ -17,6 +17,12 @@ class CombinedFinetuner:
         self.finetuner_low = read_model(low_mum_mut_dir)
         self.finetuner_large = read_model(large_mum_mut_dir)
 
+    def __join_and_sort(self, low, large, ind_order):
+        joined = torch.cat((low, large), dim=0)
+        joined = torch.cat((joined, ind_order), dim=1)
+        joined = joined[joined[:, -1].sort()[1]]
+        return joined[:, :-1]
+    
     def __call__(self,
                  mutation_dist,
                  baseline_guess,
@@ -28,28 +34,28 @@ class CombinedFinetuner:
         """
         num_mut = num_mut.view(-1)
         ind = np.array(range(mutation_dist.size()[0]))
-        ind_order = ind[num_mut <= 1e3]
-        ind_order = np.concatenate((ind_order, ind[num_mut > 1e3]))
+        
+        ind_order = torch.tensor(np.concatenate((ind[num_mut <= 1e3], ind[num_mut > 1e3]))).reshape(-1, 1).to(torch.float)
+
         input_batch_low = mutation_dist[num_mut <= 1e3, ]
         input_batch_large = mutation_dist[num_mut > 1e3, ]
+
         baseline_guess_low = baseline_guess[num_mut <= 1e3, ]
         baseline_guess_large = baseline_guess[num_mut > 1e3, ]
-        num_mut_low = num_mut[num_mut <= 1e3, ]
-        num_mut_large = num_mut[num_mut > 1e3, ]
-        num_mut_low = num_mut_low.reshape(-1, 1)
-        num_mut_large = num_mut_large.reshape(-1, 1)
+        
+        num_mut_low = num_mut[num_mut <= 1e3, ].reshape(-1, 1)
+        num_mut_large = num_mut[num_mut > 1e3, ].reshape(-1, 1)
+        
         with torch.no_grad():
             guess_low = self.finetuner_low(
                 input_batch_low, baseline_guess_low, num_mut_low)
+
             guess_large = self.finetuner_large(
                 input_batch_large, baseline_guess_large, num_mut_large)
-            finetuner_guess = torch.cat((guess_low, guess_large), dim=0)
-            ind_order = [float(el) for el in ind_order]
-            finetuner_guess = torch.cat(
-                (finetuner_guess, torch.tensor(ind_order).reshape(-1, 1)), dim=1)
-            finetuner_guess = finetuner_guess[finetuner_guess[:, -1].sort()[1]]
-            finetuner_guess = finetuner_guess[:, :-1]
 
+            finetuner_guess = self.__join_and_sort(low=guess_low,
+                                                   large=guess_large,
+                                                   ind_order=ind_order)
         return finetuner_guess
 
 

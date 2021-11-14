@@ -12,12 +12,12 @@ from models.classifier import Classifier
 from models.finetuner import FineTuner
 from models.error_finder import ErrorFinder
 
-def read_signatures(file, mutation_type_order = "../../data/mutation_type_order.xlsx"):
+def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
     """
     File must contain first column with mutations types X[Y>Z]W and the rest of the columns must be the set of signatures
     """
     # Sort according to cosmic mutation types order
-    signatures_data = sort_signatures(file, mutation_type_order = mutation_type_order)
+    signatures_data = sort_signatures(file, mutation_type_order=mutation_type_order)
 
     num_sigs = len(signatures_data.columns) - 1
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
@@ -25,7 +25,7 @@ def read_signatures(file, mutation_type_order = "../../data/mutation_type_order.
     signatures = torch.stack(signatures).t()
     return signatures
 
-def sort_signatures(file, output_file=None, mutation_type_order = "../../data/mutation_type_order.xlsx"):
+def sort_signatures(file, output_file=None, mutation_type_order="../../data/mutation_type_order.xlsx"):
     signatures_data = pd.read_excel(file)
     mutation_order = pd.read_excel(mutation_type_order)
 
