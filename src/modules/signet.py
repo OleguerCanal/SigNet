@@ -11,6 +11,7 @@ from utilities.plotting import plot_interval_performance, plot_weights
 from utilities.normalize_data import normalize_data
 from utilities.io import create_dir, read_model, read_signatures, update_dict
 from models.baseline import Baseline
+from models.error_finder import ErrorFinder
 from modules.combined_errorfinder import CombinedErrorfinder
 from modules.combined_finetuner import CombinedFinetuner
 from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
@@ -22,10 +23,7 @@ class SigNet:
                  finetuner_random_large="../../trained_models/exp_final/finetuner_random_large",
                  finetuner_realistic_low="../../trained_models/exp_final/finetuner_realistic_low",
                  finetuner_realistic_large="../../trained_models/exp_final/finetuner_realistic_large",
-                 errorfinder_random_low="../../trained_models/exp_final/errorfinder_random_low",
-                 errorfinder_random_large="../../trained_models/exp_final/errorfinder_random_large",
-                 errorfinder_realistic_low="../../trained_models/exp_final/errorfinder_realistic_low",
-                 errorfinder_realistic_large="../../trained_models/exp_final/errorfinder_realistic_large",
+                 errorfinder="../../trained_models/exp_final/errorfinder",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
                  mutation_type_order="../../data/mutation_type_order.xlsx"):
@@ -41,17 +39,13 @@ class SigNet:
                                              large_mum_mut_dir=finetuner_random_large)
 
 
-        realistic_errorfinder = CombinedErrorfinder(low_mum_mut_dir=errorfinder_realistic_low,
-                                                    large_mum_mut_dir=errorfinder_realistic_large)
+        errorfinder = read_model(errorfinder)
 
-        random_errorfinder = CombinedErrorfinder(low_mum_mut_dir=errorfinder_random_low,
-                                                 large_mum_mut_dir=errorfinder_random_large)
 
         self.finetuner_errorfinder = ClassifiedFinetunerErrorfinder(classifier=read_model(classifier),
                                                                     realistic_finetuner=realistic_finetuner,
                                                                     random_finetuner=random_finetuner,
-                                                                    realistic_errorfinder=realistic_errorfinder,
-                                                                    random_errorfinder=random_errorfinder)
+                                                                    errorfinder=errorfinder)
         self.opportunities_name_or_path = opportunities_name_or_path
         
 

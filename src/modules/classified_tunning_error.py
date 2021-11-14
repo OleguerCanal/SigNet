@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import torch
 
 from utilities.io import read_model
@@ -11,8 +12,7 @@ class ClassifiedFinetunerErrorfinder:
                  classifier,
                  realistic_finetuner,
                  random_finetuner,
-                 realistic_errorfinder,
-                 random_errorfinder,
+                 errorfinder,
                  classification_cutoff=0.5,
                  device="cpu"):
         """Instantiate a ClassifiedFinetuner
@@ -32,8 +32,7 @@ class ClassifiedFinetunerErrorfinder:
         self.realistic_finetuner = realistic_finetuner
         self.random_finetuner = random_finetuner
 
-        self.realistic_errorfinder = realistic_errorfinder
-        self.random_errorfinder = random_errorfinder
+        self.errorfinder = errorfinder
 
     def __join_and_sort(self, real, rand, ind_order):
         joined = torch.cat((real, rand), dim=0)
@@ -66,7 +65,7 @@ class ClassifiedFinetunerErrorfinder:
         real_guess = self.realistic_finetuner(mutation_dist=mut_dist_real,
                                               baseline_guess=weights_real,
                                               num_mut=num_mut_real)
-        real_error_upper, real_error_lower = self.realistic_errorfinder(real_guess, num_mut_real)
+        # real_error_upper, real_error_lower = self.realistic_errorfinder(real_guess, num_mut_real)
 
         # Select and finetune mutations classified as random
         mut_dist_rand = mutation_dist[ind_rand, ...]
@@ -76,10 +75,12 @@ class ClassifiedFinetunerErrorfinder:
         rand_guess = self.random_finetuner(mutation_dist=mut_dist_rand,
                                            baseline_guess=weights_rand,
                                            num_mut=num_mut_rand)
-        rand_error_upper, rand_error_lower = self.random_errorfinder(rand_guess, num_mut_rand)
+        # rand_error_upper, rand_error_lower = self.random_errorfinder(rand_guess, num_mut_rand)
 
         # Join predictions and re-order them as originally
         joined_guess = self.__join_and_sort(real=real_guess, rand=rand_guess, ind_order=ind_order)
-        joined_upper = self.__join_and_sort(real=real_error_upper, rand=rand_error_upper, ind_order=ind_order)
-        joined_lower = self.__join_and_sort(real=real_error_lower, rand=rand_error_lower, ind_order=ind_order)
+        joined_mutations = self.__join_and_sort(real=num_mut_real, rand=num_mut_rand, ind_order=ind_order)
+        joined_upper, joined_lower = self.errorfinder(weights=joined_guess,
+                                                      num_mutations=joined_mutations,
+                                                      classification=classification.reshape(-1, 1))
         return joined_guess, joined_upper, joined_lower

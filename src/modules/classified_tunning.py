@@ -67,4 +67,4 @@ class ClassifiedFinetuner:
         joined_guess = torch.cat((joined_guess, ind_order), dim=1)
         joined_guess = joined_guess[joined_guess[:, -1].sort()[1]]
         joined_guess = joined_guess[:, :-1]
-        return joined_guess
+        return joined_guess, classification.reshape(-1,1)
