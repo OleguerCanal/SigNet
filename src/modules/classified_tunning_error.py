@@ -1,7 +1,6 @@
 import os
 import sys
 
-import numpy as np
 import torch
 
 from utilities.io import read_model
@@ -54,7 +53,7 @@ class ClassifiedFinetunerErrorfinder:
         self.classification_results = (classification >= self.classification_cutoff).to(torch.int64)
 
         # Remember input indexes
-        ind = np.array(range(mutation_dist.size()[0]))
+        ind = torch.tensor(range(mutation_dist.size()[0]))
         ind_real = ind[classification >= self.classification_cutoff]
         ind_rand = ind[classification < self.classification_cutoff]
         ind_order = torch.tensor(np.concatenate((ind_real, ind_rand))).reshape(-1, 1).to(torch.float)
