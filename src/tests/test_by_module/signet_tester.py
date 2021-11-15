@@ -33,11 +33,8 @@ signet = SigNet(classifier=path + "classifier",
                 finetuner_random_large=path + "finetuner_random_large",
                 finetuner_realistic_low=path + "finetuner_realistic_low",
                 finetuner_realistic_large=path + "finetuner_realistic_large",
-                errorfinder_random_low=path + "errorfinder_random_low",
-                errorfinder_random_large=path + "errorfinder_random_large",
-                errorfinder_realistic_low=path + "errorfinder_realistic_low",
-                errorfinder_realistic_large=path + "errorfinder_realistic_large",
-                path_opportunities=None,
+                errorfinder=path + "errorfinder_realistic_low",
+                opportunities_name_or_path=None,
                 signatures_path=data_folder + "data.xlsx",
                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
 

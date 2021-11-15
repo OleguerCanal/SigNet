@@ -13,7 +13,8 @@ class SignedErrorFinder(nn.Module):
         # Num units of the weights path
         num_units_branch_1 = int(num_units*0.9)
         # Num units of the mutations path
-        num_units_branch_2 = num_units - num_units_branch_1
+        num_units_branch_2 = int((num_units - num_units_branch_1)/2)
+        num_units_branch_3 = num_units - num_units_branch_1 - num_units_branch_2
 
         # Weights path
         self.layer1_1 = nn.Linear(num_classes, num_units_branch_1)
@@ -24,6 +25,10 @@ class SignedErrorFinder(nn.Module):
         # Mutations path
         self.layer1_2 = nn.Linear(1, num_units_branch_2)
         nn.init.kaiming_uniform_(self.layer1_2.weight)
+
+        # Mutations path
+        self.layer1_3 = nn.Linear(1, num_units_branch_3)
+        nn.init.kaiming_uniform_(self.layer1_3.weight)
 
         # Combined layers
         self.hidden_layers = nn.ModuleList(
@@ -40,7 +45,7 @@ class SignedErrorFinder(nn.Module):
     def __clamp(self, x, slope=1e-2):
         return nn.LeakyReLU(slope)(1 - nn.LeakyReLU(slope)(1 - x))
 
-    def forward(self, weights, num_mutations):
+    def forward(self, weights, num_mutations, classification):
         # Baseline head
         weights = self.activation(self.layer1_1(weights))
         weights = self.activation(self.layer2_1(weights))
@@ -49,8 +54,11 @@ class SignedErrorFinder(nn.Module):
         num_mutations = nn.Sigmoid()((num_mutations-self.sigmoid_params[0])/self.sigmoid_params[1])
         num_mutations = self.activation(self.layer1_2(num_mutations))
 
+        # Baseline head
+        classification = self.activation(self.layer1_3(classification))
+
         # Concatenate
-        comb = torch.cat([weights, num_mutations], dim=1)
+        comb = torch.cat([weights, num_mutations, classification], dim=1)
 
         # Apply shared layers
         for layer in self.hidden_layers:
@@ -85,7 +93,7 @@ class ErrorFinder(nn.Module):
                                                num_hidden_layers=num_hidden_layers_neg,
                                                num_units=num_units_neg)
 
-    def forward(self, weights, num_mutations):
-        pred_upper = self.positive_path(weights, num_mutations)
-        pred_lower = self.negative_path(weights, num_mutations)
+    def forward(self, weights, num_mutations, classification):
+        pred_upper = self.positive_path(weights, num_mutations, classification)
+        pred_lower = self.negative_path(weights, num_mutations, classification)
         return pred_upper, pred_lower

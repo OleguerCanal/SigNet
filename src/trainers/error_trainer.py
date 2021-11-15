@@ -19,10 +19,12 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_partitions import DataPartitions
-from utilities.io import save_model
+from utilities.io import save_model, read_model
 from utilities.metrics import distance_to_interval, get_pi_metrics
 from models.error_finder import ErrorFinder
 from loggers.error_finder_logger import ErrorFinderLogger
+from modules.classified_tunning import ClassifiedFinetuner
+from modules.combined_finetuner import CombinedFinetuner
 
 class ErrorTrainer:
     def __init__(self,
@@ -138,10 +140,11 @@ class ErrorTrainer:
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
-            for _, train_label, train_weight_guess, num_mut in tqdm(dataloader):
+            for _, train_label, train_weight_guess, num_mut, classification in tqdm(dataloader):
                 optimizer.zero_grad()
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
-                                                           num_mutations=num_mut)
+                                                           num_mutations=num_mut,
+                                                           classification=classification)
 
                 # Compute loss
                 train_loss = self.__loss(label=train_label,
@@ -155,7 +158,8 @@ class ErrorTrainer:
 
                 with torch.no_grad():
                     val_pred_upper, val_pred_lower = model(weights=self.val_dataset.prev_guess,
-                                                           num_mutations=self.val_dataset.num_mut)
+                                                           num_mutations=self.val_dataset.num_mut,
+                                                           classification=self.val_dataset.classification)
                     val_loss = self.__loss(label=self.val_dataset.labels,
                                            pred_lower=val_pred_lower,
                                            pred_upper=val_pred_upper)
@@ -194,8 +198,11 @@ def train_errorfinder(config) -> float:
 
     # Set paths
     errorfinder_path = os.path.join(config["models_dir"], config["model_id"])
-    finetuner_low_path = os.path.join(config["models_dir"], config["finetuner_low_id"])
-    finetuner_large_path = os.path.join(config["models_dir"], config["finetuner_large_id"])
+    classifier_path = os.path.join(config["models_dir"], config["classifier_id"])
+    finetuner_realistic_low_path = os.path.join(config["models_dir"], config["finetuner_realistic_low_id"])
+    finetuner_realistic_large_path = os.path.join(config["models_dir"], config["finetuner_realistic_large_id"])
+    finetuner_random_low_path = os.path.join(config["models_dir"], config["finetuner_random_low_id"])
+    finetuner_random_large_path = os.path.join(config["models_dir"], config["finetuner_random_large_id"])
 
     if config["enable_logging"]:
         wandb.init(project=config["wandb_project_id"],
@@ -204,15 +211,38 @@ def train_errorfinder(config) -> float:
                 name=config["model_id"])
 
     # Load data
-    train_data, val_data = read_data(experiment_id=config["data_id"],
-                                     source=config["source"],
-                                     device="cpu")
+    train_real_low, val_real_low = read_data(experiment_id=config["data_id"],
+                                            source="realistic_low",
+                                            device="cpu")
+    train_real_large, val_real_large = read_data(experiment_id=config["data_id"],
+                                                source="realistic_large",
+                                                device="cpu")
+    train_rand_low, val_rand_low = read_data(experiment_id=config["data_id"],
+                                            source="random_low",
+                                            device="cpu")
+    train_rand_large, val_rand_large = read_data(experiment_id=config["data_id"],
+                                                source="random_large",
+                                                device="cpu")
+    train_data = train_real_low
+    train_data.append(train_real_large)
+    train_data.append(train_rand_low)
+    train_data.append(train_rand_large)
+    train_data.perm()
 
-    train_data = baseline_guess_to_combined_finetuner_guess(finetuner_low_dir=finetuner_low_path,
-                                                            finetuner_large_dir=finetuner_large_path,
+    val_data = val_real_low
+    val_data.append(val_real_large)
+    val_data.append(val_rand_low)
+    val_data.append(val_rand_large)
+
+    model = ClassifiedFinetuner(classifier=read_model(classifier_path),
+                                realistic_finetuner=CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low_path,
+                                                                      large_mum_mut_dir=finetuner_realistic_large_path),
+                                random_finetuner=CombinedFinetuner(low_mum_mut_dir=finetuner_random_low_path,
+                                                                      large_mum_mut_dir=finetuner_random_large_path))
+
+    train_data = baseline_guess_to_combined_finetuner_guess(model=model,
                                                             data=train_data)
-    val_data = baseline_guess_to_combined_finetuner_guess(finetuner_low_dir=finetuner_low_path,
-                                                            finetuner_large_dir=finetuner_large_path,
+    val_data = baseline_guess_to_combined_finetuner_guess(model=model,
                                                             data=val_data)
 
     train_data.to(device=device)

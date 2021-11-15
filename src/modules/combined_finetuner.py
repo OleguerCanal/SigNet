@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 import torch
 
@@ -29,6 +30,7 @@ class CombinedFinetuner:
         """Get weights of each signature in lexicographic wrt 1-mer
         """
         num_mut = num_mut.view(-1)
+        ind = torch.tensor(range(mutation_dist.size()[0]))
         ind_order = torch.tensor(np.concatenate((ind[num_mut <= 1e3], ind[num_mut > 1e3]))).reshape(-1, 1).to(torch.float)
         
         input_batch_low = mutation_dist[num_mut <= 1e3, ]
@@ -53,18 +55,14 @@ class CombinedFinetuner:
         return finetuner_guess
 
 
-def baseline_guess_to_combined_finetuner_guess(finetuner_low_dir, finetuner_large_dir, data):
+def baseline_guess_to_combined_finetuner_guess(model, data):
     # Load finetuner and compute guess_1
     import gc
-
-    combined_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_low_dir,
-                                           large_mum_mut_dir=finetuner_large_dir)
-
     with torch.no_grad():
-        data.prev_guess = combined_finetuner(mutation_dist=data.inputs,
-                                    baseline_guess=data.prev_guess,
-                                    num_mut=data.num_mut)
-    del combined_finetuner
+        data.prev_guess, data.classification = model(mutation_dist=data.inputs,
+                                                     weights=data.prev_guess,
+                                                     num_mut=data.num_mut)
+    del model
     gc.collect()
     torch.cuda.empty_cache()
     return data

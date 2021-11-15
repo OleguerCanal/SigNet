@@ -84,7 +84,7 @@ class FinetunerTrainer:
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
-            for train_input, train_label, train_weight_guess, num_mut in tqdm(dataloader):
+            for train_input, train_label, train_weight_guess, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, train_weight_guess, num_mut)
