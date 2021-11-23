@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
 
-from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics
+from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics, get_reconstruction_error
 from utilities.io import create_dir
 
 # from utilities.metrics import get_classification_metrics, get_pi_metrics
@@ -191,7 +191,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     plt.close()
 
 
-def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False):
+def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False, signatures=None, mutation_distributions=None):
     fig, axs = plt.subplots(len(list_of_metrics))
     fig.suptitle("Metrics vs Number of Mutations")
     
@@ -204,8 +204,17 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
                 indexes = label[:, -1] == num_mut
                 metrics = get_classification_metrics(label_batch=label[indexes, :-1],
                                                      prediction_batch=list_of_guesses[method_index][indexes, :])
-                values[method_index, i] = metrics[metric]
-        
+                
+                if metric == "reconstruction_error":  # TODO(oleguer) Fix this, its super sketchy
+                    assert(signatures is not None)
+                    assert(mutation_distributions is not None)
+                    rec_error = get_reconstruction_error(mutation_dist=mutation_distributions[indexes, :],
+                                                         guess=list_of_guesses[method_index][indexes, :],
+                                                         signatures=signatures)
+                    values[method_index, i] = torch.mean(rec_error)
+                else:
+                    values[method_index, i] = metrics[metric]
+
         handles = axs[metric_index].plot(np.log10(num_muts), np.transpose(values))
         axs[metric_index].set_ylabel(metric)
         if metric_index == len(list_of_metrics) - 1:
@@ -253,6 +262,14 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
     if plot_path is not None:
         # create_dir(plot_path)
         fig.savefig(plot_path)
+
+def plot_reconstruction(input, weight_guess, signatures, ind_list):
+    reconstruction = torch.einsum("ij,bj->bi", (signatures, weight_guess))
+    for i in ind_list:
+        plt.bar(range(96), input[i,:].detach().numpy(), width=0.4)
+        plt.bar(np.array(range(96))+0.4, reconstruction[i,:].detach().numpy(), width=0.4)
+        plt.show()
+        plt.close()
 
 # ERRORLEARNER PLOTS:
 def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path=None, show=False):

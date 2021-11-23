@@ -26,17 +26,23 @@ class SigNet:
                  errorfinder="../../trained_models/exp_final_3/errorfinder",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
-                 mutation_type_order="../../data/mutation_type_order.xlsx"):
+                 mutation_type_order="../../data/mutation_type_order.xlsx",
+                 apply_reconstruction_correction=True):
 
         signatures = read_signatures(file=signatures_path,
                                      mutation_type_order=mutation_type_order)
+        self.signatures = signatures # TODO(oleguer): Remove, this is only for debugging
         self.baseline = Baseline(signatures)
 
         realistic_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
-                                                large_mum_mut_dir=finetuner_realistic_large)
+                                                large_mum_mut_dir=finetuner_realistic_large,
+                                                apply_reconstruction_correction=apply_reconstruction_correction,
+                                                signatures=signatures)
 
         random_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_random_low,
-                                             large_mum_mut_dir=finetuner_random_large)
+                                             large_mum_mut_dir=finetuner_random_large,
+                                             apply_reconstruction_correction=apply_reconstruction_correction,
+                                             signatures=signatures)
 
 
         errorfinder = read_model(errorfinder)

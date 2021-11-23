@@ -226,6 +226,21 @@ def get_present_sigs(data):
     """
     return torch.mean(torch.count(data, axis=1))
 
+def get_reconstruction_error(mutation_dist, guess, signatures):
+    reconstruction = torch.einsum("ij,bj->bi", (signatures, guess))
+    errors = torch.sum(torch.nn.MSELoss(reduction='none')(reconstruction, mutation_dist), dim=1)
+    return errors
+
+
+METRICS_DICT = {
+    "mse" : get_MSE,
+    "cos" : get_negative_cosine_similarity,
+    "cross_ent" : get_cross_entropy2,
+    "KL" : get_kl_divergence,
+    "JS" : get_jensen_shannon,
+    "W" : get_wasserstein_distance,
+}
+
 if __name__ == "__main__":
     torch.seed = 0
 
