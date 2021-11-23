@@ -6,8 +6,8 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from modules.signet import SigNet
-from utilities.io import read_test_data, csv_to_tensor
-from utilities.plotting import plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier
+from utilities.io import read_signatures, read_test_data, csv_to_tensor
+from utilities.plotting import plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier, plot_reconstruction
 
 # Read data
 data_folder = "../../../data/"
@@ -27,7 +27,7 @@ inputs, label = read_test_data(device='cpu',
 print("data loaded")
 
 # Load model
-path = "../../../trained_models/exp_final_2/"
+path = "../../../trained_models/exp_final_3/"
 signet = SigNet(classifier=path + "classifier",
                 finetuner_random_low=path + "finetuner_random_low",
                 finetuner_random_large=path + "finetuner_random_large",
@@ -52,16 +52,20 @@ print("forwarded")
 #                                     label=torch.ones((inputs.shape[0])),
 #                                     num_muts_list=label[:, -1])
 
-plot_metric_vs_mutations(list_of_metrics=["accuracy %", "reconstruction_error"],
-                         list_of_methods=['Baseline', 'Finetuner'],
-                         list_of_guesses=[signet.baseline_guess, finetuner_guess],
-                         label=label,
-                         show=True,
-                         signatures=signet.signatures,
-                         mutation_distributions=inputs)
+# plot_metric_vs_mutations(list_of_metrics=["accuracy %", "reconstruction_error"],
+#                          list_of_methods=['Baseline', 'Finetuner'],
+#                          list_of_guesses=[signet.baseline_guess, finetuner_guess],
+#                          label=label,
+#                          show=True,
+#                          signatures=signet.signatures,
+#                          mutation_distributions=inputs)
 
-plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, show=True)
-plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
+signatures = read_signatures("../../../data/data.xlsx", "../../../data/mutation_type_order.xlsx")
+
+
+plot_reconstruction(inputs, finetuner_guess, signatures, [11000,12000,13000])
+# plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, show=True)
+# plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
 # plot_interval_metrics_vs_sigs(label, upper_bound, lower_bound, '')
 
 # errorfiner_realistic = read_model(model_path + experiment_id + "/errorfinder_realistic")
