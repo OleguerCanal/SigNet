@@ -18,12 +18,12 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/classifier",
-                 finetuner_random_low="../../trained_models/exp_final/finetuner_random_low",
-                 finetuner_random_large="../../trained_models/exp_final/finetuner_random_large",
-                 finetuner_realistic_low="../../trained_models/exp_final/finetuner_realistic_low",
-                 finetuner_realistic_large="../../trained_models/exp_final/finetuner_realistic_large",
-                 errorfinder="../../trained_models/exp_final/errorfinder",
+                 classifier="../../trained_models/exp_final_3/classifier",
+                 finetuner_random_low="../../trained_models/exp_final_3/finetuner_random_low",
+                 finetuner_random_large="../../trained_models/exp_final_3/finetuner_random_large",
+                 finetuner_realistic_low="../../trained_models/exp_final_3/finetuner_realistic_low",
+                 finetuner_realistic_large="../../trained_models/exp_final_3/finetuner_realistic_large",
+                 errorfinder="../../trained_models/exp_final_3/errorfinder",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
                  mutation_type_order="../../data/mutation_type_order.xlsx"):
@@ -115,23 +115,33 @@ if __name__ == "__main__":
     config = update_dict(config=config, args=_args)
     print(config)
 
-    input_file_path = config["input_data"]
-    opportunities = config["normalization"]
-    output_path = config["output"] 
-    plot_figs = config["figures"]
+    # input_file_path = config["input_data"]
+    # opportunities = config["normalization"]
+    # output_path = config["output"] 
+    # plot_figs = config["figures"]
+
+    input_file_path = "../../data/Michel_analysis/michel_input.csv"
+    opportunities = "genome"
+    output_path = "../../data/Michel_analysis" 
+    plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
 
-    mutation_data = torch.tensor(pd.read_csv(input_file_path, header=None, usecols=list(range(1,97))).values, dtype=torch.float)
+    input_file = pd.read_csv(input_file_path, header=0, index_col=0)
+    mutation_data = torch.tensor(input_file.values, dtype=torch.float)
     weight_guess, upper_bound, lower_bound = signet(mutation_vec=mutation_data)
 
+    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     # Write results
     create_dir(output_path+ "/whatever.txt")
     df = pd.DataFrame(weight_guess)
-    df.to_csv(output_path + "/all_donors_guesses.csv", header=False, index=False)
+    df.columns = sig_names
+    row_names =input_file.index.tolist()
+    df.index = row_names
+    df.to_csv(output_path + "/Michel_guesses.csv", header=True, index=True)
 
 
     # Plot figures
     if plot_figs:
         for i in range(weight_guess.shape[0]):
-            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], list(pd.read_excel("../../data/data.xlsx").columns)[1:], output_path + "/plot_sample_%s.png"%str(i))
+            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plot_sample_%s.png"%str(i))
