@@ -263,13 +263,17 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
         # create_dir(plot_path)
         fig.savefig(plot_path)
 
-def plot_reconstruction(input, weight_guess, signatures, ind_list):
-    reconstruction = torch.einsum("ij,bj->bi", (signatures, weight_guess))
+def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
+    create_dir(plot_path)
+    reconstruction = torch.einsum("ij,bj->bi", (signatures, torch.tensor(weight_guess)))
     for i in ind_list:
-        plt.bar(range(96), input[i,:].detach().numpy(), width=0.4)
+        plt.bar(range(96), input[i,:], width=0.4)
         plt.bar(np.array(range(96))+0.4, reconstruction[i,:].detach().numpy(), width=0.4)
-        plt.show()
+        #plt.show()
+        plt.legend(["Input", "Reconstruction"])
+        plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
+
 
 # ERRORLEARNER PLOTS:
 def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path=None, show=False):
