@@ -83,4 +83,4 @@ class ClassifiedFinetunerErrorfinder:
         joined_upper, joined_lower = self.errorfinder(weights=joined_guess,
                                                       num_mutations=joined_mutations,
                                                       classification=classification.reshape(-1, 1))
-        return joined_guess, joined_upper, joined_lower
+        return joined_guess, joined_upper, joined_lower, classification

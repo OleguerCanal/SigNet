@@ -7,9 +7,9 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.plotting import plot_interval_performance, plot_weights
+from utilities.plotting import plot_interval_performance, plot_reconstruction, plot_weights
 from utilities.normalize_data import normalize_data
-from utilities.io import create_dir, read_model, read_signatures, update_dict
+from utilities.io import create_dir, read_model, read_signatures, update_dict, write_final_outputs
 from models.baseline import Baseline
 from models.error_finder import ErrorFinder
 from modules.combined_errorfinder import CombinedErrorfinder
@@ -78,12 +78,12 @@ class SigNet:
             self.baseline_guess = self.baseline.get_weights_batch(
                 normalized_mutation_vec, n_workers=nworkers)  # hack to be able to access it for benchmarking purposes
 
-            finetuner_guess, upper_bound, lower_bound = self.finetuner_errorfinder(
+            finetuner_guess, upper_bound, lower_bound, classification = self.finetuner_errorfinder(
                 normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))
 
         if numpy:
-            return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy()
-        return finetuner_guess, upper_bound, lower_bound
+            return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy(), classification.detach().numpy(), normalized_mutation_vec.detach().numpy()
+        return finetuner_guess, upper_bound, lower_bound, classification, normalized_mutation_vec
 
 
 if __name__ == "__main__":
@@ -135,19 +135,15 @@ if __name__ == "__main__":
 
     input_file = pd.read_csv(input_file_path, header=0, index_col=0)
     mutation_data = torch.tensor(input_file.values, dtype=torch.float)
-    weight_guess, upper_bound, lower_bound = signet(mutation_vec=mutation_data)
+    weight_guess, upper_bound, lower_bound, classification, normalized_input = signet(mutation_vec=mutation_data)
 
-    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
-    # Write results
-    create_dir(output_path+ "/whatever.txt")
-    df = pd.DataFrame(weight_guess)
-    df.columns = sig_names
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/Michel_guesses.csv", header=True, index=True)
+    # Write final outputs
+    write_final_outputs(weight_guess, lower_bound, upper_bound, classification, input_file, output_path)
 
 
     # Plot figures
     if plot_figs:
-        for i in range(weight_guess.shape[0]):
-            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plot_sample_%s.png"%str(i))
+        sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+        # for i in range(weight_guess.shape[0]):
+        #     plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
+        plot_reconstruction(normalized_input, signet.baseline_guess, signet.signatures, list(range(weight_guess.shape[0])), output_path + "/plots/baseline_reconstruction")

@@ -245,3 +245,35 @@ def write_result(result, filepath):
     fout = open(filepath, 'w')
     fout.write(str(result))
     fout.close()
+
+def write_final_outputs(weights, lower_bound, upper_bound, classification, input_file, output_path):
+    create_dir(output_path+ "/whatever.txt")
+    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    
+    # Write results weight guesses
+    df = pd.DataFrame(weights)
+    df.columns = sig_names
+    row_names =input_file.index.tolist()
+    df.index = row_names
+    df.to_csv(output_path + "/weight_guesses.csv", header=True, index=True)
+
+    # Write results lower bound guesses
+    df = pd.DataFrame(lower_bound)
+    df.columns = sig_names
+    row_names =input_file.index.tolist()
+    df.index = row_names
+    df.to_csv(output_path + "/lower_bound_guesses.csv", header=True, index=True)
+
+    # Write results upper bound guesses
+    df = pd.DataFrame(upper_bound)
+    df.columns = sig_names
+    row_names =input_file.index.tolist()
+    df.index = row_names
+    df.to_csv(output_path + "/upper_bound_guesses.csv", header=True, index=True)
+
+    # Write results classification
+    df = pd.DataFrame(classification)
+    df.columns = ["classification"]
+    row_names =input_file.index.tolist()
+    df.index = row_names
+    df.to_csv(output_path + "/classification_guesses.csv", header=True, index=True)
