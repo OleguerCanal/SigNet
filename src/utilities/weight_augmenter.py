@@ -53,8 +53,7 @@ class WeightAugmenter:
             torch.tensor: Tensor of augmentations
         """
         augmented_weights = weight.repeat(num_augmentations, 1)
-        mask = (torch.rand(augmented_weights.size())
-                > 1 - prop_weights_affected)
+        mask = (torch.rand(augmented_weights.size()) > 1 - prop_weights_affected)
         noise = max_noise*torch.rand(augmented_weights.size())*mask
         augmented_weights = augmented_weights + noise
         return self.__normalize(augmented_weights)
@@ -77,8 +76,8 @@ class WeightAugmenter:
             prop_weights_affected=random_prop_affected,
             max_noise=random_max_noise
         )
-        augmentations = [weight, reweighted_augmentations, random_augmentations]
-        return torch.cat(augmentations)
+        augmentations = torch.cat([reweighted_augmentations, random_augmentations])
+        return augmentations[np.random.permutation(augmentations.shape[0]), ...]
 
 
 if __name__ == "__main__":
