@@ -35,25 +35,22 @@ class DataGenerator:
         return sample
 
     def make_similar_set(self,
-                         examples_input,
+                         examples_weight,
                          large_or_low="low",
                          is_test=False,
                          n_augmentations=10):
         """Create a labelled dataset of mutation vectors similar
            to the provided examples.
         """
-        # Get initial guess
-        baseline = Baseline(self.signatures)
-        baseline_guess = baseline.get_weights_batch(examples_input)
 
         # Perform weight augmentation
         weight_augmenter = WeightAugmenter()
         augmented_labels = weight_augmenter.get_mixed_augmentations(
-            weight=baseline_guess,
+            weight=examples_weight,
             reweighted_n_augs=int(n_augmentations/2),
             reweighted_augmentation_var=0.3,
             random_n_augs=int(n_augmentations/2),
-            random_prop_affected=25./72.,
+            random_affected=10,
             random_max_noise=0.3,
         )
 
@@ -63,7 +60,7 @@ class DataGenerator:
 
         if not is_test:
             if large_or_low == 'low':
-                partitions_points = int(batch_size/7)
+                partitions_points = int(batch_size/7)+1
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
                 ind_range_muts = [0]*partitions_points + [1]*partitions_points + [2]*partitions_points + [3] * partitions_points + [4]*partitions_points + [5]*partitions_points + [6]*(partitions_points+1)
             elif large_or_low == 'large':
@@ -104,7 +101,7 @@ class DataGenerator:
                 # For the real distribution we say we have more than 1e5 mutations
                 label_batch[i, :] = torch.cat(
                     [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 print(i)
 
         if self.shuffle:
