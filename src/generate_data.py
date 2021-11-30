@@ -13,7 +13,6 @@ from utilities.data_generator import DataGenerator
 
 
 if __name__ == "__main__":
-    TRAIN_PROP = 0.8
 
     signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
