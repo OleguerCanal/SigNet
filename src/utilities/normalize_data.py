@@ -11,7 +11,7 @@ def normalize_data(input_file, opportunities_name_or_path):
         abundances = create_opportunities(opportunities_name_or_path)
 
     abundances_tensor = torch.Tensor(abundances)
-    return torch.div(input_file, abundances_tensor)
+    return torch.div(input_file, abundances_tensor).nan_to_num()
 
 
 
