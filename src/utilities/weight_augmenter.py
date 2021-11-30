@@ -1,5 +1,6 @@
 import os
 import sys
+from numpy import random
 
 import torch
 import numpy as np
@@ -37,7 +38,7 @@ class WeightAugmenter:
     def get_random_augmentations(self,
                                  weight,
                                  num_augmentations=5,
-                                 prop_weights_affected=6./72.,
+                                 num_weights_affected=25,
                                  max_noise=0.3):
         """Apply random weight upscaling to a proportion of 
         prop_weights_affected weights with a uniform
@@ -46,15 +47,15 @@ class WeightAugmenter:
         Args:
             weight (torch.tensor(batch,num_sigs)): Batch of guessed weights
             num_augmentations (int, optional): Number of variations per weight in batch
-            prop_weights_affected (float, optional): Provability of changing a weight.
+            num_weights_affected (float, optional): Max number of weights affected
             max_noise (float, optional): Maximum weight upscaling.
 
         Returns:
             torch.tensor: Tensor of augmentations
         """
         augmented_weights = weight.repeat(num_augmentations, 1)
-        mask = (torch.rand(augmented_weights.size())
-                > 1 - prop_weights_affected)
+        prop_weights_affected = random.randint(1, num_weights_affected)/weight.shape[1]
+        mask = (torch.rand(augmented_weights.size()) > 1 - prop_weights_affected)
         noise = max_noise*torch.rand(augmented_weights.size())*mask
         augmented_weights = augmented_weights + noise
         return self.__normalize(augmented_weights)
@@ -64,7 +65,7 @@ class WeightAugmenter:
                                 reweighted_n_augs=5,
                                 reweighted_augmentation_var=0.5,
                                 random_n_augs=5,
-                                random_prop_affected=6./72.,
+                                random_affected=25,
                                 random_max_noise=0.3):
         reweighted_augmentations = self.get_reweighted_augmentations(
             weight=weight,
@@ -74,11 +75,11 @@ class WeightAugmenter:
         random_augmentations = self.get_random_augmentations(
             weight=weight,
             num_augmentations=random_n_augs,
-            prop_weights_affected=random_prop_affected,
+            num_weights_affected=random_affected,
             max_noise=random_max_noise
         )
-        augmentations = [weight, reweighted_augmentations, random_augmentations]
-        return torch.cat(augmentations)
+        augmentations = torch.cat([reweighted_augmentations, random_augmentations])
+        return augmentations[np.random.permutation(augmentations.shape[0]), ...]
 
 
 if __name__ == "__main__":
