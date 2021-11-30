@@ -7,9 +7,9 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.plotting import plot_interval_performance, plot_weights
+from utilities.plotting import plot_interval_performance, plot_reconstruction, plot_weights
 from utilities.normalize_data import normalize_data
-from utilities.io import create_dir, read_model, read_signatures, update_dict
+from utilities.io import create_dir, read_model, read_signatures, update_dict, write_final_outputs
 from models.baseline import Baseline
 from models.error_finder import ErrorFinder
 from modules.combined_errorfinder import CombinedErrorfinder
@@ -18,25 +18,31 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/classifier",
-                 finetuner_random_low="../../trained_models/exp_final/finetuner_random_low",
-                 finetuner_random_large="../../trained_models/exp_final/finetuner_random_large",
-                 finetuner_realistic_low="../../trained_models/exp_final/finetuner_realistic_low",
-                 finetuner_realistic_large="../../trained_models/exp_final/finetuner_realistic_large",
-                 errorfinder="../../trained_models/exp_final/errorfinder",
+                 classifier="../../trained_models/exp_final_3/classifier",
+                 finetuner_random_low="../../trained_models/exp_final_3/finetuner_random_low",
+                 finetuner_random_large="../../trained_models/exp_final_3/finetuner_random_large",
+                 finetuner_realistic_low="../../trained_models/exp_final_3/finetuner_realistic_low",
+                 finetuner_realistic_large="../../trained_models/exp_final_3/finetuner_realistic_large",
+                 errorfinder="../../trained_models/exp_final_3/errorfinder",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
-                 mutation_type_order="../../data/mutation_type_order.xlsx"):
+                 mutation_type_order="../../data/mutation_type_order.xlsx",
+                 apply_reconstruction_correction=True):
 
         signatures = read_signatures(file=signatures_path,
                                      mutation_type_order=mutation_type_order)
+        self.signatures = signatures # TODO(oleguer): Remove, this is only for debugging
         self.baseline = Baseline(signatures)
 
         realistic_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
-                                                large_mum_mut_dir=finetuner_realistic_large)
+                                                large_mum_mut_dir=finetuner_realistic_large,
+                                                apply_reconstruction_correction=apply_reconstruction_correction,
+                                                signatures=signatures)
 
         random_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_random_low,
-                                             large_mum_mut_dir=finetuner_random_large)
+                                             large_mum_mut_dir=finetuner_random_large,
+                                             apply_reconstruction_correction=apply_reconstruction_correction,
+                                             signatures=signatures)
 
 
         errorfinder = read_model(errorfinder)
@@ -72,12 +78,12 @@ class SigNet:
             self.baseline_guess = self.baseline.get_weights_batch(
                 normalized_mutation_vec, n_workers=nworkers)  # hack to be able to access it for benchmarking purposes
 
-            finetuner_guess, upper_bound, lower_bound = self.finetuner_errorfinder(
+            finetuner_guess, upper_bound, lower_bound, classification = self.finetuner_errorfinder(
                 normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))
 
         if numpy:
-            return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy()
-        return finetuner_guess, upper_bound, lower_bound
+            return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy(), classification.detach().numpy(), normalized_mutation_vec.detach().numpy()
+        return finetuner_guess, upper_bound, lower_bound, classification, normalized_mutation_vec
 
 
 if __name__ == "__main__":
@@ -115,23 +121,29 @@ if __name__ == "__main__":
     config = update_dict(config=config, args=_args)
     print(config)
 
-    input_file_path = config["input_data"]
-    opportunities = config["normalization"]
-    output_path = config["output"] 
-    plot_figs = config["figures"]
+    # input_file_path = config["input_data"]
+    # opportunities = config["normalization"]
+    # output_path = config["output"] 
+    # plot_figs = config["figures"]
+
+    input_file_path = "../../data/Michel_analysis/michel_input.csv"
+    opportunities = "genome"
+    output_path = "../../data/Michel_analysis" 
+    plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
 
-    mutation_data = torch.tensor(pd.read_csv(input_file_path, header=None, usecols=list(range(1,97))).values, dtype=torch.float)
-    weight_guess, upper_bound, lower_bound = signet(mutation_vec=mutation_data)
+    input_file = pd.read_csv(input_file_path, header=0, index_col=0)
+    mutation_data = torch.tensor(input_file.values, dtype=torch.float)
+    weight_guess, upper_bound, lower_bound, classification, normalized_input = signet(mutation_vec=mutation_data)
 
-    # Write results
-    create_dir(output_path+ "/whatever.txt")
-    df = pd.DataFrame(weight_guess)
-    df.to_csv(output_path + "/all_donors_guesses.csv", header=False, index=False)
+    # Write final outputs
+    write_final_outputs(weight_guess, lower_bound, upper_bound, classification, input_file, output_path)
 
 
     # Plot figures
     if plot_figs:
-        for i in range(weight_guess.shape[0]):
-            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], list(pd.read_excel("../../data/data.xlsx").columns)[1:], output_path + "/plot_sample_%s.png"%str(i))
+        sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+        # for i in range(weight_guess.shape[0]):
+        #     plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
+        plot_reconstruction(normalized_input, signet.baseline_guess, signet.signatures, list(range(weight_guess.shape[0])), output_path + "/plots/baseline_reconstruction")

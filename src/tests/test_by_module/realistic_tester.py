@@ -40,11 +40,13 @@ finetuner_guess = finetuner(mutation_dist=inputs,
 list_of_methods = ['baseline', 'finetuner']
 list_of_guesses = [baselines, finetuner_guess]
 # plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, labels, '')
-plot_metric_vs_mutations(list_of_metrics=["accuracy %", "sens: tp/p %", "spec: tn/n %"],
+plot_metric_vs_mutations(list_of_metrics=["accuracy %", "reconstruction_error"],
                          list_of_methods=list_of_methods,
                          list_of_guesses=list_of_guesses,
                          label=labels,
-                         show=True)
+                         show=True,
+                         signatures=signatures,
+                         mutation_distributions=inputs)
 
 # # Run errorfinder
 # errorfinder = CombinedErrorfinder(low_mum_mut_dir=models_path + "errorfinder_realistic_low",

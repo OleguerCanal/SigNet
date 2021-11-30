@@ -6,7 +6,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))))
 from models.baseline import Baseline
-from utilities.io import csv_to_tensor
+from utilities.io import csv_to_tensor, read_signatures
 from utilities.plotting import plot_all_metrics_vs_mutations,\
                                plot_metric_vs_mutations,\
                                plot_interval_metrics_vs_mutations,\
@@ -15,6 +15,7 @@ from modules.combined_finetuner import CombinedFinetuner
 from modules.combined_errorfinder import CombinedErrorfinder
 
 # Load data
+data_folder = "../../../data/"
 data_path = "../../../data/exp_final/test_random/"
 inputs = csv_to_tensor(data_path + "test_random_input.csv", device='cpu')
 baselines = csv_to_tensor(data_path + "test_random_baseline.csv", device='cpu')
@@ -33,18 +34,21 @@ finetuner_guess = finetuner(mutation_dist=inputs,
 list_of_methods = ['baseline', 'finetuner']
 list_of_guesses = [baselines, finetuner_guess]
 # plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, labels, '')
-plot_metric_vs_mutations(list_of_metrics=["accuracy %", "sens: tp/p %", "spec: tn/n %"],
+plot_metric_vs_mutations(list_of_metrics=["accuracy %", "reconstruction_error"],
                          list_of_methods=list_of_methods,
                          list_of_guesses=list_of_guesses,
                          label=labels,
-                         plot_path='')
+                         show=True,
+                         signatures=read_signatures(file=data_folder + "data.xlsx",
+                                                    mutation_type_order=data_folder + "mutation_type_order.xlsx"),
+                         mutation_distributions=inputs)
 
-# Run errorfinder
-errorfinder = CombinedErrorfinder(low_mum_mut_dir=models_path + "errorfinder_random_low",
-                                  large_mum_mut_dir=models_path + "errorfinder_random_large")
-upper_guess, lower_guess = errorfinder(finetuner_guess=finetuner_guess,
-                                       num_mut=num_mut)
+# # Run errorfinder
+# errorfinder = CombinedErrorfinder(low_mum_mut_dir=models_path + "errorfinder_random_low",
+#                                   large_mum_mut_dir=models_path + "errorfinder_random_large")
+# upper_guess, lower_guess = errorfinder(finetuner_guess=finetuner_guess,
+#                                        num_mut=num_mut)
 
-# Plot results
-plot_interval_metrics_vs_mutations(labels, upper_guess, lower_guess, '')
-plot_interval_performance(labels, upper_guess, lower_guess, list(pd.read_excel("../../data/data.xlsx").columns)[1:], '')
+# # Plot results
+# plot_interval_metrics_vs_mutations(labels, upper_guess, lower_guess, '')
+# plot_interval_performance(labels, upper_guess, lower_guess, list(pd.read_excel("../../data/data.xlsx").columns)[1:], '')
