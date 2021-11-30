@@ -47,13 +47,12 @@ if __name__ == "__main__":
                                                                large_or_low="large",
                                                                is_test=False,
                                                                n_augmentations=6)
-    n_points = input_batch.size(0)
-    train_input, train_labels = input_batch[:int(TRAIN_PROP*n_points), ...], label_batch[:int(TRAIN_PROP*n_points), ...]
-    val_input, val_labels = input_batch[int(TRAIN_PROP*n_points):, ...], label_batch[int(TRAIN_PROP*n_points):, ...]
-    tensor_to_csv(train_input[:train_size,:], "../data/%s/train_augmented_large_input.csv"%experiment_id)
-    tensor_to_csv(train_labels[:train_size,:], "../data/%s/train_augmented_large_label.csv"%experiment_id)
-    tensor_to_csv(val_input[:val_size,:], "../data/%s/val_augmented_large_input.csv"%experiment_id)
-    tensor_to_csv(val_labels[:val_size,:], "../data/%s/val_augmented_large_label.csv"%experiment_id)
+    train_input, train_labels = input_batch[:train_size, ...], label_batch[:train_size, ...]
+    val_input, val_labels = input_batch[itrain_size:train_size + val_size, ...], label_batch[itrain_size:train_size + val_size:, ...]
+    tensor_to_csv(train_input, "../data/%s/train_augmented_large_input.csv"%experiment_id)
+    tensor_to_csv(train_labels, "../data/%s/train_augmented_large_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/val_augmented_large_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/val_augmented_large_label.csv"%experiment_id)
 
     # Test
     input_batch, label_batch = data_generator.make_similar_set(examples_weight=realistic_weights,
