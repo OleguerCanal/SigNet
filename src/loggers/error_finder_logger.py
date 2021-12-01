@@ -1,5 +1,6 @@
 import os
 
+import torch
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 
@@ -12,6 +13,17 @@ class ErrorFinderLogger:
         pass
 
 
+    def _group_by_nummut(self, values, num_muts):
+        """ Group by nummut and 
+        """
+        num_muts = ((num_muts**0.4)/2.).to(torch.int)  # should split nummut into ~10 groups
+        unique_muts = num_muts.unique()
+        grouped_values = torch.empty_like(unique_muts, dtype=torch.float)
+        for i, num_mut in enumerate(unique_muts):
+            indices = num_muts.squeeze(1) == num_mut
+            grouped_values[i] = torch.mean(values[indices, ...])
+        return grouped_values, unique_muts
+
     def log(self,
             train_loss,
             pi_metrics_train,
@@ -19,6 +31,7 @@ class ErrorFinderLogger:
             pi_metrics_val,
             val_values_lower,
             val_values_upper,
+            val_nummut,
             step):
 
         # self.writer.add_scalar("metrics/Loss", train_loss.item(), step)
@@ -35,7 +48,13 @@ class ErrorFinderLogger:
             wandb.log({"train_%s"%key: pi_metrics_train[key].item()})
         
         for key in pi_metrics_val.keys():
-            wandb.log({"val_%s"%key: pi_metrics_val[key].item()})
+            if key == "in_prop" or key == "mean_interval_width":
+                grouped, ranges = self._group_by_nummut(pi_metrics_val[key], val_nummut)
+                for i, val in enumerate(grouped):
+                    rang = int((ranges[i]*2.)**2.5)
+                    wandb.log({"val_%s_%i"%(key, val): torch.mean(pi_metrics_val[key]).item()})
+            else:
+                wandb.log({"val_%s"%key: torch.mean(pi_metrics_val[key]).item()})
 
         # for key in pi_metrics_val.keys():
         #     self.writer.add_scalar("metrics/%s"%key, pi_metrics_train[key].item(), step)
