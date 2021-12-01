@@ -52,7 +52,7 @@ class ErrorFinderLogger:
                 grouped, ranges = self._group_by_nummut(pi_metrics_val[key], val_nummut)
                 for i, val in enumerate(grouped):
                     rang = int((ranges[i]*2.)**2.5)
-                    wandb.log({"val_%s_%i"%(key, val): torch.mean(pi_metrics_val[key]).item()})
+                    wandb.log({"val_%s_%i"%(key, val): val.item()})
             else:
                 wandb.log({"val_%s"%key: torch.mean(pi_metrics_val[key]).item()})
 
