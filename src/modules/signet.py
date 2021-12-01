@@ -19,8 +19,8 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 class SigNet:
     def __init__(self,
                  classifier="../../trained_models/exp_final_3/classifier",
-                 finetuner_random_low="../../trained_models/exp_final_3/finetuner_random_low",
-                 finetuner_random_large="../../trained_models/exp_final_3/finetuner_random_large",
+                 finetuner_random_low="../../trained_models/exp_final_3/finetuner_augmented_low",
+                 finetuner_random_large="../../trained_models/exp_final_3/finetuner_augmented_large",
                  finetuner_realistic_low="../../trained_models/exp_final_3/finetuner_realistic_low",
                  finetuner_realistic_large="../../trained_models/exp_final_3/finetuner_realistic_large",
                  errorfinder="../../trained_models/exp_final_3/errorfinder",
@@ -126,9 +126,9 @@ if __name__ == "__main__":
     # output_path = config["output"] 
     # plot_figs = config["figures"]
 
-    input_file_path = "../../data/Michel_analysis/michel_input.csv"
+    input_file_path = "../../data/analysis_Michel/michel_input.csv"
     opportunities = "genome"
-    output_path = "../../data/Michel_analysis" 
+    output_path = "../../data/analysis_Michel/augmented" 
     plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     weight_guess, upper_bound, lower_bound, classification, normalized_input = signet(mutation_vec=mutation_data)
 
     # Write final outputs
-    write_final_outputs(weight_guess, lower_bound, upper_bound, classification, input_file, output_path)
+    write_final_outputs(weight_guess, lower_bound, upper_bound, signet.baseline_guess, classification, 0, input_file, output_path)
 
 
     # Plot figures

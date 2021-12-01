@@ -1,26 +1,26 @@
 config:
     # IDs & paths
     data_id: "exp_final"
-    model_id: "errorfinder"
+    model_id: "errorfinder_augmented"
     classifier_id: "classifier"
     finetuner_realistic_low_id: "finetuner_realistic_low"
     finetuner_realistic_large_id: "finetuner_realistic_large"
-    finetuner_random_low_id: "finetuner_random_low"
-    finetuner_random_large_id: "finetuner_random_large"
-    models_dir: "../trained_models/exp_final_2"
+    finetuner_random_low_id: "finetuner_augmented_low"
+    finetuner_random_large_id: "finetuner_augmented_large"
+    models_dir: "../trained_models/exp_final_3"
 
     # Training params
     # source: "realistic_low"
-    iterations: 5
+    iterations: 10
     num_classes: 72
     batch_size: 500
     lr: 0.0001
     sigmoid_params: [1000,200]
     # sigmoid_params: [50000, 10000]
     loss_params: 
-        lagrange_missclassification: 5e-3
+        lagrange_missclassification: 1e-2
         lagrange_pnorm: 1e4
-        lagrange_smalltozero: 0
+        lagrange_smalltozero: 1e-3
         pnorm_order: 5.0
 
     # WANDB params

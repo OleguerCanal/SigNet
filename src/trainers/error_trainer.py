@@ -218,10 +218,10 @@ def train_errorfinder(config) -> float:
                                                 source="realistic_large",
                                                 device="cpu")
     train_rand_low, val_rand_low = read_data(experiment_id=config["data_id"],
-                                            source="random_low",
+                                            source="augmented_low",
                                             device="cpu")
     train_rand_large, val_rand_large = read_data(experiment_id=config["data_id"],
-                                                source="random_large",
+                                                source="augmented_large",
                                                 device="cpu")
     train_data = train_real_low
     train_data.append(train_real_large)
