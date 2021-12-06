@@ -171,13 +171,14 @@ class ErrorTrainer:
 
                 if plot and step % log_freq == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
-                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper)
+                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper, collapse=False)
                     self.logger.log(train_loss=train_loss,
                                     pi_metrics_train=pi_metrics_train,
                                     val_loss=val_loss,
                                     pi_metrics_val=pi_metrics_val,
                                     val_values_lower=val_pred_lower,
                                     val_values_upper=val_pred_upper,
+                                    val_nummut=self.val_dataset.num_mut,
                                     step=step)
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
