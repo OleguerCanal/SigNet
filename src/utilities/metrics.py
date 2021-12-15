@@ -138,7 +138,7 @@ def distance_to_interval(label, pred_lower, pred_upper):
 def interval_width(pred_lower, pred_upper):
     return abs(pred_upper-pred_lower)
 
-def get_pi_metrics_by_sig(label, pred_lower, pred_upper):
+def get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0):
     """Used to compare prediction interval guesses.
     
     Returns:
@@ -149,9 +149,9 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper):
     k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
     k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
-    in_prop = torch.mean(k_h, 0)  # Hard Prediction Interval Coverage Probability
+    in_prop = torch.mean(k_h, dim)  # Hard Prediction Interval Coverage Probability
     interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
-    mean_interval_width = torch.mean(interval_width, 0)
+    mean_interval_width = torch.mean(interval_width, dim)
 
     interval_width_present = torch.masked_select(interval_width, label > EPS)
     interval_width_absent = torch.masked_select(interval_width, label <= EPS)
@@ -159,12 +159,13 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper):
     mean_interval_width_absent = torch.mean(interval_width_absent, 0)
     return in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent
 
-def get_pi_metrics(label, pred_lower, pred_upper):
-    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper)
-    in_prop = torch.mean(in_prop)
-    mean_interval_width = torch.mean(mean_interval_width)
-    mean_interval_width_present = torch.mean(mean_interval_width_present)
-    mean_interval_width_absent = torch.mean(mean_interval_width_absent)
+def get_pi_metrics(label, pred_lower, pred_upper, collapse=True):
+    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0)
+    if collapse:
+        in_prop = torch.mean(in_prop)
+        mean_interval_width = torch.mean(mean_interval_width)
+        mean_interval_width_present = torch.mean(mean_interval_width_present)
+        mean_interval_width_absent = torch.mean(mean_interval_width_absent)
     return {"in_prop": in_prop, "mean_interval_width": mean_interval_width, "mean_interval_width_present": mean_interval_width_present, "mean_interval_width_absent":mean_interval_width_absent}
 
 
