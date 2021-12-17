@@ -20,7 +20,7 @@ if __name__ == "__main__":
                                    shuffle=True)
     
     # REALISTIC-LOOKING DATA
-    experiment_id = "exp_final"
+    experiment_id = "exp_good"
     train_data, _ = read_data(device='cpu', 
                               experiment_id=experiment_id, 
                               source="realistic_large")
@@ -36,11 +36,11 @@ if __name__ == "__main__":
                                                                is_test=False,
                                                                n_augmentations=6)
     train_input, train_labels = input_batch[:train_size, ...], label_batch[:train_size, ...]
-    val_input, val_labels = input_batch[itrain_size:train_size + val_size, ...], label_batch[itrain_size:train_size + val_size:, ...]
-    tensor_to_csv(train_input, "../data/%s/train_augmented_low_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/train_augmented_low_label.csv"%experiment_id)
-    tensor_to_csv(val_input, "../data/%s/val_augmented_low_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/val_augmented_low_label.csv"%experiment_id)
+    val_input, val_labels = input_batch[train_size:train_size + val_size, ...], label_batch[train_size:train_size + val_size:, ...]
+    tensor_to_csv(train_input, "../data/%s/train_perturbed_low_input.csv"%experiment_id)
+    tensor_to_csv(train_labels, "../data/%s/train_perturbed_low_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/val_perturbed_low_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/val_perturbed_low_label.csv"%experiment_id)
 
     # Large nummut
     input_batch, label_batch = data_generator.make_similar_set(examples_weight=realistic_weights,
@@ -48,19 +48,19 @@ if __name__ == "__main__":
                                                                is_test=False,
                                                                n_augmentations=6)
     train_input, train_labels = input_batch[:train_size, ...], label_batch[:train_size, ...]
-    val_input, val_labels = input_batch[itrain_size:train_size + val_size, ...], label_batch[itrain_size:train_size + val_size:, ...]
-    tensor_to_csv(train_input, "../data/%s/train_augmented_large_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/train_augmented_large_label.csv"%experiment_id)
-    tensor_to_csv(val_input, "../data/%s/val_augmented_large_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/val_augmented_large_label.csv"%experiment_id)
+    val_input, val_labels = input_batch[train_size:train_size + val_size, ...], label_batch[train_size:train_size + val_size:, ...]
+    tensor_to_csv(train_input, "../data/%s/train_perturbed_large_input.csv"%experiment_id)
+    tensor_to_csv(train_labels, "../data/%s/train_perturbed_large_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/val_perturbed_large_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/val_perturbed_large_label.csv"%experiment_id)
 
     # Test
     input_batch, label_batch = data_generator.make_similar_set(examples_weight=realistic_weights,
                                                                 large_or_low=None,
                                                                 is_test=True,
                                                                 n_augmentations=2)
-    tensor_to_csv(input_batch[:test_size,:], "../data/%s/test_augmented/test_augmented_input.csv"%experiment_id)
-    tensor_to_csv(label_batch[:test_size,:], "../data/%s/test_augmented/test_augmented_label.csv"%experiment_id)
+    tensor_to_csv(input_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_input.csv"%experiment_id)
+    tensor_to_csv(label_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_label.csv"%experiment_id)
 
 
     # OLD RANDOM DATA

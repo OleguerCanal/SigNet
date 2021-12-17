@@ -14,7 +14,7 @@ def shuffle(inputs, labels, num_mut):
 if __name__ == "__main__":
     data_folder = "../data"
     signatures = read_signatures(data_folder + "/data.xlsx", mutation_type_order=data_folder+"/mutation_type_order.xlsx")
-    experiment_id = "exp_final"
+    experiment_id = "exp_good"
 
     # Read all realistic data    
     train_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/train_realistic_low_input.csv")
@@ -32,11 +32,11 @@ if __name__ == "__main__":
     # Read random data
     train_random, val_random = read_data(device="cpu",
                                          experiment_id=experiment_id,
-                                         source="random_low",
+                                         source="perturbed_low",
                                          data_folder=data_folder)
-    test_random_inputs_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_input.csv")
-    test_random_labels_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_label.csv")
-    test_random_baseline_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_baseline.csv")
+    test_random_inputs_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_input.csv")
+    test_random_labels_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_label.csv")
+    test_random_baseline_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_baseline.csv")
     test_random = DataPartitions(inputs=test_random_inputs_,
                                  labels=test_random_labels_,
                                  prev_guess=test_random_baseline_)

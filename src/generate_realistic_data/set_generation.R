@@ -6,91 +6,87 @@ library(readxl)
 
 generate_realistic_data <- function(cosmic_version, dataset, large_low, experiment_id){
   name_dataset <- paste(dataset, '_realistic_', large_low, sep = '')
-
- #  #1. Generate synthetic dataset using PCAWG sigProfiler results:
- SBS <- read.csv("PCAWG_output/signatures.csv")
- SBS <- SBS[,2:ncol(SBS)]
- num_sigs <- ncol(SBS)
- #  
- #  num_muts <- read.csv("../../data/real_data/PCAWG_num_muts.csv", header = FALSE)
- #  E <- read.csv("PCAWG_output/PCAWG_baseline.csv", header = FALSE)  
- #  E <- E * rep(num_muts, ncol(E))
- #  E <- t(E)
- #  rownames(E) <- colnames(SBS)
- #  colnames(E) <- paste("sample_", 1:ncol(E), sep = "")
- #  
- #  S <- ReadCatalog("PCAWG_output/signatures.csv", catalog.type = "density.signature")
- # 
- #  P <- GetSynSigParamsFromExposures(E)
- # 
- #  if(dataset == "train"){
- #    if(large_low == "large"){
- #      number_of_samples = 250000
- #    }else if(large_low == "low"){
- #      number_of_samples = 350000
- #    }
- #  } else if (dataset == "val"){
- #    number_of_samples = 5000
- # } else if (dataset == "test"){
- #    number_of_samples = 19000
- #  }
- #  synthetic.exposures <- GenerateSyntheticExposures(P, num.samples = number_of_samples)
- #  synthetic.spectra <- CreateAndWriteCatalog(S, synthetic.exposures, my.dir = paste("PCAWG_output/", dataset, "_", large_low, sep=""))     
- # 
- # 
- #  # 2. Adapting datasets to signatures-net:
- # 
- #  # LABEL:
- #  if(dataset == "test"){
- #    num_muts <- c(25, 50, 100, 250, 500, 1000, 5000, 10000, 50000, 100000)
- #    num_muts <- rep(num_muts, each=1900)
- #  }
- # 
- #  if (dataset == "train"){
- #    if(large_low == "low"){
- #      range_muts <- c(15, 50, 100, 250, 500, 1000, 5000, 10000)
- #      num_samples <- c(50000,50000,50000,50000,50000,50000,50000)
- #    }else if( large_low == "large"){
- #      range_muts <- c(1e3, 5e3, 1e4, 5e4, 1e5, 5e5)
- #      num_samples <- c(50000,50000,50000,50000,50000)
- #    }
- #    
- #    num_muts <- c()
- #    for(i in 1:length(num_samples)){
- #      num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
- #    }
- #  }
- # 
- #  if (dataset == "val"){
- #    if(large_low == "low"){
- #      range_muts <- c(15, 50, 100, 250, 500, 1000)
- #    }else if( large_low == "large"){
- #      range_muts <- c(1e3, 5e3, 1e4, 5e5, 1e5, 5e5)
- #    }
- #    num_samples <- c(1000, 1000, 1000, 1000, 1000)
- #    
- #    num_muts <- c()
- #    for(i in 1:length(num_samples)){
- #      num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
- #    }
- #  }
- # 
- #  test_label <- read.csv(paste("PCAWG_output/", dataset, "_", large_low, "/ground.truth.syn.exposures.csv", sep = ""), row.names = 1)
- #  test_label <- t(test_label)
- #  test_label <- test_label / rowSums(test_label)
- #  test_label <- cbind(test_label, num_muts)
- # 
- #  test_label_final <- matrix(0, ncol = num_sigs, nrow = nrow(test_label)) 
- #  colnames(test_label_final) <- colnames(SBS)
- #  test_label_final <- as.data.frame(test_label_final)
- #  for(i in 1:ncol(test_label)){
- #    test_label_final[[colnames(test_label)[i]]] <- test_label[,i]
- #  }
- # 
- #  write.table(test_label_final, paste("PCAWG_output/", name_dataset, "_label.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
+  dir_name <- "PCAWG_normalized/"
+  #1. Generate synthetic dataset using PCAWG sigProfiler results:
+  SBS <- read.csv("../../data/real_data/signatures_used_PCAWG_v3.csv")
+  SBS <- SBS[,3:ncol(SBS)]
+  num_sigs <- ncol(SBS)
+  
+  E <- read.csv("../../data/real_data/sigprofiler_normalized_PCAWG.csv", row.names = 1)  
+  E <- t(E)
+  
+  S <- ReadCatalog("../../data/real_data/signatures_used_PCAWG_v3.csv", catalog.type = "density.signature")
+ 
+  P <- GetSynSigParamsFromExposures(E)
+ 
+  if(dataset == "train"){
+    if(large_low == "large"){
+      number_of_samples = 250000
+    }else if(large_low == "low"){
+      number_of_samples = 350000
+    }
+  } else if (dataset == "val"){
+    number_of_samples = 5000
+ } else if (dataset == "test"){
+    number_of_samples = 19000
+  }
+  synthetic.exposures <- GenerateSyntheticExposures(P, num.samples = number_of_samples)
+  synthetic.spectra <- CreateAndWriteCatalog(S, synthetic.exposures, my.dir = paste(dir_name, dataset, "_", large_low, sep=""))     
+ 
+ 
+  # 2. Adapting datasets to signatures-net:
+ 
+  # LABEL:
+  if(dataset == "test"){
+    num_muts <- c(25, 50, 100, 250, 500, 1000, 5000, 10000, 50000, 100000)
+    num_muts <- rep(num_muts, each=1900)
+  }
+ 
+  if (dataset == "train"){
+    if(large_low == "low"){
+      range_muts <- c(15, 50, 100, 250, 500, 1000, 5000, 10000)
+      num_samples <- c(50000,50000,50000,50000,50000,50000,50000)
+    }else if( large_low == "large"){
+      range_muts <- c(1e3, 5e3, 1e4, 5e4, 1e5, 5e5)
+      num_samples <- c(50000,50000,50000,50000,50000)
+    }
+    
+    num_muts <- c()
+    for(i in 1:length(num_samples)){
+      num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
+    }
+  }
+ 
+  if (dataset == "val"){
+    if(large_low == "low"){
+      range_muts <- c(15, 50, 100, 250, 500, 1000)
+    }else if( large_low == "large"){
+      range_muts <- c(1e3, 5e3, 1e4, 5e5, 1e5, 5e5)
+    }
+    num_samples <- c(1000, 1000, 1000, 1000, 1000)
+    
+    num_muts <- c()
+    for(i in 1:length(num_samples)){
+      num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
+    }
+  }
+ 
+  test_label <- read.csv(paste(dir_name, dataset, "_", large_low, "/ground.truth.syn.exposures.csv", sep = ""), row.names = 1)
+  test_label <- t(test_label)
+  test_label <- test_label / rowSums(test_label)
+  test_label <- cbind(test_label, num_muts)
+ 
+  test_label_final <- matrix(0, ncol = num_sigs, nrow = nrow(test_label)) 
+  colnames(test_label_final) <- colnames(SBS)
+  test_label_final <- as.data.frame(test_label_final)
+  for(i in 1:ncol(test_label)){
+    test_label_final[[colnames(test_label)[i]]] <- test_label[,i]
+  }
+ 
+  write.table(test_label_final, paste(dir_name, name_dataset, "_label.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
 
   # INPUT:
-  test_label <- read.csv(paste("PCAWG_output/", name_dataset, "_label.csv", sep = ""), row.names = NULL) 
+  test_label <- read.csv(paste(dir_name, name_dataset, "_label.csv", sep = ""), row.names = NULL) 
   num_muts <- test_label[,num_sigs+1]
   test_label <- test_label[,1:num_sigs]
   test_input_muts <- c()
@@ -108,8 +104,8 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
     
   }
   norm_test_input_muts <- test_input_muts/num_muts
-  write.table(norm_test_input_muts, paste("PCAWG_output/", name_dataset,  "_input.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
-  write.table(test_input_muts, paste("PCAWG_output/", name_dataset,  "_input_not_normalized.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
+  write.table(norm_test_input_muts, paste(dir_name, name_dataset,  "_input.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
+  write.table(test_input_muts, paste(dir_name, name_dataset,  "_input_not_normalized.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
 }
 
 #!/usr/bin/env Rscript
