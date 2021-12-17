@@ -1,8 +1,8 @@
 config:
     # IDs & paths
-    data_id: "exp_final"
+    data_id: "exp_good"
     model_id: "finetuner_realistic_low"
-    models_dir: "../trained_models/exp_final_2"
+    models_dir: "../trained_models/exp_good"
 
     # Training params
     source: "realistic_low"

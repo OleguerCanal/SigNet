@@ -1,13 +1,13 @@
 config:
     # IDs & paths
-    data_id: "exp_final"
-    model_id: "errorfinder_augmented"
+    data_id: "exp_good"
+    model_id: "errorfinder_perturbed"
     classifier_id: "classifier"
     finetuner_realistic_low_id: "finetuner_realistic_low"
     finetuner_realistic_large_id: "finetuner_realistic_large"
-    finetuner_random_low_id: "finetuner_augmented_low"
-    finetuner_random_large_id: "finetuner_augmented_large"
-    models_dir: "../trained_models/exp_final_3"
+    finetuner_random_low_id: "finetuner_perturbed_low"
+    finetuner_random_large_id: "finetuner_perturbed_large"
+    models_dir: "../trained_models/exp_good"
 
     # Training params
     # source: "realistic_low"
