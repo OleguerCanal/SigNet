@@ -32,14 +32,16 @@ if __name__ == "__main__":
     # Read random data
     train_random, val_random = read_data(device="cpu",
                                          experiment_id=experiment_id,
-                                         source="perturbed_low",
-                                         data_folder=data_folder)
-    test_random_inputs_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_input.csv")
-    test_random_labels_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_label.csv")
-    test_random_baseline_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_perturbed/test_perturbed_baseline.csv")
+                                         source="random_low",
+                                         data_folder=data_folder,
+                                         include_baseline=False,
+                                         include_labels=True)
+    test_random_inputs_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_input.csv")
+    test_random_labels_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_label.csv")
+    # test_random_baseline_ = csv_to_tensor(data_folder + '/' + experiment_id + "/test_random/test_random_baseline.csv")
     test_random = DataPartitions(inputs=test_random_inputs_,
                                  labels=test_random_labels_,
-                                 prev_guess=test_random_baseline_)
+                                 prev_guess=None)
 
     # Label all random data as a 0
     train_random_labels = torch.zeros((train_random.inputs.shape[0], 1)).to(torch.float).view(-1, 1)
