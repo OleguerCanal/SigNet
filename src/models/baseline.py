@@ -60,30 +60,30 @@ def create_baseline_dataset(input_file, output_file, signatures_path, which_base
 
 
 if __name__ == "__main__":
-    source = "realistic"
     data_folder = "../../data/"
-    signatures_file = data_folder + "data_v2.xlsx"
+    signatures_file = data_folder + "data.xlsx"
 
     in_files = [
-        # random
-        "/exp_v2/train_random_input.csv",
-        "/exp_v2/val_random_input.csv",
+        # perturbed
+        "/exp_good/train_perturbed_low_input.csv",
+        "/exp_good/val_perturbed_low_input.csv",
+        "/exp_good/train_perturbed_large_input.csv",
+        "/exp_good/val_perturbed_large_input.csv",
 
-        # realistic large
-        "/exp_v2/train_realistic_large_input.csv",
-        "/exp_v2/val_realistic_large_input.csv",
-
-        # realistic low
-        "/exp_v2/train_realistic_low_input.csv",
-        "/exp_v2/val_realistic_low_input.csv",
+        # realistic
+        "/exp_good/train_realistic_low_input.csv",
+        "/exp_good/val_realistic_low_input.csv",
+        "/exp_good/train_realistic_large_input.csv",
+        "/exp_good/val_realistic_large_input.csv",
 
         # tests
-        "/exp_v2/test/test_input.csv",
-        "/exp_v2/test_random/test_random_input.csv",
-        "/exp_v2/test_realistic/test_realistic_input.csv",
+        "/exp_good/test/test_input.csv",
+        "/exp_good/test_perturbed/test_perturbed_input.csv",
+        "/exp_good/test_random/test_random_input.csv",
+        "/exp_good/test_realistic/test_realistic_input.csv",
     ]
 
-    for in_file in in_files:
+    for in_file in tqdm(in_files):
         in_file = data_folder + in_file
         out_file = in_file.replace("input", "baseline")
         create_baseline_dataset(input_file=in_file,
