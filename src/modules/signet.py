@@ -18,12 +18,12 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/exp_final_3/classifier",
-                 finetuner_random_low="../../trained_models/exp_final_3/finetuner_augmented_low",
-                 finetuner_random_large="../../trained_models/exp_final_3/finetuner_augmented_large",
-                 finetuner_realistic_low="../../trained_models/exp_final_3/finetuner_realistic_low",
-                 finetuner_realistic_large="../../trained_models/exp_final_3/finetuner_realistic_large",
-                 errorfinder="../../trained_models/exp_final_3/errorfinder",
+                 classifier="../../trained_models/exp_good/classifier",
+                 finetuner_random_low="../../trained_models/exp_good/finetuner_perturbed_low",
+                 finetuner_random_large="../../trained_models/exp_good/finetuner_perturbed_large",
+                 finetuner_realistic_low="../../trained_models/exp_good/finetuner_realistic_low",
+                 finetuner_realistic_large="../../trained_models/exp_good/finetuner_realistic_large",
+                 errorfinder="../../trained_models/exp_good/errorfinder",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
                  mutation_type_order="../../data/mutation_type_order.xlsx",

@@ -64,7 +64,7 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
         source (string): Type of generated data: random or realistic
         data_folder (str, optional): Relative path of data folder. Defaults to "../data".
     """
-    # assert(source in ["random", "realistic", "mixed"])
+    # assert(source in ["random", "realistic", "perturbed"])
     path = os.path.join(data_folder, experiment_id)
 
     train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
