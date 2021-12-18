@@ -77,7 +77,6 @@ if __name__ == "__main__":
         "/exp_good/val_realistic_large_input.csv",
 
         # tests
-        "/exp_good/test/test_input.csv",
         "/exp_good/test_perturbed/test_perturbed_input.csv",
         "/exp_good/test_random/test_random_input.csv",
         "/exp_good/test_realistic/test_realistic_input.csv",
