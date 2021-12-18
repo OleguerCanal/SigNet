@@ -22,7 +22,8 @@ if __name__ == "__main__":
     # REALISTIC-LOOKING DATA
     experiment_id = "exp_good"
     train_data, _ = read_data(device='cpu', 
-                              experiment_id=experiment_id, 
+                              experiment_id=experiment_id,
+                              include_baseline=False,
                               source="realistic_large")
 
     realistic_weights = train_data.labels
@@ -61,30 +62,3 @@ if __name__ == "__main__":
                                                                 n_augmentations=2)
     tensor_to_csv(input_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_input.csv"%experiment_id)
     tensor_to_csv(label_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_label.csv"%experiment_id)
-
-
-    # OLD RANDOM DATA
-    # # Train
-    # input_batch, label_batch = data_generator.make_random_set("train", "low", normalize=True)
-    # tensor_to_csv(input_batch, "../data/%s/train_random_low_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/train_random_low_label.csv"%experiment_id)
-
-    # input_batch, label_batch = data_generator.make_random_set("train", "large", normalize=True)
-    # tensor_to_csv(input_batch, "../data/%s/train_random_large_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/train_random_large_label.csv"%experiment_id)
-
-    # # Val
-    # input_batch, label_batch = data_generator.make_random_set("val", "low", normalize=True)
-    # tensor_to_csv(input_batch, "../data/%s/val_random_low_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/val_random_low_label.csv"%experiment_id)
-
-    # input_batch, label_batch = data_generator.make_random_set("val", "large", normalize=True)
-    # tensor_to_csv(input_batch, "../data/%s/val_random_large_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/val_random_large_label.csv"%experiment_id)
-
-    # # Test
-    # input_batch, label_batch = data_generator.make_random_set("test", "low", normalize=True)
-    # tensor_to_csv(input_batch, "../data/%s/test_random/test_random_input.csv"%experiment_id)
-    # tensor_to_csv(label_batch, "../data/%s/test_random/test_random_label.csv"%experiment_id)
-
-
