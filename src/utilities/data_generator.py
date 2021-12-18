@@ -4,6 +4,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import torch
+from tqdm import tqdm
 
 from models.baseline import Baseline
 from utilities.weight_augmenter import WeightAugmenter
@@ -75,7 +76,7 @@ class DataGenerator:
         input_batch = torch.empty((batch_size, 96))
         label_batch = torch.empty((batch_size, self.total_signatures + 1))
 
-        for i in range(batch_size):
+        for i in tqdm(range(batch_size)):
             label = augmented_labels[i, ...]
             signature = mutations[i, ...]
 
@@ -101,8 +102,6 @@ class DataGenerator:
                 # For the real distribution we say we have more than 1e5 mutations
                 label_batch[i, :] = torch.cat(
                     [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
-            if i % 10000 == 0:
-                print(i)
 
         if self.shuffle:
             indices = np.random.permutation(input_batch.shape[0])
@@ -145,7 +144,7 @@ class DataGenerator:
         input_batch = torch.empty((batch_size, 96))
         label_batch = torch.empty((batch_size, self.total_signatures + 1))
 
-        for i in range(batch_size):
+        for i in tqdm(range(batch_size)):
             # Pick the number of involved signatures
             n_signatures = np.random.randint(min_n_signatures, max_n_signatures + 1)
 
@@ -188,7 +187,4 @@ class DataGenerator:
                 # For the real distribution we say we have more than 1e5 mutations
                 label_batch[i, :] = torch.cat(
                     [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
-            if i % 1000 == 0:
-                print(i)
-
         return input_batch, label_batch
