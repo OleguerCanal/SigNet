@@ -8,7 +8,8 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
   name_dataset <- paste(dataset, '_realistic_', large_low, sep = '')
   dir_name <- "PCAWG_normalized/"
   #1. Generate synthetic dataset using PCAWG sigProfiler results:
-  SBS <- read.csv("../../data/real_data/signatures_used_PCAWG_v3.csv")
+  #SBS <- read.csv("../../data/real_data/signatures_used_PCAWG_v3.csv")
+  SBS <- read_xlsx("../data.xlsx")
   SBS <- SBS[,3:ncol(SBS)]
   num_sigs <- ncol(SBS)
   
@@ -86,7 +87,7 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
   write.table(test_label_final, paste(dir_name, name_dataset, "_label.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
 
   # INPUT:
-  test_label <- read.csv(paste(dir_name, name_dataset, "_label.csv", sep = ""), row.names = NULL) 
+  test_label <- read.csv(paste(dir_name, name_dataset, "_label.csv", sep = ""), row.names = NULL, header = FALSE) 
   num_muts <- test_label[,num_sigs+1]
   test_label <- test_label[,1:num_sigs]
   test_input_muts <- c()
