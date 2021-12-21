@@ -78,14 +78,18 @@ if __name__ == "__main__":
 
         # tests
         "/exp_good/test_perturbed/test_perturbed_input.csv",
-        "/exp_good/test_random/test_random_input.csv",
+        # "/exp_good/test_random/test_random_input.csv",
         "/exp_good/test_realistic/test_realistic_input.csv",
     ]
 
-    for in_file in tqdm(in_files):
-        in_file = data_folder + in_file
-        out_file = in_file.replace("input", "baseline")
-        create_baseline_dataset(input_file=in_file,
-                                output_file=out_file,
-                                signatures_path=signatures_file,
-                                which_baseline="nnls")
+    for in_file in in_files:
+        print("Computing baseline of:", in_file)
+        try:
+            in_file = data_folder + in_file
+            out_file = in_file.replace("input", "baseline")
+            create_baseline_dataset(input_file=in_file,
+                                    output_file=out_file,
+                                    signatures_path=signatures_file,
+                                    which_baseline="nnls")
+        except Exception as e:
+            print(e)
