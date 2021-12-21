@@ -55,7 +55,7 @@ def tensor_to_csv(data_tensor, output_path):
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 
-def read_data(device, experiment_id, source, data_folder="../data"):
+def read_data(device, experiment_id, source, data_folder="../data", include_baseline=True, include_labels=True):
     """Read data from disk
 
     Args:
@@ -64,20 +64,20 @@ def read_data(device, experiment_id, source, data_folder="../data"):
         source (string): Type of generated data: random or realistic
         data_folder (str, optional): Relative path of data folder. Defaults to "../data".
     """
-    # assert(source in ["random", "realistic", "mixed"])
+    # assert(source in ["random", "realistic", "perturbed"])
     path = os.path.join(data_folder, experiment_id)
 
     train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
-    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device)
-    train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device)
+    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
+    train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
 
     train_data = DataPartitions(inputs=train_input,
                                 prev_guess=train_baseline,
                                 labels=train_label)
 
     val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)
-    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device)
-    val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device)
+    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
+    val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device) if include_labels else None
 
     val_data = DataPartitions(inputs=val_input,
                               prev_guess=val_baseline,

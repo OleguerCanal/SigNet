@@ -1,12 +1,12 @@
 config:
     # IDs & paths
-    data_id: "exp_final"
-    model_id: "finetuner_random_large"
-    models_dir: "../trained_models/exp_final_2"
+    data_id: "exp_good"
+    model_id: "finetuner_perturbed_large"
+    models_dir: "../trained_models/exp_good"
 
     # Training params
-    source: "random_large"
-    network_type: "random"
+    source: "perturbed_large"
+    network_type: "perturbed"
     iterations: 30
     num_classes: 72
     sigmoid_params: [50000, 10000]
@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_random"
+    wandb_project_id: "finetuner_perturbed"
 
     # Network params
     num_hidden_layers: 1

@@ -42,8 +42,8 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        assert (self.network_type in ['random', 'realistic'])
-        if self.network_type == 'random':
+        assert (self.network_type in ['perturbed', 'realistic'])
+        if self.network_type == 'perturbed':
             fp_param = 1e-3
             fn_param = 0.1
             l = get_kl_divergence(prediction, label)

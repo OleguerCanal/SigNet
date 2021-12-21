@@ -68,12 +68,12 @@ class ClassifierTrainer:
         max_found = -np.inf
         step = 0
         for iteration in range(self.iterations):
-            for train_input, train_label, baseline_guess, num_mut in tqdm(dataloader):                  # MIRAR AIXO!!!!!!!!!!
+            for train_input, train_label, baseline_guess, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, num_mut)
                 train_loss = self.__loss(prediction=train_prediction,
-                                        label=train_label)
+                                         label=train_label)
 
                 train_loss.backward()
                 optimizer.step()
@@ -89,11 +89,11 @@ class ClassifierTrainer:
 
                 if plot and step % self.log_freq == 0:
                     self.logger.log(train_loss=train_loss,
-                                    train_prediction=train_prediction,
-                                    train_label=train_label,
+                                    train_prediction=train_prediction.type(torch.int64),
+                                    train_label=train_label.type(torch.int64),
                                     val_loss=val_loss,
-                                    val_prediction=val_prediction,
-                                    val_label=self.val_dataset.labels,
+                                    val_prediction=val_prediction.type(torch.int64),
+                                    val_label=self.val_dataset.labels.type(torch.int64),
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:

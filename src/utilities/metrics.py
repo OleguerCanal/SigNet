@@ -159,8 +159,8 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0):
     mean_interval_width_absent = torch.mean(interval_width_absent, 0)
     return in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent
 
-def get_pi_metrics(label, pred_lower, pred_upper, collapse=True):
-    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0)
+def get_pi_metrics(label, pred_lower, pred_upper, collapse=True, dim=0):
+    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=dim)
     if collapse:
         in_prop = torch.mean(in_prop)
         mean_interval_width = torch.mean(mean_interval_width)

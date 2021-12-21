@@ -171,7 +171,7 @@ class ErrorTrainer:
 
                 if plot and step % log_freq == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
-                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper, collapse=False)
+                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper, collapse=False, dim=1)
                     self.logger.log(train_loss=train_loss,
                                     pi_metrics_train=pi_metrics_train,
                                     val_loss=val_loss,
@@ -219,10 +219,10 @@ def train_errorfinder(config) -> float:
                                                 source="realistic_large",
                                                 device="cpu")
     train_rand_low, val_rand_low = read_data(experiment_id=config["data_id"],
-                                            source="augmented_low",
+                                            source="perturbed_low",
                                             device="cpu")
     train_rand_large, val_rand_large = read_data(experiment_id=config["data_id"],
-                                                source="augmented_large",
+                                                source="perturbed_large",
                                                 device="cpu")
     train_data = train_real_low
     train_data.append(train_real_large)
