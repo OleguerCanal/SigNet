@@ -171,7 +171,7 @@ class ErrorTrainer:
 
                 if plot and step % log_freq == 0:
                     pi_metrics_train = get_pi_metrics(train_label, train_pred_lower, train_pred_upper)
-                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper, collapse=False)
+                    pi_metrics_val = get_pi_metrics(self.val_dataset.labels, val_pred_lower, val_pred_upper, collapse=False, dim=1)
                     self.logger.log(train_loss=train_loss,
                                     pi_metrics_train=pi_metrics_train,
                                     val_loss=val_loss,

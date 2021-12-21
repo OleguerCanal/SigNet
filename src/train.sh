@@ -1,3 +1,6 @@
+cd models
+python baseline.py
+cd ..
 
 python train_classifier.py --config_file=configs/classifier/classifier.yaml;
 
