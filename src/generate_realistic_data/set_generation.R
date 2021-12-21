@@ -3,14 +3,15 @@
 library(SynSigGen)
 library(ICAMS)
 library(readxl)
+library(progress)
 
 generate_realistic_data <- function(cosmic_version, dataset, large_low, experiment_id){
   name_dataset <- paste(dataset, '_realistic_', large_low, sep = '')
   dir_name <- "PCAWG_normalized/"
   #1. Generate synthetic dataset using PCAWG sigProfiler results:
   #SBS <- read.csv("../../data/real_data/signatures_used_PCAWG_v3.csv")
-  SBS <- read_xlsx("../data.xlsx")
-  SBS <- SBS[,3:ncol(SBS)]
+  SBS <- read_xlsx("../../data/data.xlsx")
+  SBS <- SBS[,2:ncol(SBS)]
   num_sigs <- ncol(SBS)
   
   E <- read.csv("../../data/real_data/sigprofiler_normalized_PCAWG.csv", row.names = 1)  
@@ -56,6 +57,7 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
     for(i in 1:length(num_samples)){
       num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
     }
+
   }
  
   if (dataset == "val"){
@@ -65,10 +67,12 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
       range_muts <- c(1e3, 5e3, 1e4, 5e5, 1e5, 5e5)
     }
     num_samples <- c(1000, 1000, 1000, 1000, 1000)
-    
+
     num_muts <- c()
+    pb <- progress_bar$new(total = length(num_samples))
     for(i in 1:length(num_samples)){
       num_muts <- c(num_muts, sample(range_muts[i]:range_muts[i+1], num_samples[i], replace = TRUE))
+      pb$tick()
     }
   }
  
@@ -83,7 +87,6 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
   for(i in 1:ncol(test_label)){
     test_label_final[[colnames(test_label)[i]]] <- test_label[,i]
   }
- 
   write.table(test_label_final, paste(dir_name, name_dataset, "_label.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
 
   # INPUT:
@@ -91,18 +94,19 @@ generate_realistic_data <- function(cosmic_version, dataset, large_low, experime
   num_muts <- test_label[,num_sigs+1]
   test_label <- test_label[,1:num_sigs]
   test_input_muts <- c()
+  pb <- progress_bar$new(total = nrow(test_label))
   for(i in 1:nrow(test_label)){
     prob <- rep(0, 96)
     for(j in 1:ncol(test_label)){
       prob <- prob + test_label[i,j]*SBS[,j]
     }
     if(num_muts[i]>=100000){
-      test_input_muts <- rbind(test_input_muts,prob*num_muts[i])
+      test_input_muts <- rbind(test_input_muts,t(prob*num_muts[i]))
     } 
     else{
-      test_input_muts <- rbind(test_input_muts,t(rmultinom(1, size=num_muts[i], prob)))
+      test_input_muts <- rbind(test_input_muts,t(rmultinom(1, size=num_muts[i], t(prob))))
     }
-    
+    pb$tick()
   }
   norm_test_input_muts <- test_input_muts/num_muts
   write.table(norm_test_input_muts, paste(dir_name, name_dataset,  "_input.csv", sep = ""), col.names = FALSE, row.names = FALSE, sep = ",") 
