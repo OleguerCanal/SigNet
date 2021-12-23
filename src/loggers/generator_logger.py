@@ -43,3 +43,9 @@ class GeneratorLogger:
         
         wandb.log({"train_KL": KL(train_mu, train_sigma)})
         wandb.log({"val_KL": KL(val_mu, val_sigma)})
+
+        wandb.log({"train_mu": torch.mean(train_mu)})
+        wandb.log({"val_mu": torch.mean(val_mu)})
+
+        wandb.log({"train_sigma": torch.mean(train_sigma)})
+        wandb.log({"val_sigma": torch.mean(val_sigma)})
