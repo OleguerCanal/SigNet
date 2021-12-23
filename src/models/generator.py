@@ -29,6 +29,7 @@ class Generator(nn.Module):
 
         self.Normal = torch.distributions.Normal(0, 1)
         if device == "cuda":
+            print("sending to cuda")
             self.Normal.loc = self.Normal.loc.cuda()
             self.Normal.scale = self.Normal.scale.cuda()
 
@@ -54,4 +55,7 @@ class Generator(nn.Module):
     def generate(self, batch_size:int):
         shape = tuple((batch_size, self.latent_dim))
         z = self.Normal.sample(shape)
-        return self.decode(z)
+        labels = self.decode(z)
+        labels = torch.max(torch.zeros_like(labels), labels)
+        # todo: normalize
+        return labels

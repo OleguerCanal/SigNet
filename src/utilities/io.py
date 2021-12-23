@@ -187,7 +187,7 @@ def read_test_data(device, experiment_id, test_id, data_folder="../data"):
     return inputs, label
 
 
-def read_model(directory):
+def read_model(directory, device="cpu"):
     """Instantiate a pre-trained model from the stored vars
     The model is in cpu and in eval mode
 
@@ -201,7 +201,7 @@ def read_model(directory):
     model_type = init_args["model_type"]
     init_args.pop("model_type")
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder, Generator"])
+    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder", "Generator"])
 
     # Instantiate model class
     if model_type == "Generator":
@@ -217,10 +217,10 @@ def read_model(directory):
     state_dict_file = os.path.join(directory, "state_dict")
     try:
         state_dict = torch.load(f=state_dict_file,
-                                map_location=torch.device('cpu'))
+                                map_location=torch.device(device))
     except:
         state_dict = torch.load(f=state_dict_file + ".zip",
-                                map_location=torch.device('cpu'))
+                                map_location=torch.device(device))
     model.load_state_dict(state_dict)
     model.eval()
     return model
