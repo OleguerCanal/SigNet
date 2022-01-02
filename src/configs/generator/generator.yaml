@@ -5,19 +5,19 @@ config:
     models_dir: "../trained_models/exp_good/"
 
     # Training params
-    iterations: 30
+    iterations: 100
     num_classes: 72
-    lagrange_param: 2.0
-    batch_size: 32
-    lr: 0.0001
+    lagrange_param: 0.
+    batch_size: 100
+    lr: 0.01
 
     # WANDB params
     enable_logging: True
     wandb_project_id: "generator"
 
     # Network params
-    num_hidden_layers: 6
-    latent_dim: 30
+    num_hidden_layers: 3
+    latent_dim: 20
 
     # Misc
     device: "cuda"

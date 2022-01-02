@@ -37,9 +37,20 @@ class GeneratorLogger:
             wandb.log({"train_" + metric_name: metric(train_prediction, train_label).item()})
             wandb.log({"val_" + metric_name: metric(val_prediction, val_label).item()})
 
+        # Between-examples variance
+        train_variance = torch.mean(torch.var(train_prediction, dim=0)).item()
+        val_variance = torch.mean(torch.var(val_prediction, dim=0)).item()
+        wandb.log({"train_pred_variance": train_variance})
+        wandb.log({"val_pred_variance": val_variance})
+
+        # Within-examples variance
+        train_variance = torch.mean(torch.var(train_mu, dim=1)).item()
+        val_variance = torch.mean(torch.var(val_mu, dim=1)).item()
+        wandb.log({"train_mu_variance": train_variance})
+        wandb.log({"val_mu_variance": val_variance})
         
         def KL(mu, sigma):
-            return (sigma**2 + mu**2 - torch.log(sigma) - 1/2).sum()
+            return torch.mean((sigma**2 + mu**2)/2. - torch.log(sigma) - 1/2)
         
         wandb.log({"train_KL": KL(train_mu, train_sigma)})
         wandb.log({"val_KL": KL(val_mu, val_sigma)})

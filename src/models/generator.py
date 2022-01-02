@@ -39,6 +39,9 @@ class Generator(nn.Module):
             x = self.activation(layer(x))
         z_mu = self.mean_layer(x)
         z_var = torch.exp(self.var_layer(x))
+        # z_var = torch.ones_like(z_mu)
+        # z_var = torch.ones_like(z_mu)*0.7
+        # z_var = torch.ones_like(z_mu)*0.0001
         return z_mu, z_var
 
     def decode(self, x):
