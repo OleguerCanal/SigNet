@@ -17,5 +17,5 @@ if __name__ == "__main__":
     examples = generator.generate(5000)
     make_hist(examples)
 
-    # real_data, val_real_data = read_data_generator(device="cpu")
-    # make_hist(real_data)
+    real_data, val_real_data = read_data_generator(device="cpu")
+    make_hist(real_data)

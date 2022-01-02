@@ -62,6 +62,8 @@ class GeneratorTrainer:
                           device=self.device.type)
         model.to(self.device)
 
+        wandb.watch(model, log_freq=100)
+
         optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
 
         l_vals = collections.deque(maxlen=50)
