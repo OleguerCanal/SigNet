@@ -40,7 +40,7 @@ class GeneratorTrainer:
         self.logger = GeneratorLogger()
 
     def __loss(self, input, pred, z_mu, z_var):
-        kl_div = (z_var**2 + z_mu**2 - torch.log(z_var) - 1/2).sum()
+        kl_div = ((z_var**2 + z_mu**2)/2 - torch.log(z_var) - 1/2).mean()
         return nn.MSELoss()(input, pred) + self.lagrange_param*kl_div
          
     def objective(self,

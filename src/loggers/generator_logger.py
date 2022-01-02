@@ -39,7 +39,7 @@ class GeneratorLogger:
 
         
         def KL(mu, sigma):
-            return (sigma**2 + mu**2 - torch.log(sigma) - 1/2).sum()
+            return ((sigma**2 + mu**2)/2 - torch.log(sigma) - 1/2).mean()
         
         wandb.log({"train_KL": KL(train_mu, train_sigma)})
         wandb.log({"val_KL": KL(val_mu, val_sigma)})
