@@ -141,7 +141,7 @@ def read_data_generator(device, data_folder="../data"):
     data = real_data[torch.randperm(real_data.size()[0]),:]
 
     train_input = data[:int(real_data.size()[0]*0.95)]
-    val_input = data[int(real_data.size()[0]*0.05):]
+    val_input = data[int(real_data.size()[0]*0.95):]
 
     train_data = GeneratorData(inputs=train_input)
     val_data = GeneratorData(inputs=val_input)
