@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
-from utilities.io import read_data, read_model, read_data_generator
+from utilities.io import read_model, read_data_generator
 
 def make_hist(data):
     indexes = []
