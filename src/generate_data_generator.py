@@ -19,5 +19,5 @@ if __name__ == "__main__":
     make_hist(examples)
 
     real_data, val_real_data = read_data_generator(device="cpu")
-    real_data.inputs[real_data.inputs<=0.01] = 0
+    real_data.inputs[real_data.inputs <= 0.01] = 0
     make_hist(real_data.inputs)
