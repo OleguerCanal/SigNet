@@ -15,7 +15,7 @@ if __name__ == "__main__":
     generator = read_model("../trained_models/exp_good/generator", device="cuda")
     generator.to("cuda")
     examples = generator.generate(5000)
-    examples[examples<=0.01] = 0
+    examples[examples <= 0.01] = 0
     make_hist(examples)
 
     real_data, val_real_data = read_data_generator(device="cpu")
