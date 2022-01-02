@@ -46,12 +46,13 @@ class GeneratorTrainer:
          
     def objective(self,
                   batch_size,
-                  lr,
+                  lr_encoder,
+                  lr_decoder,
                   num_hidden_layers,
                   latent_dim,
                   plot=False):
 
-        print(batch_size, lr, num_hidden_layers, latent_dim)
+        print(batch_size, lr_encoder, lr_decoder, num_hidden_layers, latent_dim)
 
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
@@ -64,7 +65,11 @@ class GeneratorTrainer:
 
         wandb.watch(model, log_freq=100)
 
-        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+        # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+        optimizer = optim.Adam([
+                {'params': model.encoder_layers.parameters(), 'lr': lr_encoder},
+                {'params': model.decoder_layers.parameters(), 'lr': lr_decoder}
+            ])
 
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
@@ -77,7 +82,8 @@ class GeneratorTrainer:
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_pred, train_mean, train_var = model(train_input)
-                self.adapted_lagrange_param = self.lagrange_param*float(total_steps - step)/float(total_steps)
+                # self.adapted_lagrange_param = self.lagrange_param
+                self.adapted_lagrange_param = self.lagrange_param*float(total_steps - 0.1*step)/float(total_steps)
                 train_loss = self.__loss(input=train_input,
                                          pred=train_pred,
                                          z_mu=train_mean,
@@ -145,7 +151,8 @@ def train_generator(config) -> float:
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 
     min_val = trainer.objective(batch_size=config["batch_size"],
-                                lr=config["lr"],
+                                lr_encoder=config["lr_encoder"],
+                                lr_decoder=config["lr_decoder"],
                                 num_hidden_layers=config["num_hidden_layers"],
                                 latent_dim=config["latent_dim"],
                                 plot=config["enable_logging"])
