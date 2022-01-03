@@ -5,15 +5,16 @@ config:
     models_dir: "../trained_models/exp_good/"
 
     # Training params
-    iterations: 300
+    iterations: 1000
     num_classes: 72
     lagrange_param: 0.001
     batch_size: 100
-    lr: 0.005
+    lr_encoder: 0.001
+    lr_decoder: 0.0005
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator"
+    wandb_project_id: "generator-clau"
 
     # Network params
     num_hidden_layers: 1
