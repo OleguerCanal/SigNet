@@ -30,6 +30,7 @@ def plot_weights_comparison(true_labels, guessed_labels, sigs_names):
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
+    plt.legend(['Input', 'Output'])
     plt.tight_layout()
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())

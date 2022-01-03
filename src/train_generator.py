@@ -27,17 +27,20 @@ if __name__ == "__main__":
     # Train args
     parser.add_argument(
         '--lagrange_param', action='store', nargs=1, type=float, required=False,
-        help='Sigmoid parameters for normalization.'
+        help='Lagrange Parameter'
     )
     parser.add_argument(
         '--batch_size', action='store', nargs=1, type=int, required=False,
         help='Training batch size.'
     )
     parser.add_argument(
-        '--lr', action='store', nargs=1, type=float, required=False,
-        help='Learning rate.'
+        '--lr_encoder', action='store', nargs=1, type=float, required=False,
+        help='Learning rate of the encoder.'
     )
-    
+    parser.add_argument(
+        '--lr_decoder', action='store', nargs=1, type=float, required=False,
+        help='Learning rate of the decoder.'
+    )
     # Model args
     parser.add_argument(
         '--latent_dim', action='store', nargs=1, type=int, required=False,
