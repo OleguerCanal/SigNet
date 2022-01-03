@@ -83,7 +83,7 @@ class GeneratorTrainer:
                 optimizer.zero_grad()                
                 train_pred, train_mean, train_var = model(train_input)
                 # self.adapted_lagrange_param = self.lagrange_param
-                self.adapted_lagrange_param = self.lagrange_param*float(total_steps - 0.1*step)/float(total_steps)
+                self.adapted_lagrange_param = self.lagrange_param*float(total_steps - step)/float(total_steps)
                 train_loss = self.__loss(input=train_input,
                                          pred=train_pred,
                                          z_mu=train_mean,
