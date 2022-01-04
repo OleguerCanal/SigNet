@@ -14,7 +14,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator-clau-12"
+    wandb_project_id: "generator"
 
     # Network params
     num_hidden_layers: 5
