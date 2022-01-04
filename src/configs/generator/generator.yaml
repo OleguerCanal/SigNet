@@ -17,7 +17,7 @@ config:
     wandb_project_id: "generator-clau-12"
 
     # Network params
-    num_hidden_layers: 1
+    num_hidden_layers: 5
     latent_dim: 15
 
     # Misc
