@@ -41,7 +41,7 @@ def make_mean_weight_comparison(real, data):
 
 if __name__ == "__main__":
     generator = read_model("../trained_models/exp_good/generator", device="cpu")
-    generator.to("cpu")
+
     examples = generator.generate(5000)
     examples[examples <= 0.01] = 0
     # make_hist(examples)

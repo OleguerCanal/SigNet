@@ -18,7 +18,7 @@ config:
 
     # Network params
     num_hidden_layers: 5
-    latent_dim: 15
+    latent_dim: 1000
 
     # Misc
     device: "cuda"
