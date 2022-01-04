@@ -10,7 +10,7 @@ config:
     lagrange_param: 0.001
     batch_size: 100
     lr_encoder: 0.005
-    lr_decoder: 0.005
+    lr_decoder: 0.0005
 
     # WANDB params
     enable_logging: True
