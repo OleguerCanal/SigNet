@@ -5,7 +5,7 @@ class Generator(nn.Module):
     
     def __init__(self,
                  input_size=72,
-                 num_hidden_layers=3,
+                 num_hidden_layers=2,
                  latent_dim=50,
                  device="cuda") -> None:
         self.init_args = locals()
@@ -15,16 +15,26 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
 
         self.latent_dim = latent_dim
-        self.encoder_layers = nn.ModuleList(
-            modules=[nn.Linear(int(input_size - (input_size-latent_dim)*i/num_hidden_layers), int(input_size - (input_size-latent_dim)*(i+1)/num_hidden_layers))
-                     for i in range(num_hidden_layers)])
+        encoder_layers = []
+        for i in range(num_hidden_layers):
+            in_features = int(input_size - (input_size-latent_dim)*i/num_hidden_layers)
+            out_features = int(input_size - (input_size-latent_dim)*(i+1)/num_hidden_layers)
+            print("in_features:", in_features, "out_features:", out_features)
+            layer = nn.Linear(in_features, out_features)            
+            encoder_layers.append(layer)
+        self.encoder_layers = nn.ModuleList(modules=encoder_layers)
         self.mean_layer = nn.Linear(latent_dim, latent_dim)
         self.var_layer = nn.Linear(latent_dim, latent_dim)
 
-        self.decoder_layers = nn.ModuleList(
-            modules=[nn.Linear(int(input_size - (input_size-latent_dim)*(i+1)/num_hidden_layers), int(input_size - (input_size-latent_dim)*i/num_hidden_layers))
-                     for i in reversed(range(num_hidden_layers))])
+        decoder_layers = []
+        for i in reversed(range(num_hidden_layers+1)):
+            in_features = int(input_size - (input_size-latent_dim)*(i+1)/(num_hidden_layers + 1))
+            out_features = int(input_size - (input_size-latent_dim)*i/(num_hidden_layers + 1))
+            print("in_features:", in_features, "out_features:", out_features)
+            layer = nn.Linear(in_features, out_features)            
+            decoder_layers.append(layer)
 
+        self.decoder_layers = nn.ModuleList(modules=decoder_layers)
         self.activation = nn.LeakyReLU(0.1)
 
         self.Normal = torch.distributions.Normal(0, 1)
@@ -39,6 +49,9 @@ class Generator(nn.Module):
             x = self.activation(layer(x))
         z_mu = self.mean_layer(x)
         z_var = torch.exp(self.var_layer(x))
+        # z_var = torch.ones_like(z_mu)
+        # z_var = torch.ones_like(z_mu)*0.7
+        # z_var = torch.ones_like(z_mu)*0.0001
         return z_mu, z_var
 
     def decode(self, x):
@@ -60,5 +73,5 @@ class Generator(nn.Module):
         z = self.Normal.sample(shape)
         labels = self.decode(z)
         labels = torch.max(torch.zeros_like(labels), labels)
-        # todo: normalize
+        labels = labels/labels.sum(dim=1).reshape(-1,1)
         return labels

@@ -3,6 +3,7 @@ import sys
 
 from argparse import ArgumentParser
 import torch
+import pandas as pd
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,17 +28,20 @@ if __name__ == "__main__":
     # Train args
     parser.add_argument(
         '--lagrange_param', action='store', nargs=1, type=float, required=False,
-        help='Sigmoid parameters for normalization.'
+        help='Lagrange Parameter'
     )
     parser.add_argument(
         '--batch_size', action='store', nargs=1, type=int, required=False,
         help='Training batch size.'
     )
     parser.add_argument(
-        '--lr', action='store', nargs=1, type=float, required=False,
-        help='Learning rate.'
+        '--lr_encoder', action='store', nargs=1, type=float, required=False,
+        help='Learning rate of the encoder.'
     )
-    
+    parser.add_argument(
+        '--lr_decoder', action='store', nargs=1, type=float, required=False,
+        help='Learning rate of the decoder.'
+    )
     # Model args
     parser.add_argument(
         '--latent_dim', action='store', nargs=1, type=int, required=False,
@@ -53,7 +57,19 @@ if __name__ == "__main__":
     # Read & config
     config = read_config(path=getattr(_args, "config_file")[0])
     config = update_dict(config=config, args=_args)
-    
     print("Using config:", config)
-    score = train_generator(config=config)
-    write_result(score, "../tmp/classifier_score_%s.txt"%config["model_id"])
+    val_mse, val_KL = train_generator(config=config)
+    model_results = pd.DataFrame({"batch_size": [config["batch_size"]],
+                                  "lr_encoder": [config["lr_encoder"]],
+                                  "lr_decoder": [config["lr_decoder"]],
+                                  "num_hidden_layers": [config["num_hidden_layers"]],
+                                  "latent_dim": [config["latent_dim"]],
+                                  "lagrange_param": [config["lagrange_param"]],
+                                  "adapted_lagrange_param": [""],
+                                  "batch_size_factor": [""],
+                                  "val_mse": [val_mse],
+                                  "val_KL": [val_KL],
+                                  "val_loss": [""]})
+    model_results.to_csv("../tmp/generator_models.csv",
+                         header=False, index=False, mode="a")
+    # write_result(score, "../tmp/classifier_score_%s.txt"%config["model_id"])
