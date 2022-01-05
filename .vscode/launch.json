@@ -16,6 +16,15 @@
         }
 
         {
+            "name": "Python: Train generator",
+            "type": "python",
+            "request": "launch",
+            "program": "train_generator.py",
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal"
+        }
+
+        {
             "name": "Python: Train finetuner",
             "type": "python",
             "request": "launch",
