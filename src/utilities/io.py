@@ -8,6 +8,8 @@ import pandas as pd
 import torch
 
 from utilities.data_partitions import DataPartitions
+from utilities.generator_data import GeneratorData
+from models.generator import Generator
 from models.classifier import Classifier
 from models.finetuner import FineTuner
 from models.error_finder import ErrorFinder
@@ -41,9 +43,9 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
         signatures_data.to_csv(output_file, index=False)
     return signatures_data
 
-def csv_to_tensor(file, device="cpu"):
+def csv_to_tensor(file, device="cpu", header=None, index_col=None):
     input_tensor = torch.tensor(pd.read_csv(
-        file, header=None).values, dtype=torch.float)
+        file, header=header, index_col=index_col).values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
     # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
     #        == input_tensor.shape[0])
@@ -130,6 +132,22 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
+def read_data_generator(device, data_folder="../data"):
+
+    real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_normalized_PCAWG.csv",
+                              device=device, header=0, index_col=0)
+    real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+    real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+    data = real_data[torch.randperm(real_data.size()[0]),:]
+
+    train_input = data[:int(real_data.size()[0]*0.95)]
+    val_input = data[int(real_data.size()[0]*0.95):]
+
+    train_data = GeneratorData(inputs=train_input)
+    val_data = GeneratorData(inputs=val_input)
+
+    return train_data, val_data
+
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):
     """Read one method guess from disk
 
@@ -169,7 +187,7 @@ def read_test_data(device, experiment_id, test_id, data_folder="../data"):
     return inputs, label
 
 
-def read_model(directory):
+def read_model(directory, device="cpu"):
     """Instantiate a pre-trained model from the stored vars
     The model is in cpu and in eval mode
 
@@ -183,9 +201,11 @@ def read_model(directory):
     model_type = init_args["model_type"]
     init_args.pop("model_type")
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder"])
+    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder", "Generator"])
 
     # Instantiate model class
+    if model_type == "Generator":
+        model = Generator(**init_args)
     if model_type == "Classifier":
         model = Classifier(**init_args)
     elif model_type == "FineTuner":
@@ -197,10 +217,10 @@ def read_model(directory):
     state_dict_file = os.path.join(directory, "state_dict")
     try:
         state_dict = torch.load(f=state_dict_file,
-                                map_location=torch.device('cpu'))
+                                map_location=torch.device(device))
     except:
         state_dict = torch.load(f=state_dict_file + ".zip",
-                                map_location=torch.device('cpu'))
+                                map_location=torch.device(device))
     model.load_state_dict(state_dict)
     model.eval()
     return model
@@ -256,7 +276,7 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.to_csv(output_path, header=True, index=True)
 
 def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path):
-    create_dir(output_path+ "/whatever.txt")
+    create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     
     # Write results weight guesses
