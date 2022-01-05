@@ -275,7 +275,6 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-
 def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path):
     create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
