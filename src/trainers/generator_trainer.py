@@ -73,8 +73,8 @@ class GeneratorTrainer:
             {'params': model.decoder_layers.parameters(), 'lr': lr_decoder}
         ])
 
-        l_vals = collections.deque(maxlen=50)
-        max_found = -np.inf
+        # l_vals = collections.deque(maxlen=50)
+        # max_found = -np.inf
         step = 0
         total_steps = self.iterations*len(self.train_dataset)
         # self.batch_size_factor = batch_size/len(self.train_dataset)
@@ -103,8 +103,8 @@ class GeneratorTrainer:
                                            pred=val_pred,
                                            z_mu=val_mean,
                                            z_var=val_var)
-                    l_vals.append(val_loss.item())
-                    max_found = max(max_found, -np.nanmean(l_vals))
+                    # l_vals.append(val_loss.item())
+                    # max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot and step % self.log_freq == 0:
                     val_mse, val_KL = self.logger.log(train_loss=train_loss,
@@ -124,19 +124,9 @@ class GeneratorTrainer:
                 step += 1
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
-            model_results = pd.DataFrame({"batch_size": [batch_size],
-                                          "lr_encoder": [lr_encoder],
-                                          "lr_decoder": [lr_decoder],
-                                          "num_hidden_layers": [num_hidden_layers],
-                                          "latent_dim": [latent_dim],
-                                          "lagrange_param": [self.lagrange_param],
-                                          "adapted_lagrange_param": [self.adapted_lagrange_param],
-                                          "batch_size_factor": [self.batch_size_factor],
-                                          "val_mse": [val_mse],
-                                          "val_KL": [val_KL],
-                                          "val_loss": [val_loss.item()]})
-            model_results.to_csv("../tmp/generator_models.csv", header=False, index=False, mode="a")
-        return max_found
+        
+        # Return last mse and KL obtained in validation
+        return val_mse, val_KL
 
 
 def train_generator(config) -> float:
@@ -167,11 +157,11 @@ def train_generator(config) -> float:
                                device=torch.device(dev),
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 
-    min_val = trainer.objective(batch_size=config["batch_size"],
-                                lr_encoder=config["lr_encoder"],
-                                lr_decoder=config["lr_decoder"],
-                                num_hidden_layers=config["num_hidden_layers"],
-                                latent_dim=config["latent_dim"],
-                                plot=config["enable_logging"])
+    val_mse, val_KL = trainer.objective(batch_size=config["batch_size"],
+                                        lr_encoder=config["lr_encoder"],
+                                        lr_decoder=config["lr_decoder"],
+                                        num_hidden_layers=config["num_hidden_layers"],
+                                        latent_dim=config["latent_dim"],
+                                        plot=config["enable_logging"])
 
-    return min_val
+    return val_mse, val_KL
