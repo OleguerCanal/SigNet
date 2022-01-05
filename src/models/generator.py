@@ -59,9 +59,12 @@ class Generator(nn.Module):
             x = self.activation(layer(x))
         return x
 
-    def forward(self, x):
+    def forward(self, x, noise=True):
         z_mu, z_var = self.encode(x)
-        z = z_mu + z_var*self.Normal.sample(z_mu.shape)
+        if noise:
+            z = z_mu + z_var*self.Normal.sample(z_mu.shape)
+        else:
+            z = z_mu
         x = self.decode(z)
         return x, z_mu, z_var
 
@@ -70,5 +73,5 @@ class Generator(nn.Module):
         z = self.Normal.sample(shape)
         labels = self.decode(z)
         labels = torch.max(torch.zeros_like(labels), labels)
-        # todo: normalize
+        labels = labels/labels.sum(dim=1).reshape(-1,1)
         return labels
