@@ -64,22 +64,12 @@ if __name__ == "__main__":
     signatures_file = data_folder + "data.xlsx"
 
     in_files = [
-        # perturbed
-        "/exp_good/train_perturbed_low_input.csv",
-        "/exp_good/val_perturbed_low_input.csv",
-        "/exp_good/train_perturbed_large_input.csv",
-        "/exp_good/val_perturbed_large_input.csv",
-
-        # realistic
-        "/exp_good/train_realistic_low_input.csv",
-        "/exp_good/val_realistic_low_input.csv",
-        "/exp_good/train_realistic_large_input.csv",
-        "/exp_good/val_realistic_large_input.csv",
+        # generator
+        "/exp_generator/train_generator_low_input.csv",
+        "/exp_generator/val_generator_low_input.csv",
 
         # tests
-        "/exp_good/test_perturbed/test_perturbed_input.csv",
-        # "/exp_good/test_random/test_random_input.csv",
-        "/exp_good/test_realistic/test_realistic_input.csv",
+        "/exp_generator/test_generator_low_input.csv",
     ]
 
     for in_file in in_files:

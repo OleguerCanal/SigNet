@@ -32,14 +32,28 @@ model_directory = "../../trained_models/exp_good/generator"
 # train_data, val_data = read_data_generator(device="cpu", data_folder="../../data")
 
 # Load generator and get predictions
-generator = read_model(model_directory)
+generator = read_model(model_directory, device="cuda")
+# generator.to("cpu")
 # generator_output, mean, var = generator(x=val_data.inputs, noise=False)
     
 # input0 = val_data.inputs[0,:]
 # output0, mean, var = generator(x=input0, noise=False)
-# data = pd.read_excel("../../data/data.xlsx")
+data = pd.read_excel("../../data/data.xlsx")
 
 
+######################## CORRELATION MATRIX ################################################3
+import pandas as pd
+import seaborn as sn
+import matplotlib.pyplot as plt
+
+generator_data = generator.generate(10000)
+df = pd.DataFrame(generator_data.cpu().detach().numpy(),columns=data.columns[1:])
+
+corrMatrix = df.corr()
+sn.heatmap(corrMatrix, annot=False)
+plt.show()
+
+########################## PCA #########################################################
 from sklearn.decomposition import PCA
 
 
@@ -47,11 +61,15 @@ from sklearn.decomposition import PCA
 train_data, val_data = read_data_generator(device="cpu", data_folder="../../data")
 points_real = val_data.inputs
 
-num_points = points_real.size()[0]
-# num_points = 5000
+# num_points = points_real.size()[0]
+num_points = 10000
 
 train_data, val_data = read_data(device="cpu", experiment_id="exp_good", source="realistic_large", data_folder="../../data", include_baseline=False, include_labels=True)
 points_realistic = val_data.labels[:num_points, :].detach().numpy()
+df = pd.DataFrame(points_realistic,columns=data.columns[1:])
+corrMatrix = df.corr()
+sn.heatmap(corrMatrix, annot=False)
+plt.show()
 
 pca = PCA(n_components=2, whiten=True).fit(points_real)
 points_real_2d = pca.transform(points_real)
@@ -85,11 +103,3 @@ ax.scatter(points_real_3d[:, 0], points_real_3d[:, 1], points_real_3d[:, 2], c="
 plt.legend(["Realistic", "Generated", "Real"])
 plt.show()
 
-
-# fig = px.scatter(components, x=0, y=1, color=df['species'])
-# fig.show()
-
-print(val_data.inputs)
-print(generator_output)
-print(mean)
-print(var)
