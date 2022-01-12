@@ -1,14 +1,16 @@
 import os
 import sys
 
+from matplotlib.pyplot import show
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.baseline import Baseline
 from utilities.io import read_signatures, read_test_data, read_model
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mutations, plot_metric_vs_sigs
 
-experiment_id = "exp_final"
-test_id = "test_random"
-finetuner_directory = "../../trained_models/%s/01fn_0001fp_kl_random"%experiment_id
+experiment_id = "exp_generator"
+test_id = "test_generator"
+finetuner_directory = "../../trained_models/%s/finetuner_generator_low"%experiment_id
 
 # Load data
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
@@ -32,7 +34,7 @@ finetuner_guess_01 = finetuner(mutation_dist=input_batch,
 list_of_methods = ['baseline', 'finetuner']
 list_of_guesses = [baseline_guess, finetuner_guess_01]
 
-plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '')
+plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '', show=True)
 
 # list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 

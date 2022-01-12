@@ -42,14 +42,14 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        assert (self.network_type in ['perturbed', 'realistic'])
+        assert (self.network_type in ['perturbed', 'realistic', 'generator'])
         if self.network_type == 'perturbed':
             fp_param = 1e-3
             fn_param = 0.1
             l = get_kl_divergence(prediction, label)
             l += fp_param*FP / prediction.shape[0] +\
                  fn_param*FN / prediction.shape[0]
-        elif self.network_type == 'realistic':
+        elif self.network_type == 'realistic' or self.network_type == 'generator':
             fp_param = 1e-3
             fn_param = 0.25
             l = get_kl_divergence(prediction, label)

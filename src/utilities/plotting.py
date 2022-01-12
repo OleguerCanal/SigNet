@@ -124,8 +124,8 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
     # create_dir(folder_path)
-    # if show:
-    #     plt.show()
+    if show:
+        plt.show()
     # plt.savefig(folder_path + '/metrics_low.svg')
     plt.close()
     ############################################################################################
@@ -150,7 +150,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     # fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
-    # plt.show()
+    plt.show()
     # plt.savefig(folder_path + '/metrics_high.svg')
     plt.close()
 

@@ -215,7 +215,7 @@ class DataGenerator:
         """Create a labelled dataset of mutation vectors
         from the generator output weights.
         """
-        generator = read_model(generator_model_path, device="cuda")
+        generator = read_model(generator_model_path, device="cpu")
 
         if set == "train":
             if large_low == 'low':

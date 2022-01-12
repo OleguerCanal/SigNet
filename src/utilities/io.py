@@ -202,7 +202,9 @@ def read_model(directory, device="cpu"):
     init_args.pop("model_type")
     assert(model_type is not None)  # Model type not saved!
     assert(model_type in ["Classifier", "FineTuner", "ErrorFinder", "Generator"])
-
+    if "device" in init_args.keys():
+        init_args["device"] = device
+        
     # Instantiate model class
     if model_type == "Generator":
         model = Generator(**init_args)
