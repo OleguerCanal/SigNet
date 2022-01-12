@@ -15,7 +15,7 @@ if __name__ == "__main__":
                                    seed=None,
                                    shuffle=True)
 
-    # Low nummut
+    # # Low nummut
     train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="low",
                                                                  set="train")
@@ -23,16 +23,21 @@ if __name__ == "__main__":
     tensor_to_csv(train_input, "../data/%s/train_generator_low_input.csv"%experiment_id)
     tensor_to_csv(train_labels, "../data/%s/train_generator_low_label.csv"%experiment_id)
 
-    val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="low",
-                                                                 set="val")
+    # val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
+    #                                                              large_low="low",
+    #                                                              set="val")
 
-    tensor_to_csv(val_input, "../data/%s/val_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/val_generator_low_label.csv"%experiment_id)
+    # tensor_to_csv(val_input, "../data/%s/val_generator_low_input.csv"%experiment_id)
+    # tensor_to_csv(val_labels, "../data/%s/val_generator_low_label.csv"%experiment_id)
 
-    test_input, test_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="low",
-                                                                 set="test")
+    # test_input, test_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
+    #                                                              large_low="low",
+    #                                                              set="test")
 
-    tensor_to_csv(test_input, "../data/%s/test_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(test_labels, "../data/%s/test_generator_low_label.csv"%experiment_id)
+    # tensor_to_csv(test_input, "../data/%s/test_generator_low_input.csv"%experiment_id)
+    # tensor_to_csv(test_labels, "../data/%s/test_generator_low_label.csv"%experiment_id)
+
+    # real_input, real_labels = data_generator.make_real_set()
+
+    # tensor_to_csv(real_input, "../data/real_data/sample_real_data_input.csv")
+    # tensor_to_csv(real_labels, "../data/real_data/sample_real_data_labels.csv")
