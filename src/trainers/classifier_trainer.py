@@ -28,6 +28,7 @@ class ClassifierTrainer:
                  num_classes=72,
                  log_freq=100,
                  model_path=None,  # File where to save model learned weights None to not save
+                 cutoff=0.5,
                  device=torch.device("cuda:0")):
         self.iterations = iterations  # Now iteration refers to passes through all dataset
         self.num_classes = num_classes
@@ -37,6 +38,7 @@ class ClassifierTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
+        self.cutoff = cutoff
         self.logger = ClassifierLogger()
 
     def __loss(self, prediction, label):
@@ -68,7 +70,7 @@ class ClassifierTrainer:
         max_found = -np.inf
         step = 0
         for iteration in range(self.iterations):
-            for train_input, train_label, baseline_guess, num_mut, _ in tqdm(dataloader):
+            for train_input, train_label, _, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, num_mut)
@@ -89,10 +91,10 @@ class ClassifierTrainer:
 
                 if plot and step % self.log_freq == 0:
                     self.logger.log(train_loss=train_loss,
-                                    train_prediction=train_prediction.type(torch.int64),
+                                    train_prediction=(train_prediction > self.cutoff).type(torch.int64),
                                     train_label=train_label.type(torch.int64),
                                     val_loss=val_loss,
-                                    val_prediction=val_prediction.type(torch.int64),
+                                    val_prediction=(val_prediction > self.cutoff).type(torch.int64),
                                     val_label=self.val_dataset.labels.type(torch.int64),
                                     step=step)
 
