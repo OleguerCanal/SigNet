@@ -13,7 +13,6 @@ def shuffle(inputs, labels, num_mut):
 
 if __name__ == "__main__":
     data_folder = "../data"
-    signatures = read_signatures(data_folder + "/data.xlsx", mutation_type_order=data_folder+"/mutation_type_order.xlsx")
     experiment_id = "exp_generator"
 
     # Read all realistic data    
