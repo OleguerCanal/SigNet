@@ -8,7 +8,7 @@ class FineTuner(nn.Module):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.05,
+                 cutoff=0.001,
                  sigmoid_params = [5000, 2000]):
         self.init_args = locals()
         self.init_args.pop("self")
@@ -55,7 +55,8 @@ class FineTuner(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
-        num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
+        # num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
+        num_mut = torch.log10(num_mut)/6
         assert(not torch.isnan(num_mut).any())
         num_mut = self.activation(self.layer1_3(num_mut))
         num_mut = self.activation(self.layer2_3(num_mut))
@@ -70,6 +71,7 @@ class FineTuner(nn.Module):
 
         # Apply output layer
         comb = self.output_layer(comb)
+        comb += baseline_guess
         comb = self.softmax(comb)
 
         # If in eval mode, send small values to 0

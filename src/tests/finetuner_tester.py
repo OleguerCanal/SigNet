@@ -10,7 +10,7 @@ from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mut
 
 experiment_id = "exp_generator"
 test_id = "test_generator"
-finetuner_directory = "../../trained_models/%s/finetuner_generator_low"%experiment_id
+finetuner_directory = "../../trained_models/%s/finetuner_generator_residual_JS"%experiment_id
 
 # Load data
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
@@ -25,7 +25,6 @@ finetuner = read_model(finetuner_directory)
 finetuner_guess_01 = finetuner(mutation_dist=input_batch,
                             baseline_guess=baseline_guess,
                             num_mut=label_batch[:,-1].view(-1, 1))
-
 
 # Plot results
 # list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]

@@ -10,7 +10,7 @@ from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
 from utilities.io import update_dict, read_config, write_result
 
 # DEFAULT_CONFIG_FILE = ["configs/finetuner_random_cosmic_v2.yaml"]
-DEFAULT_CONFIG_FILE = ["configs/finetuner_realistic.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_realistic_low.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments

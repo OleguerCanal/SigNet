@@ -1,13 +1,13 @@
 config:
     # IDs & paths
     data_id: "exp_generator"
-    model_id: "finetuner_generator_low"
+    model_id: "finetuner_generator_residual_JS"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
     source: "generator_low"
     network_type: "generator"
-    iterations: 70
+    iterations: 100
     num_classes: 72
     sigmoid_params: [500,150]
     batch_size: 283
@@ -18,7 +18,7 @@ config:
     wandb_project_id: "finetuner_generator"
 
     # Network params
-    num_hidden_layers: 3
+    num_hidden_layers: 6
     num_neurons: 50
 
     # Misc

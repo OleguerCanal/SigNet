@@ -93,7 +93,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    list_of_metrics = ["MAE_p", "MAE_n", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
+    list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
     values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
     for method_index in range(len(list_of_methods)):
@@ -113,7 +113,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
 
     xlabel = 'log(N)'
-    ylabel = ["MAE postives", "MAE negatives", "FPR", "FNR"]
+    ylabel = ["MAE", "KL", "FPR", "FNR"]
     # fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
@@ -269,9 +269,9 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
     for i in ind_list:
         plt.bar(range(96), input[i,:], width=0.4)
         plt.bar(np.array(range(96))+0.4, reconstruction[i,:].detach().numpy(), width=0.4)
-        #plt.show()
         plt.legend(["Input", "Reconstruction"])
-        plt.savefig(plot_path + "_%s.png"%i)
+        plt.show()
+        # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
 
