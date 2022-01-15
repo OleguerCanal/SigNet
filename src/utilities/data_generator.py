@@ -219,9 +219,10 @@ class DataGenerator:
 
         if set == "train":
             if large_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
-                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + \
-                    [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 +\
+                    [3]*50000 + [4]*50000 + [5]*50000 + [6]*50000 +\
+                    [7]*50000 + [-1]*50000
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
                 # The -1 means real distribution

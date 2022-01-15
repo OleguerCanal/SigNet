@@ -19,9 +19,11 @@ if __name__ == "__main__":
     train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="low",
                                                                  set="train")
-
+    print("done")
     tensor_to_csv(train_input, "../data/%s/train_generator_low_input.csv"%experiment_id)
+    print("saved first")
     tensor_to_csv(train_labels, "../data/%s/train_generator_low_label.csv"%experiment_id)
+    print("saved second")
 
     # val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
     #                                                              large_low="low",

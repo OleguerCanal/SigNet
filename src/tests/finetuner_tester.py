@@ -5,14 +5,17 @@ from matplotlib.pyplot import show
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.baseline import Baseline
-from utilities.io import read_signatures, read_test_data, read_model
+from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mutations, plot_metric_vs_sigs
 
 experiment_id = "exp_generator"
 test_id = "test_generator"
 finetuner_directory = "../../trained_models/%s/finetuner_generator_low"%experiment_id
+finetuner_directory = "../../trained_models/%s/finetuner_nobaseline"%experiment_id
 
 # Load data
+# inputs = csv_to_tensor(path + "/%s_input.csv" % (test_id), device=device)
+
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
 signatures = read_signatures("../../data/data.xlsx")
 
@@ -21,18 +24,25 @@ baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(input_batch)
 
 # Load finetuner and get predictions
-finetuner = read_model(finetuner_directory)
-finetuner_guess_01 = finetuner(mutation_dist=input_batch,
-                            baseline_guess=baseline_guess,
-                            num_mut=label_batch[:,-1].view(-1, 1))
+# finetuner = read_model(finetuner_directory)
+# finetuner_guess_01 = finetuner(mutation_dist=input_batch,
+#                             baseline_guess=baseline_guess,
+#                             num_mut=label_batch[:,-1].view(-1, 1))
+
+finetuner_nobaseline = read_model(finetuner_directory)
+finetuner_nobaseline_guess_01 = finetuner_nobaseline(mutation_dist=input_batch,
+                                                     num_mut=label_batch[:,-1].view(-1, 1))
 
 
 # Plot results
 # list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
 # list_of_guesses, label = read_methods_guesses('cpu', experiment_id, "test", list_of_methods, data_folder="../../data")
 
-list_of_methods = ['baseline', 'finetuner']
-list_of_guesses = [baseline_guess, finetuner_guess_01]
+# list_of_methods = ['baseline', 'finetuner', 'finetuner_nobaseline']
+# list_of_guesses = [baseline_guess, finetuner_guess_01, finetuner_nobaseline_guess_01]
+list_of_methods = ['baseline', 'finetuner_nobaseline']
+list_of_guesses = [baseline_guess, finetuner_nobaseline_guess_01]
+
 
 plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '', show=True)
 
