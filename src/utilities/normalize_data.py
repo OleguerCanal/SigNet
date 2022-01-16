@@ -4,9 +4,9 @@ import torch
 
 def normalize_data(input_file, opportunities_name_or_path):
     if opportunities_name_or_path == 'exome':
-        abundances = create_opportunities('/home/oleguer/projects/signatures-net/data/real_data/abundances_trinucleotides.txt')
+        abundances = create_opportunities('../../data/real_data/abundances_trinucleotides.txt')
     elif opportunities_name_or_path == 'genome':
-        abundances = create_opportunities('/home/oleguer/projects/signatures-net/data/real_data/3mer_WG_hg37.txt')
+        abundances = create_opportunities('../../data/real_data/3mer_WG_hg37.txt')
     else:
         abundances = create_opportunities(opportunities_name_or_path)
 

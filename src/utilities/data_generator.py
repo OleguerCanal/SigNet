@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from models.baseline import Baseline
-from utilities.io import read_model
+from utilities.io import csv_to_tensor, read_model
 from utilities.weight_augmenter import WeightAugmenter
 
 
@@ -219,9 +219,9 @@ class DataGenerator:
 
         if set == "train":
             if large_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
                 ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + \
-                    [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000
+                    [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000 + [7]*50000 + [-1]*50000
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
                 # The -1 means real distribution
@@ -274,4 +274,33 @@ class DataGenerator:
                 # For the real distribution we say we have more than 1e5 mutations
                 labels_batch[i, :] = torch.cat(
                     [labels[i, :], torch.tensor([float(np.random.randint(1e5, 1e6))])])
+        return input_batch, labels_batch
+
+    def make_real_set(self):
+        """Create a labelled dataset of mutation vectors
+        from the real weights.
+        """
+
+        real_data = csv_to_tensor("../data/real_data/sigprofiler_normalized_PCAWG.csv",
+                              device="cpu", header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+
+        batch_size = labels.shape[0]
+        input_batch = torch.empty((batch_size, 96))
+        labels_batch = torch.empty((batch_size, self.total_signatures + 1))
+
+        for i in tqdm(range(batch_size)):
+            # Compute resulting signature
+            signature = torch.einsum("ij,j->i", (self.signatures, labels[i]))
+
+            num_mut = float(np.random.randint(1e3, 1e4))
+            sample = self.__sample_from_sig(signature=signature,
+                                            num_mut=int(num_mut),
+                                            normalize=True)
+            # Store
+            input_batch[i, :] = sample
+            labels_batch[i, :] = torch.cat(
+                [labels[i, :], torch.tensor([float(num_mut)])])
+
         return input_batch, labels_batch
