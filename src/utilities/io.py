@@ -72,6 +72,13 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
     train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
     train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
+    
+    print("USING LARGE NUMMUT!!!!")
+    index = train_label[:, -1] >= 1e4
+    train_input = train_input[index, ...]
+    train_baseline = train_baseline[index, ...]
+    train_label = train_label[index, ...]
+
 
     train_data = DataPartitions(inputs=train_input,
                                 prev_guess=train_baseline,
@@ -211,6 +218,7 @@ def read_model(directory, device="cpu"):
     if model_type == "Classifier":
         model = Classifier(**init_args)
     elif model_type == "FineTuner":
+        print("Reading finetuner")
         model = FineTuner(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)

@@ -43,7 +43,13 @@ class FinetunerLogger:
             wandb.log({"val_" + metric_name: metric(val_prediction, val_label).item()})
 
         for metric_name in train_classification_metrics.keys():
-            wandb.log({"train_" + metric_name: train_classification_metrics[metric_name].item()})
+            try:
+                wandb.log({"train_" + metric_name: train_classification_metrics[metric_name].item()})
+            except:
+                pass
 
         for metric_name in val_classification_metrics.keys():
-            wandb.log({"val_" + metric_name: val_classification_metrics[metric_name].item()})
+            try:
+                wandb.log({"val_" + metric_name: val_classification_metrics[metric_name].item()})
+            except:
+                pass

@@ -18,26 +18,28 @@ class FineTuner(nn.Module):
         self._cutoff = cutoff
         self._EPS = 1e-6
         self.sigmoid_params = sigmoid_params
+        self.num_classes = num_classes
 
         # Num units of the mutations path
-        num_units_branch_mut = 10
-        num_units_joined_path = 2*num_units + num_units_branch_mut
+        # num_units_branch_mut = 10
+        # num_units_joined_path = 2*num_units + num_units_branch_mut
 
-        self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
-        # 96 = total number of possible muts
-        self.layer1_2 = nn.Linear(96, num_units)  # Input path
-        # Number of mutations path
-        self.layer1_3 = nn.Linear(1, num_units_branch_mut)
+        self.input_layer = nn.Linear(96+72+1, num_units)  # Baseline guess path
+        # self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
+        # # 96 = total number of possible muts
+        # self.layer1_2 = nn.Linear(96, num_units)  # Input path
+        # # Number of mutations path
+        # self.layer1_3 = nn.Linear(1, num_units_branch_mut)
 
-        self.layer2_1 = nn.Linear(num_units, num_units)
-        self.layer2_2 = nn.Linear(num_units, num_units)
-        self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
+        # self.layer2_1 = nn.Linear(num_units, num_units)
+        # self.layer2_2 = nn.Linear(num_units, num_units)
+        # self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
 
         self.hidden_layers = nn.ModuleList(
-            modules=[nn.Linear(num_units_joined_path, num_units_joined_path)
+            modules=[nn.Linear(num_units, num_units)
                      for _ in range(num_hidden_layers)])
 
-        self.output_layer = nn.Linear(num_units_joined_path, num_classes)
+        self.output_layer = nn.Linear(num_units, num_classes)
         self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
@@ -47,23 +49,23 @@ class FineTuner(nn.Module):
                 baseline_guess,
                 num_mut):
         # Input head
-        mutation_dist = self.activation(self.layer1_2(mutation_dist))
-        mutation_dist = self.activation(self.layer2_2(mutation_dist))
+        # mutation_dist = self.activation(self.layer1_2(mutation_dist))
+        # mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
-        weights = self.activation(self.layer1_1(baseline_guess))
-        weights = self.activation(self.layer2_1(weights))
+        weights = baseline_guess
+        # weights = self.activation(self.layer1_1(baseline_guess))
+        # weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
         # num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
         num_mut = torch.log10(num_mut)/6
-        assert(not torch.isnan(num_mut).any())
-        num_mut = self.activation(self.layer1_3(num_mut))
-        num_mut = self.activation(self.layer2_3(num_mut))
+        # num_mut = self.activation(self.layer1_3(num_mut))
+        # num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
-        assert(not torch.isnan(comb).any())
+        comb = self.activation(self.input_layer(comb))
 
         # Apply shared layers
         for layer in self.hidden_layers:
@@ -71,8 +73,9 @@ class FineTuner(nn.Module):
 
         # Apply output layer
         comb = self.output_layer(comb)
-        comb += baseline_guess
-        comb = self.softmax(comb)
+        comb = comb + baseline_guess
+        comb = nn.ReLU()(comb)
+        comb = comb/torch.sum(comb, dim=1).reshape(mutation_dist.shape[0], 1)
 
         # If in eval mode, send small values to 0
         if not self.training:

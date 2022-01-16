@@ -14,7 +14,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.finetuner import FineTuner
 from utilities.data_partitions import DataPartitions
-from utilities.io import save_model
+from utilities.io import save_model, read_model
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
 from loggers.finetuner_logger import FinetunerLogger
 
@@ -52,7 +52,7 @@ class FinetunerTrainer:
         elif self.network_type == 'realistic' or self.network_type == 'generator':
             fp_param = 0
             fn_param = 0
-            l = get_jensen_shannon(prediction, label)
+            l = get_kl_divergence(prediction, label)
             # l += fp_param*FP / prediction.shape[0] +\
             #      fn_param*FN / prediction.shape[0]
         return l
@@ -73,6 +73,7 @@ class FinetunerTrainer:
                           num_hidden_layers=int(num_hidden_layers),
                           num_units=int(num_units),
                           sigmoid_params=self.sigmoid_params)
+        # model = read_model(self.model_path)
         model.to(self.device)
 
         # if plot:
