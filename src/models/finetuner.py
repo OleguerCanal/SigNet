@@ -24,7 +24,7 @@ class FineTuner(nn.Module):
         # num_units_branch_mut = 10
         # num_units_joined_path = 2*num_units + num_units_branch_mut
 
-        self.input_layer = nn.Linear(96+72+1, num_units)  # Baseline guess path
+        self.input_layer = nn.Linear(96+72+3, num_units)  # Baseline guess path
         # self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
         # # 96 = total number of possible muts
         # self.layer1_2 = nn.Linear(96, num_units)  # Input path
@@ -58,13 +58,14 @@ class FineTuner(nn.Module):
         # weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
-        # num_mut = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
-        num_mut = torch.log10(num_mut)/6
+        num_mut_1 = torch.log10(num_mut)/6
+        num_mut_2 = nn.Sigmoid()((num_mut-self.sigmoid_params[0])/self.sigmoid_params[1])
+        num_mut_3 = nn.Sigmoid()((num_mut-10000)/200)
         # num_mut = self.activation(self.layer1_3(num_mut))
         # num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
-        comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
+        comb = torch.cat([mutation_dist, weights, num_mut_1, num_mut_2, num_mut_3], dim=1)
         comb = self.activation(self.input_layer(comb))
 
         # Apply shared layers

@@ -1,25 +1,25 @@
 config:
     # IDs & paths
-    data_id: "exp_good"
-    model_id: "finetuner_realistic_large"
-    models_dir: "../trained_models/exp_good"
+    data_id: "exp_generator"
+    model_id: "finetuner_generator_residual_large_JS_2"
+    models_dir: "../trained_models/exp_generator"
 
     # Training params
-    source: "realistic_large"
-    network_type: "realistic"
-    iterations: 70
+    source: "generator_large"
+    network_type: "generator"
+    iterations: 100
     num_classes: 72
     sigmoid_params: [50000, 10000]
-    batch_size: 283
-    lr: 0.0015
+    batch_size: 500
+    lr: 0.0005
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_realistic"
+    wandb_project_id: "finetuner_generator"
 
     # Network params
-    num_hidden_layers: 3
-    num_neurons: 50
+    num_hidden_layers: 2
+    num_neurons: 300
 
     # Misc
     device: "cuda"
