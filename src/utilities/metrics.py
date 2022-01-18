@@ -73,7 +73,7 @@ def get_wasserstein_distance(predicted_label, true_label):
             predicted_label[i, :].cpu().detach().numpy(), true_label[i, :].cpu().detach().numpy())
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
-def get_classification_metrics(label_batch, prediction_batch, cutoff=0.005):
+def get_classification_metrics(label_batch, prediction_batch, cutoff=0.01):
     batch_size = float(label_batch.shape[0])
     kl = get_kl_divergence(prediction_batch, label_batch)
     label_mask = (label_batch > cutoff).type(torch.int).float()

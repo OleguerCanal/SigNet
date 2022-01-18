@@ -223,18 +223,16 @@ class DataGenerator:
                 ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + \
                     [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000
             elif large_low == 'large':
-                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+                range_muts = [1e4, 5e4, 1e5, 5e5]
                 # The -1 means real distribution
-                ind_range_muts = [0]*50000 + [1]*50000 + \
-                    [2]*50000 + [3] * 50000 + [-1]*50000
+                ind_range_muts = [0]*100000 + [1]*100000 + [-1]*100000
             batch_size = len(ind_range_muts)
         elif set == "val":
             if large_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000]
             elif large_low == 'large':
-                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
-            ind_range_muts = [0]*1000 + [1]*1000 + [2]*1000 + \
-                [3]*1000 + [-1]*1000  # The -1 means real distribution
+                range_muts = [1e4, 5e4, 1e5, 5e5]
+            ind_range_muts = [0]*1000 + [1]*1000 + [-1]*1000  # The -1 means real distribution
             batch_size = len(ind_range_muts)
         elif set == "test":
             num_muts = [25]*1000 + [50]*1000 + [100]*1000 + [250]*1000 + [500]*1000 + [1e3]*1000 +\

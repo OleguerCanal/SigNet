@@ -12,8 +12,8 @@ from utilities.metrics import get_classification_metrics
 
 experiment_id = "exp_generator"
 test_id = "test_generator"
-finetuner_directory = "../../trained_models/%s/finetuner_generator_residual_nosoft_2"%experiment_id
-finetuner_directory2 = "../../trained_models/%s/finetuner_generator_residual_nosoft_large"%experiment_id
+finetuner_directory = "../../trained_models/%s/finetuner_generator_residual_large_JS"%experiment_id
+# finetuner_directory2 = "../../trained_models/%s/finetuner_generator_residual_nosoft_large"%experiment_id
 
 # Load data
 input_batch, label_batch = read_test_data("cpu", experiment_id, test_id, data_folder="../../data")
@@ -29,25 +29,20 @@ finetuner_guess_01 = finetuner(mutation_dist=input_batch,
                                 baseline_guess=baseline_guess,
                                 num_mut=label_batch[:,-1].view(-1, 1))
 
-finetuner = read_model(finetuner_directory2)
-finetuner_guess_02 = finetuner(mutation_dist=input_batch,
-                                baseline_guess=baseline_guess,
-                                num_mut=label_batch[:,-1].view(-1, 1))
-
 # Plot results
 # list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
 # list_of_guesses, label = read_methods_guesses('cpu', experiment_id, "test", list_of_methods, data_folder="../../data")
 
-list_of_methods = ['baseline', 'finetuner', 'finetuner2']
-list_of_guesses = [baseline_guess, finetuner_guess_01, finetuner_guess_02]
+list_of_methods = ['baseline', 'finetuner']
+list_of_guesses = [baseline_guess, finetuner_guess_01]
 
-# plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '', show=True)
+plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '', show=True)
 
 indexes = label_batch[:, -1] >= 1e4
 metrics_baseline = get_classification_metrics(label_batch=label_batch[indexes, :-1],
                                      prediction_batch=list_of_guesses[0][indexes, :])
 metrics_guess_1 = get_classification_metrics(label_batch=label_batch[indexes, :-1],
-                                     prediction_batch=list_of_guesses[2][indexes, :])
+                                     prediction_batch=list_of_guesses[1][indexes, :])
 
 plot_weights_comparison(true_labels=metrics_baseline["MAE_sign"],
                         guessed_labels=metrics_guess_1["MAE_sign"], 
