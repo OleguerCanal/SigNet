@@ -11,7 +11,7 @@ from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from models.classifier import Classifier
-from models.finetuner import FineTuner
+from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 from models.error_finder import ErrorFinder
 from utilities.metrics import get_reconstruction_error
 
@@ -204,8 +204,9 @@ def read_model(directory, device="cpu"):
         init_args = json.load(fp)
     model_type = init_args["model_type"]
     init_args.pop("model_type")
+    print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder", "Generator"])
+    assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
     if "device" in init_args.keys():
         init_args["device"] = device
         
@@ -214,8 +215,10 @@ def read_model(directory, device="cpu"):
         model = Generator(**init_args)
     if model_type == "Classifier":
         model = Classifier(**init_args)
-    elif model_type == "FineTuner":
-        model = FineTuner(**init_args)
+    elif model_type == "FineTunerLowNumMut":
+        model = FineTunerLowNumMut(**init_args)
+    elif model_type == "FineTunerLargeNumMut":
+        model = FineTunerLargeNumMut(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)
     
