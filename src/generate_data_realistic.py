@@ -17,18 +17,18 @@ if __name__ == "__main__":
 
     # # Low nummut
     train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="low",
+                                                                 large_low="large",
                                                                  set="train")
 
-    tensor_to_csv(train_input, "../data/%s/train_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/train_generator_low_label.csv"%experiment_id)
+    tensor_to_csv(train_input, "../data/%s/train_generator_large_input.csv"%experiment_id)
+    tensor_to_csv(train_labels, "../data/%s/train_generator_large_label.csv"%experiment_id)
 
-    # val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-    #                                                              large_low="low",
-    #                                                              set="val")
+    val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
+                                                                 large_low="large",
+                                                                 set="val")
 
-    # tensor_to_csv(val_input, "../data/%s/val_generator_low_input.csv"%experiment_id)
-    # tensor_to_csv(val_labels, "../data/%s/val_generator_low_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/val_generator_large_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/val_generator_large_label.csv"%experiment_id)
 
     # test_input, test_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
     #                                                              large_low="low",
