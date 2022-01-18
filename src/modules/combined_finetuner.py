@@ -83,13 +83,15 @@ class CombinedFinetuner:
         return finetuner_guess
 
 
-def baseline_guess_to_combined_finetuner_guess(model, data):
+def baseline_guess_to_combined_finetuner_guess(model, classifier, data):
     # Load finetuner and compute guess_1
     import gc
     with torch.no_grad():
-        data.prev_guess, data.classification = model(mutation_dist=data.inputs,
-                                                     weights=data.prev_guess,
-                                                     num_mut=data.num_mut)
+        data.classification = classifier(mutation_dist=data.inputs,
+                                         num_mut=data.num_mut)
+        data.prev_guess = model(mutation_dist=data.inputs,
+                                baseline_guess=data.prev_guess,
+                                num_mut=data.num_mut)
     del model
     gc.collect()
     torch.cuda.empty_cache()
