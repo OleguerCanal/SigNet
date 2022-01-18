@@ -200,6 +200,7 @@ def read_model(directory, device="cpu"):
         init_args = json.load(fp)
     model_type = init_args["model_type"]
     init_args.pop("model_type")
+    print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
     assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
     if "device" in init_args.keys():
@@ -212,7 +213,7 @@ def read_model(directory, device="cpu"):
         model = Classifier(**init_args)
     elif model_type == "FineTunerLowNumMut":
         model = FineTunerLowNumMut(**init_args)
-    elif model_type == "FineTunerLowNumMut":
+    elif model_type == "FineTunerLargeNumMut":
         model = FineTunerLargeNumMut(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)

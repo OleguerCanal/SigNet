@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator"
+    wandb_project_id: "finetuner_generator_split"
 
     # Network params
     num_hidden_layers: 2
