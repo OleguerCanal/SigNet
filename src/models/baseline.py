@@ -65,11 +65,11 @@ if __name__ == "__main__":
 
     in_files = [
         # generator
-        "/exp_generator/train_generator_low_input.csv",
-        "/exp_generator/val_generator_low_input.csv",
+        "/exp_generator/train_perturbed_low_input.csv",
+        "/exp_generator/train_perturbed_large_input.csv",
 
         # tests
-        "/exp_generator/test_generator_low_input.csv",
+        # "/exp_generator/test_generator_low_input.csv",
     ]
 
     for in_file in in_files:

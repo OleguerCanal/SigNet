@@ -1,3 +1,8 @@
+from loggers.finetuner_logger import FinetunerLogger
+from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
+from utilities.io import save_model, read_model
+from utilities.data_partitions import DataPartitions
+from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 import collections
 import copy
 import os
@@ -12,11 +17,7 @@ from tqdm import tqdm
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.finetuner import FineTuner
-from utilities.data_partitions import DataPartitions
-from utilities.io import save_model
-from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from loggers.finetuner_logger import FinetunerLogger
+
 
 class FinetunerTrainer:
     def __init__(self,
@@ -24,7 +25,7 @@ class FinetunerTrainer:
                  train_data,
                  val_data,
                  network_type,
-                 sigmoid_params = [5000, 2000],
+                 sigmoid_params=[5000, 2000],
                  loging_path="../runs",
                  num_classes=72,
                  log_freq=100,
@@ -39,22 +40,14 @@ class FinetunerTrainer:
         self.train_dataset = train_data
         self.val_dataset = val_data
         self.network_type = network_type
+        assert (self.network_type in ['low', 'large'])
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        assert (self.network_type in ['perturbed', 'realistic', 'generator'])
-        if self.network_type == 'perturbed':
-            fp_param = 1e-3
-            fn_param = 0.1
-            l = get_kl_divergence(prediction, label)
-            l += fp_param*FP / prediction.shape[0] +\
-                 fn_param*FN / prediction.shape[0]
-        elif self.network_type == 'realistic' or self.network_type == 'generator':
-            fp_param = 0
-            fn_param = 0
-            l = get_jensen_shannon(prediction, label)
-            # l += fp_param*FP / prediction.shape[0] +\
-            #      fn_param*FN / prediction.shape[0]
+        if self.network_type == 'low':
+            l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        if self.network_type == 'large':
+            l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -69,10 +62,18 @@ class FinetunerTrainer:
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
                                 shuffle=True)
-        model = FineTuner(num_classes=self.num_classes,
-                          num_hidden_layers=int(num_hidden_layers),
-                          num_units=int(num_units),
-                          sigmoid_params=self.sigmoid_params)
+        model = None
+        if self.network_type == "low":
+            model = FineTunerLowNumMut(num_classes=self.num_classes,
+                                       num_hidden_layers=int(num_hidden_layers),
+                                       num_units=int(num_units),
+                                       sigmoid_params=self.sigmoid_params)
+        elif self.network_type == "large":
+            model = FineTunerLargeNumMut(num_classes=self.num_classes,
+                                       num_hidden_layers=int(num_hidden_layers),
+                                       num_units=int(num_units),
+                                       sigmoid_params=self.sigmoid_params)
+        # model = read_model(self.model_path)
         model.to(self.device)
 
         # if plot:
@@ -86,10 +87,11 @@ class FinetunerTrainer:
         for _ in range(self.iterations):
             for train_input, train_label, train_weight_guess, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                optimizer.zero_grad()                
+                optimizer.zero_grad()
                 train_prediction = model(train_input, train_weight_guess, num_mut)
-                train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                                                    prediction_batch=train_prediction)
+                train_FP, train_FN = None, None
+                # train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
+                #                                     prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
                                          label=train_label,
                                          FP=train_FP,
@@ -101,11 +103,11 @@ class FinetunerTrainer:
                 model.eval()
                 with torch.no_grad():
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
-                                                                            prediction_batch=train_prediction)
-                    val_prediction = model(
-                        self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
-                    val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
-                                                    prediction_batch=val_prediction)
+                                                                              prediction_batch=train_prediction)
+                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    val_FP, val_FN = None, None
+                    # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
+                    #                                 prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_dataset.labels,
                                            FP=val_FP,
@@ -132,12 +134,14 @@ class FinetunerTrainer:
         save_model(model=model, directory=self.model_path)
         return max_found
 
+
 def train_finetuner(config) -> float:
     from utilities.io import read_data
     from models.finetuner import baseline_guess_to_finetuner_guess
 
     # Select training device
-    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
+    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
+    ) else "cpu"
     device = torch.device(dev)
     print("Using device:", device)
 
@@ -146,9 +150,9 @@ def train_finetuner(config) -> float:
 
     if config["enable_logging"]:
         wandb.init(project=config["wandb_project_id"],
-                entity='sig-net',
-                config=config,
-                name=config["model_id"])
+                   entity='sig-net',
+                   config=config,
+                   name=config["model_id"])
 
     # Load data
     train_data, val_data = read_data(experiment_id=config["data_id"],

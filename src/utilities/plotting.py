@@ -100,7 +100,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
         for i, num_mut in enumerate(num_muts):
             indexes = label[:, -1] == num_mut
             metrics = get_classification_metrics(label_batch=label[indexes, :-1],
-                                                    prediction_batch=list_of_guesses[method_index][indexes, :])
+                                                 prediction_batch=list_of_guesses[method_index][indexes, :])
             for metric_index, metric in enumerate(list_of_metrics):
                 values[method_index, i, metric_index] = metrics[metric]
 
@@ -449,14 +449,15 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
-    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
-    ax.set_ylim([0,1])
+    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10, label="guessed")
+    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center', label="true")
+    # ax.set_ylim([0,1])
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
+    plt.legend()
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()
