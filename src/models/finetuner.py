@@ -111,7 +111,7 @@ class FineTunerLargeNumMut(FineTuner, nn.Module):
                  num_units=400,
                  cutoff=0.001,
                  sigmoid_params=[5000, 2000]):
-        super(FineTunerLowNumMut, self).__init__(num_classes=num_classes,
+        super(FineTunerLargeNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,
                                                  cutoff=cutoff,
