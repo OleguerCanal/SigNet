@@ -1,13 +1,11 @@
 config:
     # IDs & paths
-    data_id: "exp_good"
-    model_id: "errorfinder_perturbed"
+    data_id: "exp_generator"
+    model_id: "errorfinder_generator"
     classifier_id: "classifier"
-    finetuner_realistic_low_id: "finetuner_realistic_low"
-    finetuner_realistic_large_id: "finetuner_realistic_large"
-    finetuner_random_low_id: "finetuner_perturbed_low"
-    finetuner_random_large_id: "finetuner_perturbed_large"
-    models_dir: "../trained_models/exp_good"
+    finetuner_realistic_low_id: "finetuner_generator_low"
+    finetuner_realistic_large_id: "finetuner_generator_low"
+    models_dir: "../trained_models/exp_generator"
 
     # Training params
     # source: "realistic_low"
@@ -25,7 +23,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder"
+    wandb_project_id: "errorfinder_generator"
 
     # Network params
     num_hidden_layers_pos: 3
@@ -34,4 +32,4 @@ config:
     num_neurons_neg: 1000
 
     # Misc
-    device: "cuda"
+    device: "cpu"

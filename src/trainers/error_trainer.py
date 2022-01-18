@@ -202,8 +202,6 @@ def train_errorfinder(config) -> float:
     classifier_path = os.path.join(config["models_dir"], config["classifier_id"])
     finetuner_realistic_low_path = os.path.join(config["models_dir"], config["finetuner_realistic_low_id"])
     finetuner_realistic_large_path = os.path.join(config["models_dir"], config["finetuner_realistic_large_id"])
-    finetuner_random_low_path = os.path.join(config["models_dir"], config["finetuner_random_low_id"])
-    finetuner_random_large_path = os.path.join(config["models_dir"], config["finetuner_random_large_id"])
 
     if config["enable_logging"]:
         wandb.init(project=config["wandb_project_id"],
@@ -213,38 +211,49 @@ def train_errorfinder(config) -> float:
 
     # Load data
     train_real_low, val_real_low = read_data(experiment_id=config["data_id"],
-                                            source="realistic_low",
+                                            source="generator_low",
                                             device="cpu")
     train_real_large, val_real_large = read_data(experiment_id=config["data_id"],
-                                                source="realistic_large",
+                                                source="generator_large",
                                                 device="cpu")
-    train_rand_low, val_rand_low = read_data(experiment_id=config["data_id"],
+    train_perturbed_low, val_perturbed_low = read_data(experiment_id=config["data_id"],
                                             source="perturbed_low",
                                             device="cpu")
-    train_rand_large, val_rand_large = read_data(experiment_id=config["data_id"],
+    train_perturbed_large, val_perturbed_large = read_data(experiment_id=config["data_id"],
                                                 source="perturbed_large",
                                                 device="cpu")
     train_data = train_real_low
     train_data.append(train_real_large)
-    train_data.append(train_rand_low)
-    train_data.append(train_rand_large)
+    train_data.append(train_perturbed_low)
+    train_data.append(train_perturbed_large)
     train_data.perm()
+
+    del train_real_low
+    del train_real_large
+    del train_perturbed_low
+    del train_perturbed_large
 
     val_data = val_real_low
     val_data.append(val_real_large)
-    val_data.append(val_rand_low)
-    val_data.append(val_rand_large)
+    val_data.append(val_perturbed_low)
+    val_data.append(val_perturbed_large)
 
-    model = ClassifiedFinetuner(classifier=read_model(classifier_path),
-                                realistic_finetuner=CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low_path,
-                                                                      large_mum_mut_dir=finetuner_realistic_large_path),
-                                random_finetuner=CombinedFinetuner(low_mum_mut_dir=finetuner_random_low_path,
-                                                                      large_mum_mut_dir=finetuner_random_large_path))
+    del val_real_low
+    del val_real_large
+    del val_perturbed_low
+    del val_perturbed_large
+
+    # model = ClassifiedFinetuner(classifier=read_model(classifier_path)
+    model = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low_path,
+                              large_mum_mut_dir=finetuner_realistic_large_path)
+    classifier = read_model(classifier_path)
 
     train_data = baseline_guess_to_combined_finetuner_guess(model=model,
+                                                            classifier=classifier,
                                                             data=train_data)
     val_data = baseline_guess_to_combined_finetuner_guess(model=model,
-                                                            data=val_data)
+                                                          classifier=classifier,
+                                                          data=val_data)
 
     train_data.to(device=device)
     val_data.to(device=device)
