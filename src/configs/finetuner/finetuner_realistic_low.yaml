@@ -1,12 +1,12 @@
 config:
     # IDs & paths
     data_id: "exp_generator"
-    model_id: "finetuner_generator_residual_nosoft_large_2"
+    model_id: "finetuner_generator_low"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
     source: "generator_low"
-    network_type: "generator"
+    network_type: "low"
     iterations: 400
     num_classes: 72
     sigmoid_params: [500,150]
@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator"
+    wandb_project_id: "finetuner_generator_split"
 
     # Network params
     num_hidden_layers: 1

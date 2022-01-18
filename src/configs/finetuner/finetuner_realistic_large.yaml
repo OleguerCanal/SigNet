@@ -1,12 +1,12 @@
 config:
     # IDs & paths
     data_id: "exp_generator"
-    model_id: "finetuner_generator_residual_large_JS_2"
+    model_id: "finetuner_generator_large"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
     source: "generator_large"
-    network_type: "generator"
+    network_type: "large"
     iterations: 100
     num_classes: 72
     sigmoid_params: [50000, 10000]

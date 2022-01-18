@@ -8,43 +8,24 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_model
 from utilities.metrics import get_reconstruction_error
+from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 
 class CombinedFinetuner:
     def __init__(self,
                  low_mum_mut_dir,
-                 large_mum_mut_dir,
-                 apply_reconstruction_correction=False,
-                 signatures=None):
+                 large_mum_mut_dir):
 
         # Instantiate finetuner 1 and read params
         self.finetuner_low = read_model(low_mum_mut_dir)
         self.finetuner_large = read_model(large_mum_mut_dir)
-        self.apply_reconstruction_correction = apply_reconstruction_correction
-        self.signatures = signatures
-        if apply_reconstruction_correction:
-            assert(signatures is not None)  # You need to pass the signatures to apply_reconstruction_correction
+        assert(isinstance(self.finetuner_low, FineTunerLowNumMut))  # finetuner_low model should be FineTunerLowNumMut
+        assert(isinstance(self.finetuner_large, FineTunerLargeNumMut))  # finetuner_large model should be FineTunerLargeNumMut
 
     def __join_and_sort(self, low, large, ind_order):
         joined = torch.cat((low, large), dim=0)
         joined = torch.cat((joined, ind_order), dim=1)
         joined = joined[joined[:, -1].sort()[1]]
         return joined[:, :-1]
-
-    def __reconstruction_correction(self, mutation_dist, finetuner_guess, baseline_guess):
-        finetuner_errors = get_reconstruction_error(mutation_dist=mutation_dist,
-                                                    guess=finetuner_guess,
-                                                    signatures=self.signatures)
-        baselines_errors = get_reconstruction_error(mutation_dist=mutation_dist,
-                                                    guess=baseline_guess,
-                                                    signatures=self.signatures)
-        print(finetuner_errors)
-        print(baselines_errors)
-        use_finetuner = finetuner_errors < baselines_errors
-        print(torch.mean(use_finetuner.to(torch.float)))
-        print(use_finetuner)
-        print("####")
-        return finetuner_guess
-
     
     def __call__(self,
                  mutation_dist,
@@ -72,11 +53,6 @@ class CombinedFinetuner:
             guess_large = self.finetuner_large(
                 input_batch_large, baseline_guess_large, num_mut_large)
             
-            # if self.apply_reconstruction_correction:
-            #     guess_large = self.__reconstruction_correction(mutation_dist=input_batch_large,
-            #                                                    finetuner_guess=guess_large,
-            #                                                    baseline_guess=baseline_guess_large)
-
             finetuner_guess = self.__join_and_sort(low=guess_low,
                                                    large=guess_large,
                                                    ind_order=ind_order)
