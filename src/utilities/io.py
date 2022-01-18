@@ -73,10 +73,10 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
     train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
 
-    train_input = train_input[:100000,:]
-    train_baseline = train_baseline[:100000,:]
-    train_label = train_label[:100000,:]
-
+  if n_points is not None:
+      train_input = train_input[:n_points,:]
+      train_baseline = train_baseline[:n_points,:]
+      train_label = train_label[:n_points,:]
     train_data = DataPartitions(inputs=train_input,
                                 prev_guess=train_baseline,
                                 labels=train_label)
