@@ -67,6 +67,7 @@ class FineTunerLowNumMut(FineTuner):
         self.activation = nn.LeakyReLU(0.1)
 
         self.softmax = nn.Softmax(dim=1)
+        self.dropout = nn.Dropout(p=0.1)
 
     def forward(self,
                 mutation_dist,
@@ -74,23 +75,23 @@ class FineTunerLowNumMut(FineTuner):
                 num_mut):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
-        mutation_dist = self.activation(self.layer2_2(mutation_dist))
+        # mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
         weights = self.activation(self.layer1_1(baseline_guess))
-        weights = self.activation(self.layer2_1(weights))
+        # weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
         num_mut = torch.log10(num_mut)/6
         num_mut = self.activation(self.layer1_3(num_mut))
-        num_mut = self.activation(self.layer2_3(num_mut))
+        # num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
 
         # Apply shared layers
         for layer in self.hidden_layers:
-            comb = self.activation(layer(comb))
+            comb = self.activation(layer(self.dropout(comb)))
 
         # Apply output layer
         comb = self.output_layer(comb)
@@ -116,7 +117,7 @@ class FineTunerLargeNumMut(FineTuner, nn.Module):
                                                  num_units=num_units,
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
-        self.init_args["model_type"] = "FineTunerLNumMut"
+        self.init_args["model_type"] = "FineTunerLargeNumMut"
 
         self.input_layer = nn.Linear(96+72+3, num_units)  # Baseline guess path
         self.hidden_layers = nn.ModuleList(
