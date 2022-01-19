@@ -142,6 +142,11 @@ class ErrorTrainer:
         for _ in range(self.iterations):
             for _, train_label, train_weight_guess, num_mut, classification in tqdm(dataloader):
                 optimizer.zero_grad()
+                if "cuda" in str(self.device):
+                    train_label = train_label.to(self.device)
+                    train_weight_guess = train_weight_guess.to(self.device)
+                    num_mut = num_mut.to(self.device)
+                    classification = classification.to(self.device)
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
                                                            num_mutations=num_mut,
                                                            classification=classification)
@@ -180,6 +185,7 @@ class ErrorTrainer:
                                     val_values_upper=val_pred_upper,
                                     val_nummut=self.val_dataset.num_mut,
                                     step=step)
+                del train_label, train_weight_guess, num_mut, classification, train_pred_upper, train_pred_lower, val_pred_upper, val_pred_lower
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
                 step += batch_size
@@ -212,16 +218,20 @@ def train_errorfinder(config) -> float:
     # Load data
     train_real_low, val_real_low = read_data(experiment_id=config["data_id"],
                                             source="generator_low",
-                                            device="cpu")
+                                            device="cpu",
+                                            n_points=None)
     train_real_large, val_real_large = read_data(experiment_id=config["data_id"],
                                                 source="generator_large",
-                                                device="cpu")
+                                                device="cpu",
+                                                n_points=None)
     train_perturbed_low, val_perturbed_low = read_data(experiment_id=config["data_id"],
                                             source="perturbed_low",
-                                            device="cpu")
+                                            device="cpu",
+                                            n_points=None)
     train_perturbed_large, val_perturbed_large = read_data(experiment_id=config["data_id"],
                                                 source="perturbed_large",
-                                                device="cpu")
+                                                device="cpu",
+                                                n_points=None)
     train_data = train_real_low
     train_data.append(train_real_large)
     train_data.append(train_perturbed_low)
@@ -255,8 +265,8 @@ def train_errorfinder(config) -> float:
                                                           classifier=classifier,
                                                           data=val_data)
 
-    train_data.to(device=device)
-    val_data.to(device=device)
+    # train_data.to(device=device)  # We keep the train data in cpu to save memory
+    val_data.to(device=device)  # If still a problem we can make the val_data smaller
     torch.cuda.empty_cache()
 
     trainer = ErrorTrainer(iterations=config["iterations"],  # Passes through all dataset

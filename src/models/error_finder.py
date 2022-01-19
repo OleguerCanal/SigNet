@@ -51,7 +51,8 @@ class SignedErrorFinder(nn.Module):
         weights = self.activation(self.layer2_1(weights))
 
         # Mutations head
-        num_mutations = nn.Sigmoid()((num_mutations-self.sigmoid_params[0])/self.sigmoid_params[1])
+        num_mutations = torch.log10(num_mutations)/6
+        # num_mutations = nn.Sigmoid()((num_mutations-self.sigmoid_params[0])/self.sigmoid_params[1])
         num_mutations = self.activation(self.layer1_2(num_mutations))
 
         # Baseline head
