@@ -93,14 +93,14 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    list_of_metrics = ["MAE_p", "MAE_n", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
+    list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
     values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
     for method_index in range(len(list_of_methods)):
         for i, num_mut in enumerate(num_muts):
             indexes = label[:, -1] == num_mut
             metrics = get_classification_metrics(label_batch=label[indexes, :-1],
-                                                    prediction_batch=list_of_guesses[method_index][indexes, :])
+                                                 prediction_batch=list_of_guesses[method_index][indexes, :])
             for metric_index, metric in enumerate(list_of_metrics):
                 values[method_index, i, metric_index] = metrics[metric]
 
@@ -113,7 +113,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
 
     xlabel = 'log(N)'
-    ylabel = ["MAE postives", "MAE negatives", "FPR", "FNR"]
+    ylabel = ["MAE", "KL", "FPR", "FNR"]
     # fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
@@ -124,8 +124,8 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
     # create_dir(folder_path)
-    # if show:
-    #     plt.show()
+    if show:
+        plt.show()
     # plt.savefig(folder_path + '/metrics_low.svg')
     plt.close()
     ############################################################################################
@@ -150,7 +150,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     # fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
     # fig.subplots_adjust(right=legend_adjustment)   
-    # plt.show()
+    plt.show()
     # plt.savefig(folder_path + '/metrics_high.svg')
     plt.close()
 
@@ -269,9 +269,9 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
     for i in ind_list:
         plt.bar(range(96), input[i,:], width=0.4)
         plt.bar(np.array(range(96))+0.4, reconstruction[i,:].detach().numpy(), width=0.4)
-        #plt.show()
         plt.legend(["Input", "Reconstruction"])
-        plt.savefig(plot_path + "_%s.png"%i)
+        plt.show()
+        # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
 
@@ -449,14 +449,15 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
-    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
-    ax.set_ylim([0,1])
+    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10, label="guessed")
+    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center', label="true")
+    # ax.set_ylim([0,1])
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
+    plt.legend()
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()

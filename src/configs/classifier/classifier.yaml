@@ -1,8 +1,8 @@
 config:
     # IDs & paths
-    data_id: "exp_good/classifier"
+    data_id: "exp_generator/classifier"
     model_id: "classifier"
-    models_dir: "../trained_models/exp_good/"
+    models_dir: "../trained_models/exp_generator/"
 
     # Training params
     iterations: 30

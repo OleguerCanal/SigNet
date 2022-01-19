@@ -11,7 +11,7 @@ import torch.nn as nn
 def accuracy(prediction, label):
     assert(prediction.shape == label.shape)
     assert(prediction.dtype == torch.int64)
-    # assert(label.dtype == torch.int64)
+    assert(label.dtype == torch.int64)
     return (torch.sum(prediction == label)/torch.numel(prediction))*100.
 
 def false_realistic(prediction, label):
@@ -42,7 +42,6 @@ def get_negative_cosine_similarity(predicted_label, true_label):
     return -get_cosine_similarity(predicted_label, true_label)
 
 def get_entropy(predicted_label):
-    batch_size = predicted_label.shape[0]
     entropy = torch.mean(torch.distributions.categorical.Categorical(
         probs=predicted_label.cpu().detach()).entropy())
     return entropy
@@ -53,7 +52,7 @@ def get_cross_entropy(predicted_label, true_label):
 def get_cross_entropy2(predicted_label, true_label):
     #predicted_label_local = copy.deepcopy(predicted_label)
     #predicted_label_local += 1e-6
-    return torch.mean(-torch.einsum("ij,ij->i",(true_label, torch.log(predicted_label))))
+    return torch.mean(-torch.einsum("ij,ij->i", (true_label, torch.log(predicted_label))))
 
 def get_kl_divergence(predicted_label, true_label):
     _EPS = 1e-9
@@ -74,8 +73,9 @@ def get_wasserstein_distance(predicted_label, true_label):
             predicted_label[i, :].cpu().detach().numpy(), true_label[i, :].cpu().detach().numpy())
     return torch.from_numpy(np.array(dist/predicted_label.shape[0]))
 
-def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
+def get_classification_metrics(label_batch, prediction_batch, cutoff=0.01):
     batch_size = float(label_batch.shape[0])
+    kl = get_kl_divergence(prediction_batch, label_batch)
     label_mask = (label_batch > cutoff).type(torch.int).float()
     prediction_mask = (prediction_batch > cutoff).type(torch.int).float()
     fp = torch.sum(label_mask - prediction_mask < -0.1)
@@ -89,12 +89,13 @@ def get_classification_metrics(label_batch, prediction_batch, cutoff=0.05):
     accuracy = (tp + tn)/(batch_size*label_batch.shape[1])
     precision = tp / (tp + fp)
     mae = torch.abs(label_batch - prediction_batch)
+    mae_by_sign = torch.mean(torch.abs(label_batch - prediction_batch), dim=0)
     MAE_p = torch.sum(torch.einsum("bi,bi->b", mae, label_mask))/(tp + fn)
     MAE_n = torch.sum(torch.einsum("bi,bi->b", mae, 1 - label_mask))/(tn + fp)
     # Q95_p = torch.quantile(mae[label])
     return {"fpr": fpr*100, "fnr": fnr*100,
             "sens: tp/p %": sensitivity*100., "spec: tn/n %": specificity*100., "accuracy %": accuracy*100., "precision %": precision*100.,
-            "MAE_p": MAE_p, "MAE_n": MAE_n}
+            "MAE_p": MAE_p, "MAE_n": MAE_n, "MAE":mae.mean(), "KL":kl, "MAE_sign":mae_by_sign.detach()}
 
 def get_fp_fn_soft(label_batch, prediction_batch, cutoff=0.05, softness=100):
     label_mask = nn.Sigmoid()((label_batch - cutoff)*softness)  # ~0 if under cutoff, ~1 if over cutoff (element-wise)
