@@ -1,6 +1,5 @@
 import os
 import sys
-from telnetlib import SGA
 
 import pandas as pd
 
