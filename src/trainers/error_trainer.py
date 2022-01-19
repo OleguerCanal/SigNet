@@ -219,19 +219,19 @@ def train_errorfinder(config) -> float:
     train_real_low, val_real_low = read_data(experiment_id=config["data_id"],
                                             source="generator_low",
                                             device="cpu",
-                                            n_points=20000)
+                                            n_points=None)
     train_real_large, val_real_large = read_data(experiment_id=config["data_id"],
                                                 source="generator_large",
                                                 device="cpu",
-                                                n_points=20000)
+                                                n_points=None)
     train_perturbed_low, val_perturbed_low = read_data(experiment_id=config["data_id"],
                                             source="perturbed_low",
                                             device="cpu",
-                                            n_points=20000)
+                                            n_points=None)
     train_perturbed_large, val_perturbed_large = read_data(experiment_id=config["data_id"],
                                                 source="perturbed_large",
                                                 device="cpu",
-                                                n_points=20000)
+                                                n_points=None)
     train_data = train_real_low
     train_data.append(train_real_large)
     train_data.append(train_perturbed_low)
