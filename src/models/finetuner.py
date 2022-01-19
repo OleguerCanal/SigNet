@@ -64,10 +64,10 @@ class FineTunerLowNumMut(FineTuner):
                      for _ in range(num_hidden_layers)])
 
         self.output_layer = nn.Linear(num_units_joined_path, num_classes)
-        self.activation = nn.LeakyReLU(0.1)
+        self.activation = nn.LeakyReLU(0.01)
 
         self.softmax = nn.Softmax(dim=1)
-        self.dropout = nn.Dropout(p=0.1)
+        self.dropout = nn.Dropout(p=0.0005)
 
     def forward(self,
                 mutation_dist,
@@ -94,9 +94,11 @@ class FineTunerLowNumMut(FineTuner):
             comb = self.activation(layer(self.dropout(comb)))
 
         # Apply output layer
-        comb = self.output_layer(comb)
-        # comb += baseline_guess
-        comb = self.softmax(comb)
+        comb = self.output_layer(self.dropout(comb))
+        comb += baseline_guess
+        comb = nn.ReLU()(comb)
+        comb = comb/torch.sum(comb, dim=1).reshape(mutation_dist.shape[0], 1)
+
 
         # If in eval mode, send small values to 0
         if not self.training:

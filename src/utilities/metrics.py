@@ -60,7 +60,7 @@ def get_kl_divergence(predicted_label, true_label):
     return get_cross_entropy2(predicted_label, true_label) - get_entropy(true_label)
 
 def get_jensen_shannon(predicted_label, true_label):
-    _EPS = 1e-6
+    _EPS = 1e-12
     r = (predicted_label + true_label)/2 + _EPS
     term1 = torch.mean(torch.einsum("ij,ij->i",(predicted_label, torch.log(torch.div(predicted_label + _EPS, r)))))
     term2 = torch.mean(torch.einsum("ij,ij->i",(true_label, torch.log(torch.div(true_label + _EPS, r)))))

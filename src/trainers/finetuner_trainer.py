@@ -39,15 +39,19 @@ class FinetunerTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
+        print("val_data", val_data.num_mut.shape)
+        print("max val_data", torch.max(val_data.num_mut))
+        print("mean val_data", torch.mean(val_data.num_mut))
+        print("min val_data", torch.min(val_data.num_mut))
         self.network_type = network_type
         assert (self.network_type in ['low', 'large'])
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        if self.network_type == 'low':
-            l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        if self.network_type == 'large':
-            l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'low':
+        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'large':
+        l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
