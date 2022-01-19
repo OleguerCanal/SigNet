@@ -142,11 +142,11 @@ class ErrorTrainer:
         for _ in range(self.iterations):
             for _, train_label, train_weight_guess, num_mut, classification in tqdm(dataloader):
                 optimizer.zero_grad()
-                if "cuda" in self.device:
-                    train_label.to(self.device)
-                    train_weight_guess.to(self.device)
-                    num_mut.to(self.device)
-                    classification.to(self.device)
+                if "cuda" in str(self.device):
+                    train_label = train_label.to(self.device)
+                    train_weight_guess = train_weight_guess.to(self.device)
+                    num_mut = num_mut.to(self.device)
+                    classification = classification.to(self.device)
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
                                                            num_mutations=num_mut,
                                                            classification=classification)
