@@ -57,7 +57,14 @@ def tensor_to_csv(data_tensor, output_path):
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 
-def read_data(device, experiment_id, source, data_folder="../data", include_baseline=True, include_labels=True):
+def read_data(device,
+              experiment_id,
+              source,
+              data_folder="../data",
+              include_baseline=True,
+              include_labels=True,
+              train_range=(None, None),
+              val_range=(None, None)):
     """Read data from disk
 
     Args:
@@ -69,22 +76,18 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     # assert(source in ["random", "realistic", "perturbed"])
     path = os.path.join(data_folder, experiment_id)
 
-    train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
-    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
-    train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
+    train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)[train_range[0]:train_range[1], :]
+    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device)[train_range[0]:train_range[1], :] if include_baseline else None
+    train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device)[train_range[0]:train_range[1], :] if include_labels else None
 
-  if n_points is not None:
-      train_input = train_input[:n_points,:]
-      train_baseline = train_baseline[:n_points,:]
-      train_label = train_label[:n_points,:]
     train_data = DataPartitions(inputs=train_input,
                                 prev_guess=train_baseline,
                                 labels=train_label)
 
-    val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)
-    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
-    val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device) if include_labels else None
-
+    val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)[val_range[0]:val_range[1], :]
+    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device)[val_range[0]:val_range[1], :] if include_baseline else None
+    val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device)[val_range[0]:val_range[1], :] if include_labels else None
+    
     val_data = DataPartitions(inputs=val_input,
                               prev_guess=val_baseline,
                               labels=val_label)
