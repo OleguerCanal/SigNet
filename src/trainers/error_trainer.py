@@ -142,6 +142,11 @@ class ErrorTrainer:
         for _ in range(self.iterations):
             for _, train_label, train_weight_guess, num_mut, classification in tqdm(dataloader):
                 optimizer.zero_grad()
+                if "cuda" in self.device:
+                    train_label.to(self.device)
+                    train_weight_guess.to(self.device)
+                    num_mut.to(self.device)
+                    classification.to(self.device)
                 train_pred_upper, train_pred_lower = model(weights=train_weight_guess,
                                                            num_mutations=num_mut,
                                                            classification=classification)
@@ -180,6 +185,7 @@ class ErrorTrainer:
                                     val_values_upper=val_pred_upper,
                                     val_nummut=self.val_dataset.num_mut,
                                     step=step)
+                del train_label, train_weight_guess, num_mut, classification, train_pred_upper, train_pred_lower, val_pred_upper, val_pred_lower
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
                 step += batch_size
@@ -259,8 +265,8 @@ def train_errorfinder(config) -> float:
                                                           classifier=classifier,
                                                           data=val_data)
 
-    train_data.to(device=device)
-    val_data.to(device=device)
+    # train_data.to(device=device)  # We keep the train data in cpu to save memory
+    val_data.to(device=device)  # If still a problem we can make the val_data smaller
     torch.cuda.empty_cache()
 
     trainer = ErrorTrainer(iterations=config["iterations"],  # Passes through all dataset

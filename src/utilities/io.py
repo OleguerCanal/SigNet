@@ -84,7 +84,7 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)
     val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
     val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device) if include_labels else None
-
+    
     val_data = DataPartitions(inputs=val_input,
                               prev_guess=val_baseline,
                               labels=val_label)
