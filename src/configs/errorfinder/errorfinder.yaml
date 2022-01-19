@@ -3,20 +3,20 @@ config:
     data_id: "exp_generator"
     model_id: "errorfinder_generator"
     classifier_id: "classifier"
-    finetuner_realistic_low_id: "finetuner_generator_low"
-    finetuner_realistic_large_id: "finetuner_generator_low"
+    finetuner_realistic_low_id: "finetuner_generator_low_2"
+    finetuner_realistic_large_id: "finetuner_generator_large"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
     # source: "realistic_low"
     iterations: 10
     num_classes: 72
-    batch_size: 500
+    batch_size: 100
     lr: 0.0001
     sigmoid_params: [1000,200]
     # sigmoid_params: [50000, 10000]
     loss_params: 
-        lagrange_missclassification: 7e-3
+        lagrange_missclassification: 0.03
         lagrange_pnorm: 1e4
         lagrange_smalltozero: 1e-3
         pnorm_order: 5.0
@@ -32,4 +32,4 @@ config:
     num_neurons_neg: 1000
 
     # Misc
-    device: "cpu"
+    device: "cuda"
