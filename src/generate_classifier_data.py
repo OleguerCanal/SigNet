@@ -15,7 +15,7 @@ def shuffle(inputs, labels, num_mut):
 
 if __name__ == "__main__":
 
-    cosmic_version = str(sys.argv[0])
+    cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
         experiment_id = "exp_generator"
