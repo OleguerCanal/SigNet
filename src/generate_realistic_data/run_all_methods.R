@@ -14,7 +14,7 @@ library(SynSigRun)
  
 cosmic_version = "v3"
 if(cosmic_version == "v3"){
-    path_to_sigs = "../../data/exp_final/test/other_methods/data.csv"
+    path_to_sigs = "../../data/exp_generator/test_generator/other_methods/data.csv"
     
   }else if(cosmic_version == "v2"){
     path_to_sigs = "../../data/exp_v2/test/other_methods/data_v2.csv"
@@ -24,8 +24,8 @@ if(cosmic_version == "v3"){
     break
 }
 
-dataset <- "test"
-experiment_id <- "exp_final"
+dataset <- "test_generator"
+experiment_id <- "exp_generator"
 
 RundecompTumor2SigAttributeOnly(
  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),

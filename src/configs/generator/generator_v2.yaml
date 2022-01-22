@@ -1,13 +1,13 @@
 config:
     # IDs & paths
-    data_id: "exp_generator"
+    data_id: "exp_generator_v2"
     model_id: "generator"
-    models_dir: "../trained_models/exp_generator/"
-    cosmic_version: "v3"
+    models_dir: "../trained_models/exp_generator_v2/"
+    cosmic_version: "v2"
 
     # Training params
-    iterations: 500
-    num_classes: 72
+    iterations: 200
+    num_classes: 30
     lagrange_param: 0.001
     batch_size: 100
     lr_encoder: 0.005

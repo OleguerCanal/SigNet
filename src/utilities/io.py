@@ -136,12 +136,19 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_folder="../data"):
-
-    real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_normalized_PCAWG.csv",
-                              device=device, header=0, index_col=0)
-    real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
-    real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+def read_data_generator(device, data_id, cosmic_version = 'v3'):
+    data_folder = "../data/" + data_id
+    if cosmic_version == 'v3':
+        real_data = csv_to_tensor(data_folder + "sigprofiler_normalized_PCAWG.csv",
+                                device=device, header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+    elif cosmic_version == 'v2':
+        real_data = csv_to_tensor(data_folder + "PCAWG_deconstructSigs_v2.csv",
+                                device=device, header=0, index_col=0)
+    else:
+        print('This COSMIC version has not been implemented!\n')
+        
     data = real_data[torch.randperm(real_data.size()[0]),:]
 
     train_input = data[:int(real_data.size()[0]*0.95)]
@@ -324,8 +331,8 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     df.to_csv(output_path + "/classification_guesses.csv", header=True, index=True)
 
     # Write results reconstruction error
-    df = pd.DataFrame(reconstruction_error)
-    df.columns = ["reconstruction_error"]
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+    # df = pd.DataFrame(reconstruction_error)
+    # df.columns = ["reconstruction_error"]
+    # row_names =input_file.index.tolist()
+    # df.index = row_names
+    # df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)

@@ -1,12 +1,12 @@
 config:
     # IDs & paths
-    data_id: "exp_v2/classifier"
-    model_id: "classifier_v2"
-    models_dir: "../trained_models"
+    data_id: "exp_generator_v2/classifier"
+    model_id: "classifier"
+    models_dir: "../trained_models/exp_generator_v2/"
 
     # Training params
     iterations: 30
-    num_classes: 72
+    num_classes: 30
     sigmoid_params: [5000,1000]
     batch_size: 500
     lr: 0.0001

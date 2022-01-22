@@ -148,7 +148,7 @@ def train_generator(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    train_data, val_data = read_data_generator(device=dev)
+    train_data, val_data = read_data_generator(device=dev, data_id = config['data_id'], cosmic_version = config['cosmic_version'])
 
     trainer = GeneratorTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

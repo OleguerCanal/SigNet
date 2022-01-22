@@ -72,4 +72,3 @@ if __name__ == "__main__":
                                   "val_loss": [""]})
     model_results.to_csv("../tmp/generator_models.csv",
                          header=False, index=False, mode="a")
-    # write_result(score, "../tmp/classifier_score_%s.txt"%config["model_id"])

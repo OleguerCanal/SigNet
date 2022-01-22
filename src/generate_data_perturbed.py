@@ -14,21 +14,30 @@ from utilities.data_generator import DataGenerator
 
 if __name__ == "__main__":
 
-    signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+    cosmic_version = str(sys.argv[0])
+
+    if cosmic_version == 'v3':
+        experiment_id = "exp_generator"
+        signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+    elif cosmic_version == 'v2':
+        experiment_id = "exp_generator_2"
+        signatures = read_signatures("../data/data_v2.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+    else:
+        print("Not implemented for this version of COSMIC.")
+
     data_generator = DataGenerator(signatures=signatures,
                                    seed=None,
                                    shuffle=True)
     
     # REALISTIC-LOOKING DATA
-    experiment_id = "exp_good"
     train_data, _ = read_data(device='cpu', 
                               experiment_id=experiment_id,
                               include_baseline=False,
-                              source="realistic_large")
+                              source="generator_large")
 
     realistic_weights = train_data.labels
 
-    train_size = int(5e5)
+    train_size = int(3e5)
     val_size = int(5e3)
     test_size = int(1e3)
     # Low nummut
@@ -60,5 +69,5 @@ if __name__ == "__main__":
                                                                 large_or_low=None,
                                                                 is_test=True,
                                                                 n_augmentations=2)
-    tensor_to_csv(input_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_input.csv"%experiment_id)
-    tensor_to_csv(label_batch[:test_size,:], "../data/%s/test_perturbed/test_perturbed_label.csv"%experiment_id)
+    tensor_to_csv(input_batch[:test_size,:], "../data/%s/test_perturbed_input.csv"%experiment_id)
+    tensor_to_csv(label_batch[:test_size,:], "../data/%s/test_perturbed_label.csv"%experiment_id)
