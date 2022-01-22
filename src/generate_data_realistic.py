@@ -11,7 +11,7 @@ from utilities.io import read_model, read_data_generator, read_signatures, tenso
 
 if __name__ == "__main__":
 
-    cosmic_version = str(sys.argv[0])
+    cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
         generator_model_path = "../trained_models/exp_generator/generator"
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     elif cosmic_version == 'v2':
         generator_model_path = "../trained_models/exp_generator_v2/generator"
-        experiment_id = "exp_generator_2"
+        experiment_id = "exp_generator_v2"
         signatures = read_signatures("../data/data_v2.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     else:
         raise NotImplementedError

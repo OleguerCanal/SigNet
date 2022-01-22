@@ -14,13 +14,13 @@ from utilities.data_generator import DataGenerator
 
 if __name__ == "__main__":
 
-    cosmic_version = str(sys.argv[0])
+    cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
         experiment_id = "exp_generator"
         signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     elif cosmic_version == 'v2':
-        experiment_id = "exp_generator_2"
+        experiment_id = "exp_generator_v2"
         signatures = read_signatures("../data/data_v2.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     else:
         print("Not implemented for this version of COSMIC.")
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     input_batch, label_batch = data_generator.make_similar_set(examples_weight=realistic_weights,
                                                                large_or_low="large",
                                                                is_test=False,
-                                                               n_augmentations=6)
+                                                               n_augmentations=4)
     train_input, train_labels = input_batch[:train_size, ...], label_batch[:train_size, ...]
     val_input, val_labels = input_batch[train_size:train_size + val_size, ...], label_batch[train_size:train_size + val_size:, ...]
     tensor_to_csv(train_input, "../data/%s/train_perturbed_large_input.csv"%experiment_id)

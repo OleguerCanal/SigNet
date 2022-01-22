@@ -154,6 +154,7 @@ def train_generator(config) -> float:
                                train_data=train_data,
                                val_data=val_data,
                                lagrange_param=config["lagrange_param"],
+                               num_classes=config["num_classes"],
                                device=torch.device(dev),
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 

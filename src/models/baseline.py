@@ -61,7 +61,7 @@ def create_baseline_dataset(input_file, output_file, signatures_path, which_base
 
 if __name__ == "__main__":
 
-    cosmic_version = str(sys.argv[0])
+    cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
         data_folder = "../../data/"
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     elif cosmic_version == 'v2':
         data_folder = "../../data/"
         signatures_file = data_folder + "data_v2.xlsx"
-        experiment_id = "exp_generator_2"
+        experiment_id = "exp_generator_v2"
     else:
         raise NotImplementedError
 

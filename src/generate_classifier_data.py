@@ -20,7 +20,7 @@ if __name__ == "__main__":
     if cosmic_version == 'v3':
         experiment_id = "exp_generator"
     elif cosmic_version == 'v2':
-        experiment_id = "exp_generator_2"
+        experiment_id = "exp_generator_v2"
     else:
         raise NotImplementedError
 
@@ -31,8 +31,8 @@ if __name__ == "__main__":
     train_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/train_generator_low_label.csv")[:, -1].view(-1, 1)
     val_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/val_generator_low_input.csv")
     val_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/val_generator_low_label.csv")[:, -1].view(-1, 1)
-    test_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_low_input.csv")
-    test_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_low_label.csv")[:, -1].view(-1, 1)
+    test_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_input.csv")
+    test_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_label.csv")[:, -1].view(-1, 1)
     
     # Label all realistic data as a 1
     train_realistic_labels = torch.ones((train_realistic_inputs.shape[0], 1)).to(torch.float).view(-1, 1)

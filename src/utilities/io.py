@@ -144,8 +144,9 @@ def read_data_generator(device, data_id, cosmic_version = 'v3'):
         real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
         real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
     elif cosmic_version == 'v2':
-        real_data = csv_to_tensor(data_folder + "PCAWG_deconstructSigs_v2.csv",
+        real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
                                 device=device, header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
     else:
         raise NotImplementedError
         
