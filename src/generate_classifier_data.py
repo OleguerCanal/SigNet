@@ -22,7 +22,7 @@ if __name__ == "__main__":
     elif cosmic_version == 'v2':
         experiment_id = "exp_generator_2"
     else:
-        print("Not implemented for this version of COSMIC.")
+        raise NotImplementedError
 
     data_folder = "../data"
 
