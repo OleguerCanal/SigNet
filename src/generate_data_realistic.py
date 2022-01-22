@@ -22,7 +22,7 @@ if __name__ == "__main__":
         experiment_id = "exp_generator_2"
         signatures = read_signatures("../data/data_v2.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     else:
-        print("Not implemented for this version of COSMIC.")
+        raise NotImplementedError
 
     data_generator = DataGenerator(signatures=signatures,
                                    seed=None,
