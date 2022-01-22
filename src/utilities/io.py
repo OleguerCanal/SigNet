@@ -147,7 +147,7 @@ def read_data_generator(device, data_id, cosmic_version = 'v3'):
         real_data = csv_to_tensor(data_folder + "PCAWG_deconstructSigs_v2.csv",
                                 device=device, header=0, index_col=0)
     else:
-        print('This COSMIC version has not been implemented!\n')
+        raise NotImplementedError
         
     data = real_data[torch.randperm(real_data.size()[0]),:]
 
