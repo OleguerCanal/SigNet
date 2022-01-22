@@ -72,7 +72,7 @@ if __name__ == "__main__":
         signatures_file = data_folder + "data_v2.xlsx"
         experiment_id = "exp_generator_2"
     else:
-        print("Not implemented for this version of COSMIC.")
+        raise NotImplementedError
 
     in_files = [
         # generator
