@@ -1,69 +1,121 @@
 # SigNet
 
-## General Description 
+SigNet is a package to study genetic mutational processes.
+Check out our [theoretical background page](documentation/theoretical_background.md) for further information on this topic.
+As of now, it contains 3 products:
 
-Mutations that occur during cancer development can be classified into different mutational processes. This is done using the mutations’ sequence contexts and statistical tools that decompose the observed mutation spectra into statistically independent mutational components, or "signatures". Many so-called refitting algorithms have been developed to find a linear combination of these independent signatures that can describe the data and with this we can assign mutations from a given tumor to the underlying mutational processes. However, these algorithms were developed years ago, when a set of 30 signatures was originally identified, and they have not been tested for the newest catalogs that contain more than 70 different signatures. Furthermore, estimated per-tumor signature weights are noisy, yet their errors are rarely quantified in existing algorithms. 
+- **[SigNet Refitter](documentation/signet_refitter.md)**: Tool for signature decomposition.
+- **[SigNet Generator](documentation/signet_generator.md)**: Tool for realistic data generation.
+- **[SigNet Detector](documentation/signet_detector.md)**: Tool for mutational vector out-of-distribution detection.
 
-We have developed a method that uses Deep Neural Networks to do signature refitting. This algorithm, called SigNet, is easily adaptable to any new catalog of mutational signatures and provides prediction intervals for the contribution of each signature in a single tumor. This showcases how, using Artificial Neural Networks, we can take advantage of the correlations between the different mutational processes that occur during carcinogenesis to obtain accurate signature decompositions, even when the number of mutations in the sampled tumor is very low. For more details on how the method works please see [link to the paper].
+---
 
-### What is signature refitting?
+## Use it!
 
-Given a set of known mutational signatures, signature refitting methods aim to find a linear combination of these signatures that can reconstruct the mutational profile of a given sample. The mutational signatures have been identified using the conventional 96 mutation type classification, considering not only the mutated base (six substitution subtypes: C>A, C>G, C>T, T>A, T>C, and T>G), but also the bases immediately 5’ and 3’. The currently most used set of mutational signatures is the one provided by COSMIC, [[1]](#1). A schematic of the signature refitting process is the following:
+You can use SigNet in 3 different ways depending on your workflow:
 
+1. **[Command Line Interface](##Command-Line-Interface)** (CLI)
+   1. [CLI Installation](###CLI-Installation)
+   2. [CLI Usage](###CLI-Usage)
 
-## How to install
+2. **[Python Package](##Python-Package)**
+   1. [Python Package Installation](###Python-Package-Installation)
+   2. [Python Package Usage](###Python-Package-Usage)
 
-pip install blablabla
+3. **[Source Code](Source-Code)**
+   1. [Downloading Source Code](###Downloading-Source-Code)
+   2. [Code-Basics](###Code-Basics)
+---
 
-## How to use
+## Command Line Interface
 
-SigNet can be directly used from an executable. In this case one does not need to have any version of python installed and can be called from a terminal. It can also be installed with pip and after that, the python script signet.py can be executed. 
+Recommended if only interested in running SigNet modules independently and **not** willing to retrain models or change the source code.<br>
+**NOTE**: _This option is only supported for Debian-based Linux distributions_.
 
-### Command Line Interface
+### CLI Installation
 
-The command to run SigNet from the command line is the following:
+```BASH
+sudo apt update
+sudo apt install signet
 ```
-usage:    SigNet    [--input_data INPUTFILE]
-                    [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
-                    [--output OUTPUT]
-                    [--figure False]
+### CLI Usage
+
+The following example shows how to use [SigNet Refitter](documentation/signet_refitter.md).
+
+
+```BASH
+signet refitter [--input_data INPUTFILE]
+                [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                [--output OUTPUT]
+                [--figure False]
 ```
 
-The only required argument is the `--input_data` that should provide the path to the data that wants to be analyzed. This argument and the other optional ones are explained in the following sections.
+- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
 
-`--input_data INPUTFILE`
+- `--normalization`: As the INPUTFILE contain counts, we need to normalize them according to the abundances of each trinucleotide on the genome region we are counting the mutations.
+  - Choose `None` (default): If you don't want any normalization.
+  - Choose `exome`:  If the data that is being input comes from Whole Exome Sequencing. This will normalize the counts according to the trinucleotide abundances in the exome.
+  - Choose `genome`: If the data comes from Whole Genome Sequencing.
+  - Set a `PATH_TO_ABUNDANCES` to use a custom normalization file. Please refer to [Normalization Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
 
-INPUTFILE should be the path to the file that contains the data. It should be a file that contains the mutational counts for a set of tumors. Each row should be a different sample and each column should be a trinucleotide mutation type. The different mutation types should follows the conventional 96 mutation type classification that is based on the six substitution subtypes: C>A, C>G, C>T, T>A, T>C, and T>G, as well as the nucleotides immediately 5’ and 3’ to the mutation [[1]](#1). Therefore, the shape of the data should be nx96, where n is the number of samples. It should also include a header with the trinucleotide mutation type for each column (format: A[C>A]A), and the sample ID as the index for each row. 
+- `--output` Path to the folder where all the output files (weights guesses and figures) will be stored. By default, this folder will be called "OUTPUT" and will be created in the current directory. Please refer to [SigNet Refitter Output](documentation/input_output_formats.md##Signet-Refitter-Output) for further details on the output format.
 
-An example containing 5 samples can be found here:
+- `--figure` Whether to generate output plots or not. Possible options are `true` or `false`.
 
-------- PUT EXAMPLE TABLE -----------------------
+`TODO: SigNet Detector & SigNet Generator`
 
-`--normalization None`
+---
 
-The INPUTFILE should contain counts, so we need to normalize them according to the abundances of each trinucleotide on the genome region we are counting the mutations. If the data that is being input comes from Whole Exome Sequencing, the "exome" option should be used. This will normalize the counts according to the trinucleotide abundances in the exome. However, if the data comes from Whole Genome Sequencing, "genome" should be used. If the user can use any other kind of normalization, they can provide their own trinucleotide abundances. For this, they should provide a path to a file containing the abundances in two columns. The first one should be the trinucleotide, and the second one should be the abundance of that trinucleotide. The default option for normalization is None which means that no specific normalization will be applied and the data will just be normally normalized by the total number of mutations in each sample.
+## Python Package
+Recommended if you want to integrate SigNet as part of your python workflow, intending to re-train models but 
 
-`--output OUTPUT`
+**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider [downloading the source code]()_.
 
-OUTPUT should be the path to the folder where all the output files (weights guesses and figures) will be stored. By default, this folder will be called "Output" and will be created in the same directory as signet's directory. 
+### Python Package Installation
 
-`--figure FALSE`
+```BASH
+pip install signet
+```
 
-Boolean variable that sets whether the plots of the resulting weights guesses should be generated or not. The default is False, so the plots will not be generated. In the case that this is set to True, all the plots will be generated in the OUTPUT directory. 
+### Python Package Usage
 
-### Output
+The following example shows how to use [SigNet Refitter](documentation/signet_refitter.md).
+Please refer to the [class documentation](#todo-documentation-page) for further details such as how to use customly-trained models or different mutational type orderings.
 
-The output of the algorithm is a text file containing the weights guesses and the error bars for each signature and sample. Each row corresponds to a sample and each column corresponds to a different signature. 
+```python
+from signet import SigNetRefitter
 
-Think about how will we output the weights and error bars. Only one file? 3 files? 
+mutation_vecs = # numpy.array(N, 96) with N mutational vectors 
 
-## How to use other signature catalogs
+signet_refitter = SigNetRefitter()
+refitter_output = signet_refitter(mutation_vec=mutation_vec)
 
-Explain how can the user train the neural networks and test them with any other catalog of mutational signatures. What should the training, test sets and the signatures catalog look like. Maybe explain the basics here and refer to a wiki somewhere else? Because it might be too long.
+print("Signature decompositions", refitter_output["decomposition"])
+print("Error Lower bounds:", refitter_output["lower_bound"])
+print("Error Upper bounds:", refitter_output["upper_bound"])
+print("In-distribution:", refitter_output["detector"])
+```
+
+`TODO: SigNet Detector & SigNet Generator`
+
+--- 
+## Source Code
+
+Is the option which gives more flexibility.
+Recommended if you want to play around with the code, re-train custom models or [do contributions](documentation/).
+
+### Downloading Source Code
 
 
-## References
-<a id="1">[1]</a> 
-COSMIC. Mutational Signatures (v3.2 - March 2021).
-Accessed on 10th November 2021.
-https://cancer.sanger.ac.uk/signatures/sbs/
+```BASH
+git clone git@github.com:OleguerCanal/signatures-net.git
+cd signatures-net
+pip install -r requirements.txt
+```
+
+`TODO link to main class documentations`
+
+`TODO link to page explaining how to train each model`
+
+
+---
