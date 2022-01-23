@@ -8,9 +8,8 @@ As of now, it contains 3 products:
 - **[SigNet Generator](documentation/signet_generator.md)**: Tool for realistic data generation.
 - **[SigNet Detector](documentation/signet_detector.md)**: Tool for mutational vector out-of-distribution detection.
 
----
 
-## Use it!
+## Readme contents
 
 You can use SigNet in 3 different ways depending on your workflow:
 
@@ -25,7 +24,6 @@ You can use SigNet in 3 different ways depending on your workflow:
 3. **[Source Code](Source-Code)**
    1. [Downloading Source Code](###Downloading-Source-Code)
    2. [Code-Basics](###Code-Basics)
----
 
 ## Command Line Interface
 
@@ -64,7 +62,6 @@ signet refitter [--input_data INPUTFILE]
 
 `TODO: SigNet Detector & SigNet Generator`
 
----
 
 ## Python Package
 Recommended if you want to integrate SigNet as part of your python workflow, intending to re-train models but 
@@ -98,7 +95,6 @@ print("In-distribution:", refitter_output["detector"])
 
 `TODO: SigNet Detector & SigNet Generator`
 
---- 
 ## Source Code
 
 Is the option which gives more flexibility.
@@ -116,6 +112,3 @@ pip install -r requirements.txt
 `TODO link to main class documentations`
 
 `TODO link to page explaining how to train each model`
-
-
----
