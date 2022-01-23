@@ -119,7 +119,7 @@ class FineTunerLargeNumMut(FineTuner, nn.Module):
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLargeNumMut"
 
-        self.input_layer = nn.Linear(96+72+3, num_units)  # Baseline guess path
+        self.input_layer = nn.Linear(96+num_classes+3, num_units)  # Baseline guess path
         self.hidden_layers = nn.ModuleList(
             modules=[nn.Linear(num_units, num_units)
                      for _ in range(num_hidden_layers)])
