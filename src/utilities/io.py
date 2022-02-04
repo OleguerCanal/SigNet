@@ -136,8 +136,8 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_id, cosmic_version = 'v3'):
-    data_folder = "../data/" + data_id
+def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3'):
+    data_folder = data_folder + data_id
     if cosmic_version == 'v3':
         real_data = csv_to_tensor(data_folder + "sigprofiler_normalized_PCAWG.csv",
                                 device=device, header=0, index_col=0)
@@ -292,7 +292,7 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path):
+def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path, name=''):
     create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     
@@ -301,35 +301,39 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/weight_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/weight_guesses%s.csv"%name, header=True, index=True)
+
+    # Write results weight guesses cutoff
+    df[df<0.01] = 0
+    df.to_csv(output_path + "/weight_guesses_cutoff%s.csv"%name, header=True, index=True)
 
     # Write results lower bound guesses
     df = pd.DataFrame(lower_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/lower_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/lower_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results upper bound guesses
     df = pd.DataFrame(upper_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/upper_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/upper_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results baseline guesses
     df = pd.DataFrame(baseline)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/baseline_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
 
     # Write results classification
     df = pd.DataFrame(classification)
     df.columns = ["classification"]
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/classification_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/classification_guesses%s.csv"%name, header=True, index=True)
 
     # Write results reconstruction error
     # df = pd.DataFrame(reconstruction_error)
@@ -337,3 +341,13 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     # row_names =input_file.index.tolist()
     # df.index = row_names
     # df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+
+
+def write_David_outputs(weights, lower_bound, upper_bound, output_path):
+    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    
+    # Write results weight guesses
+    df = pd.DataFrame({'weight_guess': weights[0], 'upper_bound': upper_bound[0], 'lower_bound': lower_bound[0],})
+    df.index = sig_names
+    df.to_csv(output_path + "_guess.csv", header=True, index=True)
+

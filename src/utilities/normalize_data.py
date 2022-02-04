@@ -28,7 +28,7 @@ def create_opportunities(abundances_path):
     opp_file_lines = opp_file.readlines()
     opp_dic = {}
     for line in opp_file_lines:
-        opp_dic[line.split("\t")[0]] = int(line.strip("\n").split("\t")[1])
+        opp_dic[line.split("\t")[0]] = float(line.strip("\n").split("\t")[1])
     opp = np.zeros(96)
     for i in range(len(order)):
         tri = order[i]
