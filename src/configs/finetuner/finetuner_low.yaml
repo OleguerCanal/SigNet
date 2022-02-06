@@ -1,25 +1,25 @@
 config:
     # IDs & paths
     data_id: "exp_generator"
-    model_id: "finetuner_generator_low"
+    model_id: "finetuner_generator_low_2"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
     source: "generator_low"
-    network_type: "generator"
-    iterations: 70
+    network_type: "low"
+    iterations: 400
     num_classes: 72
     sigmoid_params: [500,150]
-    batch_size: 283
-    lr: 0.0015
+    batch_size: 500
+    lr: 0.001
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator"
+    wandb_project_id: "finetuner_generator_split"
 
     # Network params
     num_hidden_layers: 3
-    num_neurons: 50
+    num_neurons: 60
 
     # Misc
     device: "cuda"

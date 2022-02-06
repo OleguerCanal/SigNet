@@ -148,12 +148,13 @@ def train_generator(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    train_data, val_data = read_data_generator(device=dev)
+    train_data, val_data = read_data_generator(device=dev, data_id = config['data_id'], cosmic_version = config['cosmic_version'])
 
     trainer = GeneratorTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
                                val_data=val_data,
                                lagrange_param=config["lagrange_param"],
+                               num_classes=config["num_classes"],
                                device=torch.device(dev),
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 

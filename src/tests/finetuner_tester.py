@@ -2,6 +2,7 @@ import os
 import sys
 
 from matplotlib.pyplot import show
+import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.baseline import Baseline
@@ -44,7 +45,21 @@ list_of_methods = ['baseline', 'finetuner_nobaseline']
 list_of_guesses = [baseline_guess, finetuner_nobaseline_guess_01]
 
 
-plot_all_metrics_vs_mutations( list_of_methods, list_of_guesses, label_batch, '', show=True)
+# plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label_batch, '', show=True)
+
+# indexes = label_batch[:, -1] >= 1e4
+metrics_baseline = get_classification_metrics(label_batch=label_batch[:, :-1],
+                                     prediction_batch=list_of_guesses[0][:, :])
+metrics_guess_1 = get_classification_metrics(label_batch=label_batch[:, :-1],
+                                     prediction_batch=list_of_guesses[1][:, :])
+
+plot_weights_comparison(true_labels=metrics_baseline["MAE_sign"],
+                        guessed_labels=metrics_guess_1["MAE_sign"], 
+                        pred_upper=metrics_guess_1["MAE_sign"],
+                        pred_lower=metrics_guess_1["MAE_sign"],
+                        sigs_names=[str(v+1) for v in list(range(72))],
+                        plot_path="")
+
 
 # list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
 

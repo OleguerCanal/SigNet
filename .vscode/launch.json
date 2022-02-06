@@ -104,5 +104,14 @@
             "cwd": "${workspaceFolder}/src/modules",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Test Signet",
+            "type": "python",
+            "request": "launch",
+            "program": "signet_tester.py",
+            "cwd": "${workspaceFolder}/src/tests/test_by_module/",
+            "console": "integratedTerminal"
+        }
     ]
 }

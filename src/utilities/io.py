@@ -11,7 +11,7 @@ from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from models.classifier import Classifier
-from models.finetuner import FineTuner
+from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 from models.error_finder import ErrorFinder
 from utilities.metrics import get_reconstruction_error
 
@@ -44,8 +44,11 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
     return signatures_data
 
 def csv_to_tensor(file, device="cpu", header=None, index_col=None):
-    input_tensor = torch.tensor(pd.read_csv(
-        file, header=header, index_col=index_col).values, dtype=torch.float)
+    df = pd.read_csv(file, header=header, index_col=index_col)
+    # print(df)
+    # if len(df.columns) <= 1:
+    #     df = pd.read_csv(file, header=header, index_col=index_col, sep="\t")
+    input_tensor = torch.tensor(df.values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
     # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
     #        == input_tensor.shape[0])
@@ -57,7 +60,7 @@ def tensor_to_csv(data_tensor, output_path):
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 
-def read_data(device, experiment_id, source, data_folder="../data", include_baseline=True, include_labels=True):
+def read_data(device, experiment_id, source, data_folder="../data", include_baseline=True, include_labels=True, n_points = None):
     """Read data from disk
 
     Args:
@@ -72,15 +75,19 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
     train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
     train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
-
     train_data = DataPartitions(inputs=train_input,
                                 prev_guess=train_baseline,
                                 labels=train_label)
+    train_data.perm
+    if n_points is not None:
+        train_data.inputs = train_data.inputs[:n_points,:]
+        train_data.prev_guess = train_data.prev_guess[:n_points,:]
+        train_data.labels = train_data.labels[:n_points,:]
 
     val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)
     val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
     val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device) if include_labels else None
-
+    
     val_data = DataPartitions(inputs=val_input,
                               prev_guess=val_baseline,
                               labels=val_label)
@@ -132,12 +139,20 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_folder="../data"):
-
-    real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_normalized_PCAWG.csv",
-                              device=device, header=0, index_col=0)
-    real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
-    real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3'):
+    data_folder = data_folder + data_id
+    if cosmic_version == 'v3':
+        real_data = csv_to_tensor(data_folder + "sigprofiler_normalized_PCAWG.csv",
+                                device=device, header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+    elif cosmic_version == 'v2':
+        real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
+                                device=device, header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+    else:
+        raise NotImplementedError
+        
     data = real_data[torch.randperm(real_data.size()[0]),:]
 
     train_input = data[:int(real_data.size()[0]*0.95)]
@@ -200,8 +215,9 @@ def read_model(directory, device="cpu"):
         init_args = json.load(fp)
     model_type = init_args["model_type"]
     init_args.pop("model_type")
+    print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTuner", "ErrorFinder", "Generator"])
+    assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
     if "device" in init_args.keys():
         init_args["device"] = device
         
@@ -210,8 +226,10 @@ def read_model(directory, device="cpu"):
         model = Generator(**init_args)
     if model_type == "Classifier":
         model = Classifier(**init_args)
-    elif model_type == "FineTuner":
-        model = FineTuner(**init_args)
+    elif model_type == "FineTunerLowNumMut":
+        model = FineTunerLowNumMut(**init_args)
+    elif model_type == "FineTunerLargeNumMut":
+        model = FineTunerLargeNumMut(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)
     
@@ -277,7 +295,7 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path):
+def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path, name=''):
     create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     
@@ -286,39 +304,53 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/weight_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/weight_guesses%s.csv"%name, header=True, index=True)
+
+    # Write results weight guesses cutoff
+    df[df<0.01] = 0
+    df.to_csv(output_path + "/weight_guesses_cutoff%s.csv"%name, header=True, index=True)
 
     # Write results lower bound guesses
     df = pd.DataFrame(lower_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/lower_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/lower_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results upper bound guesses
     df = pd.DataFrame(upper_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/upper_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/upper_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results baseline guesses
     df = pd.DataFrame(baseline)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/baseline_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
 
     # Write results classification
     df = pd.DataFrame(classification)
     df.columns = ["classification"]
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/classification_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/classification_guesses%s.csv"%name, header=True, index=True)
 
     # Write results reconstruction error
-    df = pd.DataFrame(reconstruction_error)
-    df.columns = ["reconstruction_error"]
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+    # df = pd.DataFrame(reconstruction_error)
+    # df.columns = ["reconstruction_error"]
+    # row_names =input_file.index.tolist()
+    # df.index = row_names
+    # df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+
+
+def write_David_outputs(weights, lower_bound, upper_bound, output_path):
+    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    
+    # Write results weight guesses
+    df = pd.DataFrame({'weight_guess': weights[0], 'upper_bound': upper_bound[0], 'lower_bound': lower_bound[0],})
+    df.index = sig_names
+    df.to_csv(output_path + "_guess.csv", header=True, index=True)
+

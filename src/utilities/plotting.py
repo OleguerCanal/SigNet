@@ -52,9 +52,9 @@ def plot_prop_signatures(weights_0, weights_augmented):
     plt.show()
 
 # CLASSIFIER PLOTS:
-def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path = '../../plots/exp_classifier/performance_classifier.png'):
-    fig, axs = plt.subplots(3, figsize=(8,6))
-    fig.suptitle("Metrics vs Number of Mutations")
+def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path = None):
+    fig, axs = plt.subplots(1, figsize=(8,4))
+    fig.suptitle("Detector Performance")
     
     num_muts = np.unique(num_muts_list.detach().numpy())
     
@@ -67,18 +67,21 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
         values[1,i] = false_realistic(label=label[indexes], prediction=guess[indexes])
         values[2,i] = false_random(label=label[indexes], prediction=guess[indexes])
         
-    axs[0].plot(np.log10(num_muts), values[0,:], marker='o',linewidth=line_width, markersize=marker_size)
+    axs.plot(np.log10(num_muts), values[0,:], marker='o',linewidth=line_width, markersize=marker_size)
 
-    axs[1].plot(np.log10(num_muts), values[1,:], marker='o',linewidth=line_width, markersize=marker_size)
+    # axs[1].plot(np.log10(num_muts), values[1,:], marker='o',linewidth=line_width, markersize=marker_size)
 
-    axs[2].plot(np.log10(num_muts), values[2,:], marker='o',linewidth=line_width, markersize=marker_size)
+    # axs[1].plot(np.log10(num_muts), values[2,:], marker='o',linewidth=line_width, markersize=marker_size)
 
-    y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)"]
-    for i, axes in enumerate(axs.flat):
-        stylize_axes(axes, '', 'log(N)', y_labels[i])
+    # y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)"]
+    y_labels = "Accuracy (%)"
+    # for i, axes in enumerate(axs.flat):
+    #     stylize_axes(axes, '', 'log(N)', y_labels[i])
+    stylize_axes(axs, '', 'log(N)', y_labels)
 
-    plt.show()
-    # fig.savefig(plot_path)
+    fig.tight_layout()
+    # plt.show()
+    fig.savefig(plot_path+'detector.pdf')
     
 # FINETUNER PLOTS:
 def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, show=False):
@@ -93,14 +96,14 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    list_of_metrics = ["MAE_p", "MAE_n", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
+    list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
     values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
     for method_index in range(len(list_of_methods)):
         for i, num_mut in enumerate(num_muts):
             indexes = label[:, -1] == num_mut
             metrics = get_classification_metrics(label_batch=label[indexes, :-1],
-                                                    prediction_batch=list_of_guesses[method_index][indexes, :])
+                                                 prediction_batch=list_of_guesses[method_index][indexes, :])
             for metric_index, metric in enumerate(list_of_metrics):
                 values[method_index, i, metric_index] = metrics[metric]
 
@@ -113,16 +116,16 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
 
     xlabel = 'log(N)'
-    ylabel = ["MAE postives", "MAE negatives", "FPR", "FNR"]
+    ylabel = ["MAE", "KL", "FPR", "FNR"]
     # fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
         # axes.ticklabel_format(axis="both", style="sci")
 
 
-    # fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    # fig.subplots_adjust(right=legend_adjustment)   
+    fig.subplots_adjust(right=legend_adjustment)   
     # create_dir(folder_path)
     if show:
         plt.show()
@@ -130,7 +133,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     plt.close()
     ############################################################################################
     
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
+    # fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 
@@ -147,52 +150,113 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
         # axes.ticklabel_format(axis="y", style="sci")
         
 
-    # fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     fig.tight_layout()
-    # fig.subplots_adjust(right=legend_adjustment)   
+    fig.subplots_adjust(right=legend_adjustment)   
     plt.show()
     # plt.savefig(folder_path + '/metrics_high.svg')
     plt.close()
 
     ############################################################################################
-    mean_values = np.mean(values, axis=1)
-    # fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(8,6), sharex=True)
-    fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(8,6))
+    # mean_values = np.mean(values, axis=1)
+    # # fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(8,6), sharex=True)
+    # fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(8,6))
 
-    width = 1/(len(list_of_methods)+3)
-    list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
-    for method_index in range(len(list_of_methods)):
-        axs[0].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,4:], align='center', width=width)
-    axs[0].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
-    axs[0].set_xticklabels(["Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)"])
-    axs[0].hlines(100, axs[0].get_xlim()[0], axs[0].get_xlim()[1],linestyles = 'dashed', color = 'gray', label='_nolegend_')
+    # width = 1/(len(list_of_methods)+3)
+    # list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
+    # for method_index in range(len(list_of_methods)):
+    #     axs[0].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,4:], align='center', width=width)
+    # axs[0].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    # axs[0].set_xticklabels(["Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)"])
+    # axs[0].hlines(100, axs[0].get_xlim()[0], axs[0].get_xlim()[1],linestyles = 'dashed', color = 'gray', label='_nolegend_')
 
-    list_of_metrics = ["MAE_p", "MAE_n"] 
-    for method_index in range(len(list_of_methods)):
-        axs[1].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,:2], align='center', width=width)
-    axs[1].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
-    axs[1].set_xticklabels(["MAE postives", "MAE negatives"])
+    # list_of_metrics = ["MAE_p", "MAE_n"] 
+    # for method_index in range(len(list_of_methods)):
+    #     axs[1].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,:2], align='center', width=width)
+    # axs[1].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    # axs[1].set_xticklabels(["MAE postives", "MAE negatives"])
 
-    list_of_metrics = ["fpr", "fnr"] 
-    for method_index in range(len(list_of_methods)):
-        axs[2].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,2:4], align='center', width=width)
-    axs[2].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
-    axs[2].set_xticklabels(["FPR", "FNR"])
+    # list_of_metrics = ["fpr", "fnr"] 
+    # for method_index in range(len(list_of_methods)):
+    #     axs[2].bar(np.array(range(len(list_of_metrics)))+width*method_index, mean_values[method_index,2:4], align='center', width=width)
+    # axs[2].set_xticks(np.array(range(len(list_of_metrics)))+width*len(list_of_methods)/2)
+    # axs[2].set_xticklabels(["FPR", "FNR"])
     
-    for i, axes in enumerate(axs.flat):
-        stylize_axes(axes, '', '', 'Metrics')
+    # for i, axes in enumerate(axs.flat):
+    #     stylize_axes(axes, '', '', 'Metrics')
 
-    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
+    # fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
+    # fig.tight_layout()
+    # fig.subplots_adjust(right=legend_adjustment)
+    # if show:
+    #     plt.show()
+    # # plt.savefig(folder_path + '/metrics_mean.png')
+    # plt.close()
+
+
+def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, signatures=None, mutation_distributions=None):
+    '''
+    Plot:
+    MAE                 KLdiv
+    Accuracy            Precision
+    Sensitivity         Specificity
+    ReconstructionMSE   Legend
+    '''
+    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(8,10))
+
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    list_of_metrics = ["MAE", "KL", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %", "reconstruction_error"]
+
+    values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
+    for method_index in range(len(list_of_methods)):
+        for i, num_mut in enumerate(num_muts):
+            indexes = label[:, -1] == num_mut
+            metrics = get_classification_metrics(label_batch=label[indexes, :-1],
+                                                 prediction_batch=list_of_guesses[method_index][indexes, :])
+            for metric_index, metric in enumerate(list_of_metrics):
+                if metric == "reconstruction_error":  # TODO(oleguer) Fix this, its super sketchy
+                    assert(signatures is not None)
+                    assert(mutation_distributions is not None)
+                    rec_error = get_reconstruction_error(mutation_dist=mutation_distributions[indexes, :],
+                                                            guess=list_of_guesses[method_index][indexes, :],
+                                                            signatures=signatures)
+                    values[method_index, i, metric_index] = torch.mean(rec_error)
+                else:
+                    values[method_index, i, metric_index] = metrics[metric]
+
+    marker_size = 3
+    line_width = 0.5
+    p1 = axs[0,0].plot(np.log10(num_muts), np.transpose(values[:,:,0]), marker='o',linewidth=line_width, markersize=marker_size)
+    p2 = axs[0,1].plot(np.log10(num_muts), np.transpose(values[:,:,1]), marker='o',linewidth=line_width, markersize=marker_size)
+    p3 = axs[1,0].plot(np.log10(num_muts), np.transpose(values[:,:,2]), marker='o',linewidth=line_width, markersize=marker_size)
+    p4 = axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
+    p5 = axs[2,0].plot(np.log10(num_muts), np.transpose(values[:,:,4]), marker='o',linewidth=line_width, markersize=marker_size)
+    p6 = axs[2,1].plot(np.log10(num_muts), np.transpose(values[:,:,5]), marker='o',linewidth=line_width, markersize=marker_size)
+    p7 = axs[3,0].plot(np.log10(num_muts), np.transpose(values[:,:,6]), marker='o',linewidth=line_width, markersize=marker_size)
+    
+    # lines_labels = [ax.get_legend_handles_labels() for ax in axs.flat]
+    # lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+    # print(lines)
+    # print(labels)
+
+    xlabel = 'log(N)'
+    ylabel = ["MAE", "KL divergence", "Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)", "Reconstruction MSE"]
+
+    for i, axes in enumerate(axs.flat):
+        if i<len(axs.flat)-1:
+            stylize_axes(axes, '', '', ylabel[i])
+            if i == 5 or i ==6:
+                stylize_axes(axes, '', xlabel, ylabel[i])
+        else:
+            axes.set_axis_off()
+            axes.legend(p7, list_of_methods, loc='center left')#, prop={'size': 28})
     fig.tight_layout()
-    fig.subplots_adjust(right=legend_adjustment)
-    if show:
-        plt.show()
-    # plt.savefig(folder_path + '/metrics_mean.png')
+    # plt.show()
+    plt.savefig(folder_path + '/benchmark.pdf')
     plt.close()
 
-
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False, signatures=None, mutation_distributions=None):
-    fig, axs = plt.subplots(len(list_of_metrics))
+    fig, axs = plt.subplots(len(list_of_metrics), figsize=(8,6))
     fig.suptitle("Metrics vs Number of Mutations")
     
     num_muts = np.unique(label[:,-1].detach().numpy())
@@ -215,18 +279,14 @@ def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, 
                 else:
                     values[method_index, i] = metrics[metric]
 
-        handles = axs[metric_index].plot(np.log10(num_muts), np.transpose(values))
-        axs[metric_index].set_ylabel(metric)
-        if metric_index == len(list_of_metrics) - 1:
-            axs[metric_index].set_xlabel("log(N)")
-
-        # Shrink current axis by 3%
-        box = axs[metric_index].get_position()
-        axs[metric_index].set_position([box.x0, box.y0, box.width * 0.97, box.height])
-    
-    fig.legend(handles = handles, labels=list_of_methods, bbox_to_anchor=(1, 0.5))
-    manager = plt.get_current_fig_manager()
-    manager.resize(*manager.window.maxsize())
+    marker_size = 3
+    line_width = 0.5
+    axs.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    stylize_axes(axs, '', "log(N)", "Reconstruction MSE")
+    fig.tight_layout()
+    legend_adjustment = 0.75
+    fig.subplots_adjust(right=legend_adjustment)   
+    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
     if show:
         plt.show()
     if plot_path is not None:
@@ -269,13 +329,65 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
     for i in ind_list:
         plt.bar(range(96), input[i,:], width=0.4)
         plt.bar(np.array(range(96))+0.4, reconstruction[i,:].detach().numpy(), width=0.4)
-        #plt.show()
         plt.legend(["Input", "Reconstruction"])
-        plt.savefig(plot_path + "_%s.png"%i)
+        plt.show()
+        # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
 
 # ERRORLEARNER PLOTS:
+def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
+    plt.figure(figsize=(8,6))
+
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    values = np.zeros((4,len(num_muts)))
+    for i, num_mut in enumerate(num_muts):
+        k = -1
+        indexes = label[:, -1] == num_mut
+        metrics = get_pi_metrics(label[indexes, :-1], pred_lower[indexes, :], pred_upper[indexes, :])
+        for metric in metrics.keys():
+            k += 1
+            values[k,i] = metrics[metric]
+    marker_size = 3
+    line_width = 0.5
+    xlabels = ["log(N)"]
+    ylabels = ["Proportion in (%)", "Interval Width"]
+
+    ax = plt.subplot(2,2,1)
+    ax.plot(np.log10(num_muts), values[0], marker='o',linewidth=line_width, markersize=marker_size)
+    stylize_axes(ax, '', xlabels[0], ylabels[0])
+    ax = plt.subplot(2,2,2)
+    ax.plot(np.log10(num_muts), values[1], marker='o',linewidth=line_width, markersize=marker_size)
+    stylize_axes(ax, '', xlabels[0], ylabels[1])
+    
+    label_batch = label[:,:-1]
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
+    num_error = torch.sum(lower<0, dim=0)
+    num_error += torch.sum(upper<0, dim=0)
+    num_error = num_error / label_batch.shape[0]
+    num_classes = 72
+
+    ax = plt.subplot(2,1,2)
+    ax.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
+    stylize_axes(ax, '', '', "Percentage of error (%)")
+    xt = range(num_classes)
+    xl = sigs_names
+    # ax.set_xticks([xt[i] for i in range(num_classes) if i%2==0])
+    ax.set_xticks(xt)
+    ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
+    # ax.xaxis.set_major_locator(plt.MultipleLocator(2))
+    # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+
+    plt.tight_layout()
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        plt.savefig(plot_path + 'interval_performance.pdf')
+
+
+    
 def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path=None, show=False):
     fig, axs = plt.subplots(2,2, figsize=(8,6))
     # fig.suptitle("Interval Metrics vs Number of Mutations")
@@ -440,8 +552,8 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     ax.set_title('Signature decomposition')
     ax.set_ylim([0,1])
     plt.tight_layout()
-    # plt.show()
-    fig.savefig(plot_path)
+    plt.show()
+    # fig.savefig(plot_path)
     plt.close()
 
 def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
@@ -449,14 +561,15 @@ def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower,
     fig, ax = plt.subplots()
     guessed_error_neg = guessed_labels - pred_lower
     guessed_error_pos = pred_upper - guessed_labels
-    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center')
-    ax.set_ylim([0,1])
+    ax.bar(range(num_classes),guessed_labels, yerr=[abs(guessed_error_neg), abs(guessed_error_pos)], align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10, label="guessed")
+    ax.bar(np.array(range(num_classes))+0.2, true_labels, width=0.2, align='center', label="true")
+    # ax.set_ylim([0,1])
     ax.set_ylabel('Weights')
     ax.set_xticks(range(num_classes))
     ax.set_xticklabels(sigs_names, rotation='vertical')
     ax.set_title('Signature decomposition')
     plt.tight_layout()
+    plt.legend()
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.show()

@@ -18,39 +18,27 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/exp_good/classifier",
-                 finetuner_random_low="../../trained_models/exp_good/finetuner_perturbed_low",
-                 finetuner_random_large="../../trained_models/exp_good/finetuner_perturbed_large",
-                 finetuner_realistic_low="../../trained_models/exp_good/finetuner_realistic_low",
-                 finetuner_realistic_large="../../trained_models/exp_good/finetuner_realistic_large",
-                 errorfinder="../../trained_models/exp_good/errorfinder",
+                 classifier="../../trained_models/exp_generator/classifier",
+                 finetuner_realistic_low="../../trained_models/exp_generator/finetuner_generator_low_2",
+                 finetuner_realistic_large="../../trained_models/exp_generator/finetuner_generator_large",
+                 errorfinder="../../trained_models/exp_generator/errorfinder_generator_1",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
-                 mutation_type_order="../../data/mutation_type_order.xlsx",
-                 apply_reconstruction_correction=True):
+                 mutation_type_order="../../data/mutation_type_order.xlsx"):
 
         signatures = read_signatures(file=signatures_path,
                                      mutation_type_order=mutation_type_order)
         self.signatures = signatures # TODO(oleguer): Remove, this is only for debugging
         self.baseline = Baseline(signatures)
 
-        realistic_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
-                                                large_mum_mut_dir=finetuner_realistic_large,
-                                                apply_reconstruction_correction=apply_reconstruction_correction,
-                                                signatures=signatures)
+        finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
+                                      large_mum_mut_dir=finetuner_realistic_large)
 
-        random_finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_random_low,
-                                             large_mum_mut_dir=finetuner_random_large,
-                                             apply_reconstruction_correction=apply_reconstruction_correction,
-                                             signatures=signatures)
-
-
+        classifier = read_model(classifier)
         errorfinder = read_model(errorfinder)
 
-
-        self.finetuner_errorfinder = ClassifiedFinetunerErrorfinder(classifier=read_model(classifier),
-                                                                    realistic_finetuner=realistic_finetuner,
-                                                                    random_finetuner=random_finetuner,
+        self.finetuner_errorfinder = ClassifiedFinetunerErrorfinder(classifier=classifier,
+                                                                    finetuner=finetuner,
                                                                     errorfinder=errorfinder)
         self.opportunities_name_or_path = opportunities_name_or_path
         
@@ -71,8 +59,8 @@ class SigNet:
             if self.opportunities_name_or_path is not None:
                 mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
 
-            normalized_mutation_vec = \
-                mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+            sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+            normalized_mutation_vec = mutation_vec / sums
   
             # Run signature_finder
             self.baseline_guess = self.baseline.get_weights_batch(
@@ -126,15 +114,16 @@ if __name__ == "__main__":
     # output_path = config["output"] 
     # plot_figs = config["figures"]
 
-    input_file_path = "../../data/analysis_Michel/michel_input.csv"
-    opportunities = "genome"
-    output_path = "../../data/analysis_Michel/augmented" 
-    plot_figs = False
+    input_file_path = "../../data/analysis_Hypoxia_Rodrigo/hypoxia_mutations.csv"
+    opportunities = "../../data/analysis_Hypoxia_Rodrigo/3mer_WG_rn6.txt"
+    output_path = "../../data/analysis_Hypoxia_Rodrigo/" 
+    plot_figs = True
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
 
-    input_file = pd.read_csv(input_file_path, header=0, index_col=0)
+    input_file = pd.read_csv(input_file_path, header=0, index_col=0, sep='\t')
     mutation_data = torch.tensor(input_file.values, dtype=torch.float)
+    print(mutation_data)
     weight_guess, upper_bound, lower_bound, classification, normalized_input = signet(mutation_vec=mutation_data)
 
     # Write final outputs
@@ -144,6 +133,6 @@ if __name__ == "__main__":
     # Plot figures
     if plot_figs:
         sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
-        # for i in range(weight_guess.shape[0]):
-        #     plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
-        plot_reconstruction(normalized_input, signet.baseline_guess, signet.signatures, list(range(weight_guess.shape[0])), output_path + "/plots/baseline_reconstruction")
+        for i in range(weight_guess.shape[0]):
+            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
+        # plot_reconstruction(normalized_input, signet.baseline_guess, signet.signatures, list(range(weight_guess.shape[0])), output_path + "/plots/baseline_reconstruction")

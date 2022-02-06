@@ -1,24 +1,26 @@
 import os
 import sys
+from telnetlib import SGA
 
 import pandas as pd
+
 
 sys.path.append(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))))
 from models.baseline import Baseline
-from utilities.io import csv_to_tensor, read_signatures
+from utilities.io import csv_to_tensor, read_model, read_signatures
 from utilities.plotting import plot_all_metrics_vs_mutations,\
                                plot_metric_vs_mutations,\
                                plot_interval_metrics_vs_mutations,\
                                plot_interval_performance
 from modules.combined_finetuner import CombinedFinetuner
-from modules.combined_errorfinder import CombinedErrorfinder
+from models.error_finder import ErrorFinder
 
 # Load data
-data_path = "../../../data/exp_final/test_realistic/"
-inputs = csv_to_tensor(data_path + "test_realistic_input.csv", device='cpu')
-# baselines = csv_to_tensor(data_path + "test_realistic_baseline.csv", device='cpu')
-labels = csv_to_tensor(data_path + "test_realistic_label.csv", device='cpu')
+data_path = "../../../data/exp_generator/"
+inputs = csv_to_tensor(data_path + "test_generator/test_generator_input.csv", device='cpu')
+# baselines = csv_to_tensor(data_path + "test_generator/test_generator_baseline.csv", device='cpu')
+labels = csv_to_tensor(data_path + "test_generator/test_generator_label.csv", device='cpu')
 num_mut = labels[:, -1].unsqueeze(1)
 
 signatures = read_signatures(file="../../../data/data.xlsx",
@@ -29,9 +31,9 @@ baselines = baseline.get_weights_batch(inputs)
 print(baselines)
 
 # Make guess
-models_path = "../../../trained_models/exp_final_2/"
-finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_random_low",
-                              large_mum_mut_dir=models_path + "finetuner_random_large")
+models_path = "../../../trained_models/exp_generator/"
+finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_generator_low_2",
+                              large_mum_mut_dir=models_path + "finetuner_generator_large")
 finetuner_guess = finetuner(mutation_dist=inputs,
                             baseline_guess=baselines,
                             num_mut=num_mut)
@@ -48,12 +50,15 @@ plot_metric_vs_mutations(list_of_metrics=["accuracy %", "reconstruction_error"],
                          signatures=signatures,
                          mutation_distributions=inputs)
 
+classifier = read_model('../../../trained_models/exp_generator/classifier')
+classifier_output = classifier(mutation_dist=inputs,
+                               num_mut=num_mut)
 # # Run errorfinder
-# errorfinder = CombinedErrorfinder(low_mum_mut_dir=models_path + "errorfinder_realistic_low",
-#                                   large_mum_mut_dir=models_path + "errorfinder_realistic_large")
-# upper_guess, lower_guess = errorfinder(finetuner_guess=finetuner_guess,
-#                                        num_mut=num_mut)
+errorfinder = read_model(models_path + "errorfinder_generator_103")
+upper_guess, lower_guess = errorfinder(weights=finetuner_guess,
+                                       num_mutations=num_mut,
+                                       classification=classifier_output)
 
 # # Plot results
-# plot_interval_metrics_vs_mutations(labels, upper_guess, lower_guess, '')
-# plot_interval_performance(labels, upper_guess, lower_guess, list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
+plot_interval_metrics_vs_mutations(labels, upper_guess, lower_guess, '', True)
+plot_interval_performance(labels, upper_guess, lower_guess, list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '', True)
