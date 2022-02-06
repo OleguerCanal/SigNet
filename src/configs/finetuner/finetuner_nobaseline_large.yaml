@@ -1,21 +1,21 @@
 config:
     # IDs & paths
     data_id: "exp_generator"
-    model_id: "finetuner_nobaseline"
+    model_id: "finetuner_nobaseline_large"
     models_dir: "../trained_models/exp_generator"
 
     # Training params
-    source: "generator_low"
-    network_type: "generator"
+    source: "generator_large"
+    network_type: "low"
     iterations: 70
     num_classes: 72
-    sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
+    sigmoid_params: [[1000, 1000], [10000, 2000], [100000, 5000]]
     batch_size: 283
     lr: 0.0015
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator"
+    wandb_project_id: "finetuner_no_baseline"
 
     # Network params
     num_hidden_layers: 3
