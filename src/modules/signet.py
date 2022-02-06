@@ -59,8 +59,8 @@ class SigNet:
             if self.opportunities_name_or_path is not None:
                 mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
 
-            normalized_mutation_vec = \
-                mutation_vec / torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+            sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+            normalized_mutation_vec = mutation_vec / sums
   
             # Run signature_finder
             self.baseline_guess = self.baseline.get_weights_batch(

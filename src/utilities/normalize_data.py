@@ -11,7 +11,8 @@ def normalize_data(input_file, opportunities_name_or_path):
         abundances = create_opportunities(opportunities_name_or_path)
 
     abundances_tensor = torch.Tensor(abundances)
-    return torch.div(input_file, abundances_tensor).nan_to_num()
+    abundances_tensor = abundances_tensor/torch.sum(abundances_tensor)
+    return torch.div(input_file, abundances_tensor)
 
 
 
@@ -33,11 +34,11 @@ def create_opportunities(abundances_path):
     for i in range(len(order)):
         tri = order[i]
         opp[i] = opp_dic[tri]
-        b1 = tri[0]
-        b2 = tri[1]
-        b3 = tri[2]
-        complement_base = complement(b3) + complement(b2) + complement(b1)
-        opp[i] = opp[i] + opp_dic[complement_base]
+        # b1 = tri[0]
+        # b2 = tri[1]
+        # b3 = tri[2]
+        # complement_base = complement(b3) + complement(b2) + complement(b1)
+        # opp[i] = opp[i] + opp_dic[complement_base]
     return opp
 
 

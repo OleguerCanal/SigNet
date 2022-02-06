@@ -44,8 +44,11 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
     return signatures_data
 
 def csv_to_tensor(file, device="cpu", header=None, index_col=None):
-    input_tensor = torch.tensor(pd.read_csv(
-        file, header=header, index_col=index_col).values, dtype=torch.float)
+    df = pd.read_csv(file, header=header, index_col=index_col)
+    # print(df)
+    # if len(df.columns) <= 1:
+    #     df = pd.read_csv(file, header=header, index_col=index_col, sep="\t")
+    input_tensor = torch.tensor(df.values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
     # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
     #        == input_tensor.shape[0])

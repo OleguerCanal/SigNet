@@ -32,10 +32,12 @@ def false_random(prediction, label):
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
 
-def get_cosine_similarity(predicted_label, true_label):
+def get_cosine_similarity(predicted_label, true_label, dim=None):
     predicted_label = torch.nn.functional.normalize(
         predicted_label, dim=1, p=2)
     true_label = torch.nn.functional.normalize(true_label, dim=1, p=2)
+    if dim is not None:
+        return torch.abs(torch.einsum("ij,ij->i", (predicted_label, true_label)))
     return torch.mean(torch.abs(torch.einsum("ij,ij->i", (predicted_label, true_label))))
 
 def get_negative_cosine_similarity(predicted_label, true_label):
