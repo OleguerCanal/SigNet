@@ -44,10 +44,10 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        if self.network_type == 'low':
-            l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        if self.network_type == 'large':
-            l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'low':
+        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'large':
+        l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -79,7 +79,7 @@ class FinetunerTrainer:
         # if plot:
         #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
 
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
