@@ -10,6 +10,7 @@ class FineTuner(nn.Module):
                  num_units=400,
                  cutoff=0.01,
                  sigmoid_params=[[500, 1000], [5000, 2000], [10000, 5000]]):
+        super(FineTuner, self).__init__()
         self.init_args = locals()
         self.init_args.pop("self")
         self.init_args.pop("__class__")
@@ -65,6 +66,8 @@ class FineTunerLowNumMut(FineTuner):
 
         self.output_layer = nn.Linear(num_units_joined_path, num_classes)
         self.activation = nn.LeakyReLU(0.1)
+        # self.layer_norm_1 = nn.LayerNorm(num_units_joined_path)
+        # self.layer_norm_2 = nn.LayerNorm(num_units_joined_path)
 
         self.softmax = nn.Softmax(dim=1)
         self.dropout = nn.Dropout(p=0.1)
@@ -86,13 +89,18 @@ class FineTunerLowNumMut(FineTuner):
         num_mut = torch.cat([num_mut_low, num_mut_mid, num_mut_large], dim=1)
         num_mut = self.activation(self.layer_numut_joint(num_mut))
 
+
         # Concatenate
         comb = torch.cat([mutation_dist, num_mut], dim=1)
+        # comb = self.layer_norm_1(comb)
+
         assert(not torch.isnan(comb).any())
 
         # Apply shared layers
         for layer in self.hidden_layers:
             comb = self.activation(layer(self.dropout(comb)))
+
+        # comb = self.layer_norm_2(comb)
 
         # Apply output layer
         comb = self.output_layer(comb)
