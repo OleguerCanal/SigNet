@@ -34,11 +34,11 @@ def create_opportunities(abundances_path):
     for i in range(len(order)):
         tri = order[i]
         opp[i] = opp_dic[tri]
-        # b1 = tri[0]
-        # b2 = tri[1]
-        # b3 = tri[2]
-        # complement_base = complement(b3) + complement(b2) + complement(b1)
-        # opp[i] = opp[i] + opp_dic[complement_base]
+        b1 = tri[0]
+        b2 = tri[1]
+        b3 = tri[2]
+        complement_base = complement(b3) + complement(b2) + complement(b1)
+        opp[i] = opp[i] + opp_dic[complement_base]
     return opp
 
 

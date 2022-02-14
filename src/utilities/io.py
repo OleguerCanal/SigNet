@@ -295,7 +295,7 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path, name=''):
+def write_final_outputs(weights, lower_bound, upper_bound, classification, reconstruction_error, input_file, output_path, name=''):
     create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     
@@ -325,11 +325,11 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     df.to_csv(output_path + "/upper_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results baseline guesses
-    df = pd.DataFrame(baseline)
-    df.columns = sig_names
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
+    # df = pd.DataFrame(baseline)
+    # df.columns = sig_names
+    # row_names =input_file.index.tolist()
+    # df.index = row_names
+    # df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
 
     # Write results classification
     df = pd.DataFrame(classification)

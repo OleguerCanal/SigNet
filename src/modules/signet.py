@@ -19,8 +19,8 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 class SigNet:
     def __init__(self,
                  classifier="../../trained_models/exp_generator/classifier",
-                 finetuner_realistic_low="../../trained_models/exp_generator/finetuner_generator_low_2",
-                 finetuner_realistic_large="../../trained_models/exp_generator/finetuner_generator_large",
+                 finetuner_realistic_low="../../trained_models/exp_generator/finetuner_nobaseline_low",
+                 finetuner_realistic_large="../../trained_models/exp_generator/finetuner_nobaseline_large",
                  errorfinder="../../trained_models/exp_generator/errorfinder_generator_1",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
@@ -67,7 +67,7 @@ class SigNet:
                 normalized_mutation_vec, n_workers=nworkers)  # hack to be able to access it for benchmarking purposes
 
             finetuner_guess, upper_bound, lower_bound, classification = self.finetuner_errorfinder(
-                normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))
+                normalized_mutation_vec, num_mutations.reshape(-1, 1))
 
         if numpy:
             return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy(), classification.detach().numpy(), normalized_mutation_vec.detach().numpy()
@@ -114,20 +114,20 @@ if __name__ == "__main__":
     # output_path = config["output"] 
     # plot_figs = config["figures"]
 
-    input_file_path = "../../data/analysis_Hypoxia_Rodrigo/hypoxia_mutations.csv"
-    opportunities = "../../data/analysis_Hypoxia_Rodrigo/3mer_WG_rn6.txt"
-    output_path = "../../data/analysis_Hypoxia_Rodrigo/" 
-    plot_figs = True
+    input_file_path = "../../data/real_data/PCAWG_data.csv"
+    opportunities = "genome"
+    output_path = "../../data/real_data/SigNet_no_baseline" 
+    plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
 
-    input_file = pd.read_csv(input_file_path, header=0, index_col=0, sep='\t')
+    input_file = pd.read_csv(input_file_path, header=0, index_col=0, sep=',')
     mutation_data = torch.tensor(input_file.values, dtype=torch.float)
     print(mutation_data)
     weight_guess, upper_bound, lower_bound, classification, normalized_input = signet(mutation_vec=mutation_data)
 
     # Write final outputs
-    write_final_outputs(weight_guess, lower_bound, upper_bound, signet.baseline_guess, classification, 0, input_file, output_path)
+    write_final_outputs(weight_guess, lower_bound, upper_bound, classification, 0, input_file, output_path)
 
 
     # Plot figures
