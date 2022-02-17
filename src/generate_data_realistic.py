@@ -14,8 +14,8 @@ if __name__ == "__main__":
     cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
-        generator_model_path = "../trained_models/exp_generator/generator"
-        experiment_id = "exp_generator"
+        generator_model_path = "../trained_models/exp_not_norm/generator"
+        experiment_id = "exp_not_norm"
         signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     elif cosmic_version == 'v2':
         generator_model_path = "../trained_models/exp_generator_v2/generator"

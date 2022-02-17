@@ -1,11 +1,11 @@
 config:
     # IDs & paths
-    data_id: "exp_generator"
-    model_id: "errorfinder_generator"
+    data_id: "exp_not_norm"
+    model_id: "errorfinder_not_norm"
     classifier_id: "classifier"
-    finetuner_realistic_low_id: "finetuner_generator_low_2"
-    finetuner_realistic_large_id: "finetuner_generator_large"
-    models_dir: "../trained_models/exp_generator"
+    finetuner_realistic_low_id: "finetuner_not_norm_low"
+    finetuner_realistic_large_id: "finetuner_not_norm_large"
+    models_dir: "../trained_models/exp_not_norm"
 
     # Training params
     # source: "realistic_low"
@@ -23,7 +23,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder_generator"
+    wandb_project_id: "errorfinder_not_norm"
 
     # Network params
     num_hidden_layers_pos: 3
