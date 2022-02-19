@@ -28,8 +28,10 @@ def read_real_data():
                             # opportunities_name_or_path="../../data/real_data/new_norm.txt")
     inputs = inputs/torch.sum(inputs, axis=1).view(-1, 1)
 
-    baseline = Baseline(inputs)
-    return inputs, baseline, labels, nummut
+    signatures = read_signatures("../../data/data.xlsx")
+    baseline = Baseline(signatures)
+    baselines = baseline.get_weights_batch(inputs)
+    return inputs, baselines, labels, nummut
 
 def read_synt_data():
     input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
