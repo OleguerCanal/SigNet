@@ -21,8 +21,8 @@ def read_real_data():
     labels = torch.cat([labels, torch.zeros(labels.size(0), 7).to(labels)], dim=1)
 
     nummut = torch.sum(inputs, dim=1)
-    inputs = normalize_data(inputs,
-                            opportunities_name_or_path="../../data/real_data/3mer_WG_hg37.txt")
+    # inputs = normalize_data(inputs,
+                            # opportunities_name_or_path="../../data/real_data/3mer_WG_hg37.txt")
                             # opportunities_name_or_path="../../data/real_data/abundances_trinucleotides.txt")
                             # opportunities_name_or_path="../../data/real_data/norm_38.txt")
                             # opportunities_name_or_path="../../data/real_data/new_norm.txt")
@@ -35,9 +35,12 @@ def read_real_data():
 
 def read_synt_data():
     input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    return input_batch, baseline_batch, label_batch[:, :-1], label_batch[:, -1]
+    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_label.csv")
+    # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
+    signatures = read_signatures("../../data/data.xlsx")
+    baseline = Baseline(signatures)
+    baselines = baseline.get_weights_batch(input_batch)
+    return input_batch, baselines, label_batch[:, :-1], label_batch[:, -1]
 
 def read_finetuner():
     experiment_id = "exp_not_norm"
@@ -59,7 +62,8 @@ if __name__=="__main__":
     real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
     synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
 
-    real_inputs_norm = normalize(real_inputs, synt_inputs)
+    # real_inputs_norm = normalize(real_inputs, synt_inputs)
+    real_inputs_norm = real_inputs
 
     finetuner = read_finetuner()
     real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
@@ -85,7 +89,7 @@ if __name__=="__main__":
             # "synt_label_rec": synt_label_rec,
             # "synt_guess_rec": synt_guess_rec,
             "real_inputs": real_inputs,
-            "real_inputs_norm": real_inputs_norm,
+            # "real_inputs_norm": real_inputs_norm,
             "real_label_rec": real_label_rec,
             "real_guess_rec": real_guess_rec,
             }
