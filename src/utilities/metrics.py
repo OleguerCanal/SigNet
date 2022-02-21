@@ -12,7 +12,7 @@ def accuracy(prediction, label):
     assert(prediction.shape == label.shape)
     assert(prediction.dtype == torch.int64)
     assert(label.dtype == torch.int64)
-    return (torch.sum(prediction == label)/torch.numel(prediction))*100.
+    return (torch.sum(prediction == label).float()/torch.numel(prediction))*100.
 
 def false_realistic(prediction, label):
     assert(prediction.shape == label.shape)

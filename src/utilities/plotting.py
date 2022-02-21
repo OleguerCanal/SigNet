@@ -591,6 +591,18 @@ def plot_weights_comparison_deconstructSigs(true_labels, deconstructSigs_labels,
     plt.tight_layout()
     plt.show()
 
+def plot_bars(data, max=None):
+    """Data is a dictionary with keys labels and values arrays of the same size
+    """
+    x = np.array(list(range(len(list(data.items())[0][1][0]))))[:max]
+    width = 1/len(data.keys())
+    bars = []
+    for i, key in enumerate(data.keys()):
+        y = torch.mean(data[key], dim=0).detach().numpy()[:max]
+        bars.append(plt.bar(x + width*i, y, width, align='edge'))
+    plt.legend(bars, data.keys())
+    plt.show()
+
 if __name__ == "__main__":
     deconstructSigs_labels = [0.1, 0.7, 0.2]
     real_labels = [0.2, 0.5, 0.3]

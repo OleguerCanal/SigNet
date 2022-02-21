@@ -18,7 +18,7 @@ if __name__ == "__main__":
     cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
-        experiment_id = "exp_generator"
+        experiment_id = "exp_not_norm"
     elif cosmic_version == 'v2':
         experiment_id = "exp_generator_v2"
     else:

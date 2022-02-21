@@ -18,9 +18,9 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/exp_generator/classifier",
-                 finetuner_realistic_low="../../trained_models/exp_generator/finetuner_nobaseline_low",
-                 finetuner_realistic_large="../../trained_models/exp_generator/finetuner_nobaseline_large",
+                 classifier="../../trained_models/exp_not_norm/classifier",
+                 finetuner_realistic_low="../../trained_models/exp_not_norm/finetuner_not_norm_low",
+                 finetuner_realistic_large="../../trained_models/exp_not_norm/finetuner_not_norm_large",
                  errorfinder="../../trained_models/exp_generator/errorfinder_generator_1",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
@@ -115,8 +115,8 @@ if __name__ == "__main__":
     # plot_figs = config["figures"]
 
     input_file_path = "../../data/real_data/PCAWG_data.csv"
-    opportunities = "genome"
-    output_path = "../../data/real_data/SigNet_no_baseline" 
+    opportunities = None
+    output_path = "../../data/real_data/SigNet_not_norm/" 
     plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")
