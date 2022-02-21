@@ -68,9 +68,9 @@ class Generator(nn.Module):
         x = self.decode(z)
         return x, z_mu, z_var
 
-    def generate(self, batch_size:int):
+    def generate(self, batch_size:int, std = 1.0):
         shape = tuple((batch_size, self.latent_dim))
-        z = self.Normal.sample(shape)
+        z = self.Normal.sample(shape)*std
         labels = self.decode(z)
         labels = torch.max(torch.zeros_like(labels), labels)
         labels = labels/labels.sum(dim=1).reshape(-1,1)

@@ -45,8 +45,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_not_norm"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_low",
-                                            large_mum_mut_dir=models_path + "finetuner_not_norm_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low",
+                                            large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large")
     return finetuner
 
 def normalize(a, b):
@@ -66,8 +66,8 @@ if __name__=="__main__":
     real_inputs_norm = real_inputs
 
     finetuner = read_finetuner()
-    real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
-    synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
+    real_guess = finetuner(mutation_dist=real_inputs_norm, num_mut=real_nummut)
+    synt_guess = finetuner(mutation_dist=synt_inputs, num_mut=synt_nummut)
 
 
     signatures = read_signatures(data_folder + "data.xlsx")
@@ -82,7 +82,7 @@ if __name__=="__main__":
              "real_labels": real_labels,
              "real_guess": real_guess,
              }
-    plot_bars(data, max=45)
+    plot_bars(data, max=72)
 
     data = {
             # "synt_inputs": synt_inputs,

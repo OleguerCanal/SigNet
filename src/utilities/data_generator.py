@@ -211,6 +211,7 @@ class DataGenerator:
                            generator_model_path,
                            set,
                            large_low,
+                           sd = 1.0, 
                            normalize=True):
         """Create a labelled dataset of mutation vectors
         from the generator output weights.
@@ -241,7 +242,7 @@ class DataGenerator:
                 1000    # The -1 means real distribution
             batch_size = len(num_muts)
 
-        labels = generator.generate(batch_size)
+        labels = generator.generate(batch_size, sd = sd)
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 

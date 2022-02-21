@@ -71,6 +71,8 @@ class FineTunerLowNumMut(FineTuner):
 
         self.softmax = nn.Softmax(dim=1)
         self.dropout = nn.Dropout(p=0.1)
+        self.layer_norm = nn.LayerNorm(normalized_shape = num_units_joined_path)
+        
 
     def forward(self,
                 mutation_dist,
@@ -96,6 +98,7 @@ class FineTunerLowNumMut(FineTuner):
 
         assert(not torch.isnan(comb).any())
 
+        comb = self.layer_norm(comb)
         # Apply shared layers
         for layer in self.hidden_layers:
             comb = self.activation(layer(self.dropout(comb)))

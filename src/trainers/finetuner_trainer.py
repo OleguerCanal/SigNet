@@ -79,7 +79,7 @@ class FinetunerTrainer:
         # if plot:
         #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
-        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
