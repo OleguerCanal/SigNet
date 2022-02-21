@@ -19,8 +19,8 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 class SigNet:
     def __init__(self,
                  classifier="../../trained_models/exp_not_norm/classifier",
-                 finetuner_realistic_low="../../trained_models/exp_not_norm/finetuner_not_norm_low",
-                 finetuner_realistic_large="../../trained_models/exp_not_norm/finetuner_not_norm_large",
+                 finetuner_realistic_low="../../trained_models/exp_not_norm/finetuner_not_norm_no_baseline_low",
+                 finetuner_realistic_large="../../trained_models/exp_not_norm/finetuner_not_norm_no_baseline_large",
                  errorfinder="../../trained_models/exp_generator/errorfinder_generator_1",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
