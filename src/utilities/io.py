@@ -73,10 +73,10 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
     path = os.path.join(data_folder, experiment_id)
 
     train_input = csv_to_tensor(path + "/train_%s_input.csv" % source, device)
-    train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
+    # train_baseline = csv_to_tensor(path + "/train_%s_baseline.csv" % source, device) if include_baseline else None
     train_label = csv_to_tensor(path + "/train_%s_label.csv" % source, device) if include_labels else None
     train_data = DataPartitions(inputs=train_input,
-                                prev_guess=train_baseline,
+                                # prev_guess=train_baseline,
                                 labels=train_label)
     train_data.perm
     if n_points is not None:
@@ -85,11 +85,11 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
         train_data.labels = train_data.labels[:n_points,:]
 
     val_input = csv_to_tensor(path + "/val_%s_input.csv" % source, device)
-    val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
+    # val_baseline = csv_to_tensor(path + "/val_%s_baseline.csv" % source, device) if include_baseline else None
     val_label = csv_to_tensor(path + "/val_%s_label.csv" % source, device) if include_labels else None
     
     val_data = DataPartitions(inputs=val_input,
-                              prev_guess=val_baseline,
+                            #   prev_guess=val_baseline,
                               labels=val_label)
 
     return train_data, val_data
