@@ -31,37 +31,44 @@ if __name__ == "__main__":
     ## Low nummut
     train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="low",
-                                                                 set="train")
-
-    tensor_to_csv(train_input, "../data/%s/train_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/train_generator_low_label.csv"%experiment_id)
+                                                                 set="train", 
+                                                                 std = 2)
+    print("done")
+    tensor_to_csv(train_input, "../data/%s/sd2/train_generator_low_input.csv"%experiment_id)
+    print("saved first")
+    tensor_to_csv(train_labels, "../data/%s/sd2/train_generator_low_label.csv"%experiment_id)
+    print("saved second")
 
     val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="low",
-                                                                 set="val")
+                                                                 set="val", 
+                                                                 std = 2)
 
-    tensor_to_csv(val_input, "../data/%s/val_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/val_generator_low_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/sd2/val_generator_low_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/sd2/val_generator_low_label.csv"%experiment_id)
 
     ## Large nummut
     train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="large",
-                                                                 set="train")
+                                                                 set="train", 
+                                                                 std = 2)
 
-    tensor_to_csv(train_input, "../data/%s/train_generator_large_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/train_generator_large_label.csv"%experiment_id)
+    tensor_to_csv(train_input, "../data/%s/sd2/train_generator_large_input.csv"%experiment_id)
+    tensor_to_csv(train_labels, "../data/%s/sd2/train_generator_large_label.csv"%experiment_id)
 
     val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="large",
-                                                                 set="val")
+                                                                 set="val", 
+                                                                 std = 2)
 
-    tensor_to_csv(val_input, "../data/%s/val_generator_large_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/val_generator_large_label.csv"%experiment_id)
+    tensor_to_csv(val_input, "../data/%s/sd2/val_generator_large_input.csv"%experiment_id)
+    tensor_to_csv(val_labels, "../data/%s/sd2/val_generator_large_label.csv"%experiment_id)
 
     ## Test
     test_input, test_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
                                                                  large_low="large",
-                                                                 set="test")
+                                                                 set="test", 
+                                                                 std = 2)
 
-    tensor_to_csv(test_input, "../data/%s/test_generator_input.csv"%experiment_id)
-    tensor_to_csv(test_labels, "../data/%s/test_generator_label.csv"%experiment_id)
+    tensor_to_csv(test_input, "../data/%s/sd2/test_generator_input.csv"%experiment_id)
+    tensor_to_csv(test_labels, "../data/%s/sd2/test_generator_label.csv"%experiment_id)

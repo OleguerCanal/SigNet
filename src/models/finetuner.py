@@ -8,8 +8,8 @@ class FineTuner(nn.Module):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.001,
-                 sigmoid_params=[5000, 2000]):
+                 cutoff=0.01,
+                 sigmoid_params=[[500, 1000], [5000, 2000], [10000, 5000]]):
         super(FineTuner, self).__init__()
         self.init_args = locals()
         self.init_args.pop("self")
@@ -46,18 +46,19 @@ class FineTunerLowNumMut(FineTuner):
         print(self.init_args)
 
         # Num units of the mutations path
-        num_units_branch_mut = 10
-        num_units_joined_path = 2*num_units + num_units_branch_mut
+        num_units_branch_mut = 3
+        num_units_joined_path = num_units + 3*num_units_branch_mut
 
-        self.layer1_1 = nn.Linear(num_classes, num_units)  # Baseline guess path
-        # 96 = total number of possible muts
-        self.layer1_2 = nn.Linear(96, num_units)  # Input path
-        # Number of mutations path
-        self.layer1_3 = nn.Linear(1, num_units_branch_mut)
+        # Mutvec path
+        self.layer_mutvec_1 = nn.Linear(96, num_units)
+        self.layer_mutvec_2 = nn.Linear(num_units, num_units)
 
-        self.layer2_1 = nn.Linear(num_units, num_units)
-        self.layer2_2 = nn.Linear(num_units, num_units)
-        self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
+        # Nummut path
+        self.layer_numut_low = nn.Linear(1, num_units_branch_mut)
+        self.layer_numut_mid = nn.Linear(1, num_units_branch_mut)
+        self.layer_numut_large = nn.Linear(1, num_units_branch_mut)
+        self.layer_numut_joint = nn.Linear(
+            3*num_units_branch_mut, 3*num_units_branch_mut)
 
         self.hidden_layers = nn.ModuleList(
             modules=[nn.Linear(num_units_joined_path, num_units_joined_path)
@@ -65,38 +66,51 @@ class FineTunerLowNumMut(FineTuner):
 
         self.output_layer = nn.Linear(num_units_joined_path, num_classes)
         self.activation = nn.LeakyReLU(0.1)
+        # self.layer_norm_1 = nn.LayerNorm(num_units_joined_path)
+        # self.layer_norm_2 = nn.LayerNorm(num_units_joined_path)
 
         self.softmax = nn.Softmax(dim=1)
         self.dropout = nn.Dropout(p=0.1)
+        # self.layer_norm = nn.LayerNorm(normalized_shape = num_units_joined_path)
+        
 
     def forward(self,
                 mutation_dist,
-                baseline_guess,
                 num_mut):
         # Input head
-        mutation_dist = self.activation(self.layer1_2(mutation_dist))
-        # mutation_dist = self.activation(self.layer2_2(mutation_dist))
-
-        # Baseline head
-        weights = self.activation(self.layer1_1(baseline_guess))
-        # weights = self.activation(self.layer2_1(weights))
+        mutation_dist = self.activation(self.layer_mutvec_1(mutation_dist))
+        mutation_dist = self.activation(self.layer_mutvec_2(mutation_dist))
 
         # Number of mutations head
-        num_mut = torch.log10(num_mut)/6
-        num_mut = self.activation(self.layer1_3(num_mut))
-        # num_mut = self.activation(self.layer2_3(num_mut))
+        num_mut_low = nn.Sigmoid()((num_mut - self.sigmoid_params[0][0]) / self.sigmoid_params[0][1])
+        num_mut_mid = nn.Sigmoid()((num_mut - self.sigmoid_params[1][0]) / self.sigmoid_params[1][1])
+        num_mut_large = nn.Sigmoid()((num_mut - self.sigmoid_params[2][0]) / self.sigmoid_params[2][1])
+        num_mut_low = self.activation(self.layer_numut_low(num_mut_low))
+        num_mut_mid = self.activation(self.layer_numut_mid(num_mut_mid))
+        num_mut_large = self.activation(self.layer_numut_large(num_mut_large))
+        num_mut = torch.cat([num_mut_low, num_mut_mid, num_mut_large], dim=1)
+        num_mut = self.activation(self.layer_numut_joint(num_mut))
+
 
         # Concatenate
-        comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
+        comb = torch.cat([mutation_dist, num_mut], dim=1)
+        # comb = self.layer_norm_1(comb)
 
+        assert(not torch.isnan(comb).any())
+
+        # comb = self.layer_norm(comb)
         # Apply shared layers
         for layer in self.hidden_layers:
             comb = self.activation(layer(self.dropout(comb)))
+
+        # comb = self.layer_norm_2(comb)
 
         # Apply output layer
         comb = self.output_layer(comb)
         # comb += baseline_guess
         comb = self.softmax(comb)
+
+        
 
         # If in eval mode, send small values to 0
         if not self.training:

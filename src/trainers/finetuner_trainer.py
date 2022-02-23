@@ -44,10 +44,10 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        if self.network_type == 'low':
-            l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        if self.network_type == 'large':
-            l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'low':
+        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'large':
+        l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -79,19 +79,19 @@ class FinetunerTrainer:
         # if plot:
         #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
-            for train_input, train_label, train_weight_guess, num_mut, _ in tqdm(dataloader):
+            for train_input, train_label, _, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                optimizer.zero_grad()
-                train_prediction = model(train_input, train_weight_guess, num_mut)
+                optimizer.zero_grad()                
+                train_prediction = model(train_input, num_mut)
+                train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
+                                                    prediction_batch=train_prediction)
                 train_FP, train_FN = None, None
-                # train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                #                                     prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
                                          label=train_label,
                                          FP=train_FP,
@@ -104,7 +104,7 @@ class FinetunerTrainer:
                 with torch.no_grad():
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
                                                                               prediction_batch=train_prediction)
-                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
                     val_FP, val_FN = None, None
                     # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                     #                                 prediction_batch=val_prediction)
