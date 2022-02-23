@@ -75,8 +75,8 @@ if __name__=="__main__":
     real_labels = small_to_unknown(real_labels, new_component=True)
     synt_baseline = small_to_unknown(synt_baseline, new_component=True)
     synt_labels = small_to_unknown(synt_labels, new_component=True)
-    real_guess = small_to_unknown(real_guess, new_component=False)
-    synt_guess = small_to_unknown(synt_guess, new_component=False)
+    real_guess = small_to_unknown(real_guess, new_component=True)
+    synt_guess = small_to_unknown(synt_guess, new_component=True)
 
     signatures = read_signatures(data_folder + "data.xlsx")
     print(signatures.shape)

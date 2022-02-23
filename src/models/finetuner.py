@@ -37,7 +37,7 @@ class FineTunerLowNumMut(FineTuner):
                  num_units=400,
                  cutoff=0.001,
                  sigmoid_params=[5000, 2000]):
-        num_classes = 73  # To account for <unknown> label TODO(oleguer): fix this
+        # num_classes = 73  # To account for <unknown> label TODO(oleguer): fix this
         super(FineTunerLowNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,

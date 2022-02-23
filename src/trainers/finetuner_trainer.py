@@ -39,7 +39,7 @@ class FinetunerTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
-        self.val_dataset.labels = small_to_unknown(self.val_dataset.labels)
+        # self.val_dataset.labels = small_to_unknown(self.val_dataset.labels)
         self.network_type = network_type
         assert (self.network_type in ['low', 'large'])
         self.logger = FinetunerLogger()
@@ -87,7 +87,7 @@ class FinetunerTrainer:
         step = 0
         for _ in range(self.iterations):
             for train_input, train_label, _, num_mut, _ in tqdm(dataloader):
-                train_label = small_to_unknown(train_label)
+                # train_label = small_to_unknown(train_label)
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, num_mut)
