@@ -17,7 +17,7 @@ from tqdm import tqdm
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from utilities.helpers import small_to_unknown
 
 class FinetunerTrainer:
     def __init__(self,
@@ -39,6 +39,7 @@ class FinetunerTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
+        self.val_dataset.labels = small_to_unknown(self.val_dataset.labels)
         self.network_type = network_type
         assert (self.network_type in ['low', 'large'])
         self.logger = FinetunerLogger()
@@ -86,11 +87,10 @@ class FinetunerTrainer:
         step = 0
         for _ in range(self.iterations):
             for train_input, train_label, _, num_mut, _ in tqdm(dataloader):
+                train_label = small_to_unknown(train_label)
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()                
                 train_prediction = model(train_input, num_mut)
-                train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                                                    prediction_batch=train_prediction)
                 train_FP, train_FN = None, None
                 train_loss = self.__loss(prediction=train_prediction,
                                          label=train_label,
@@ -106,8 +106,6 @@ class FinetunerTrainer:
                                                                               prediction_batch=train_prediction)
                     val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
                     val_FP, val_FN = None, None
-                    # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
-                    #                                 prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_dataset.labels,
                                            FP=val_FP,

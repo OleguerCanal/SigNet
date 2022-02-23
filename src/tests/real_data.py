@@ -6,6 +6,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import csv_to_tensor, read_signatures
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
+from utilities.helpers import small_to_unknown
 from utilities.plotting import plot_reconstruction, plot_bars
 from utilities.normalize_data import normalize_data
 from utilities.metrics import get_MSE, get_cosine_similarity
@@ -34,8 +35,8 @@ def read_real_data():
     return inputs, baselines, labels, nummut
 
 def read_synt_data():
-    input_batch = csv_to_tensor("../../data/exp_not_norm/sd2/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/sd2/test_generator_label.csv")
+    input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_label.csv")
     # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
     signatures = read_signatures("../../data/data.xlsx")
     baseline = Baseline(signatures)
@@ -45,8 +46,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_not_norm"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_sd2",
-                                            large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large_sd2")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large",
+                                  large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large")
     return finetuner
 
 def normalize(a, b):
@@ -69,31 +70,41 @@ if __name__=="__main__":
     real_guess = finetuner(mutation_dist=real_inputs_norm, num_mut=real_nummut)
     synt_guess = finetuner(mutation_dist=synt_inputs, num_mut=synt_nummut)
 
+    # Small to unknown labels
+    real_baseline = small_to_unknown(real_baseline, new_component=True)
+    real_labels = small_to_unknown(real_labels, new_component=True)
+    synt_baseline = small_to_unknown(synt_baseline, new_component=True)
+    synt_labels = small_to_unknown(synt_labels, new_component=True)
+    real_guess = small_to_unknown(real_guess, new_component=False)
+    synt_guess = small_to_unknown(synt_guess, new_component=False)
 
     signatures = read_signatures(data_folder + "data.xlsx")
-    real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)))
-    real_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_guess)))
-    synt_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_labels)))
-    synt_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_guess)))
+    print(signatures.shape)
+    print(real_labels.shape)
+    real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)[..., :-1]))
+    real_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_guess)[..., :-1]))
+    synt_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_labels)[..., :-1]))
+    synt_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_guess)[..., :-1]))
+
+    print("MSE labels")
+    print("synt:", get_MSE(synt_labels, synt_guess))
+    print("real:", get_MSE(real_labels, real_guess))
 
     print("MSE reconstruction")
-    print(get_MSE(synt_labels, synt_guess))
-    print(get_MSE(real_labels, real_guess))
+    print("label:", get_MSE(real_inputs, real_label_rec))
+    print("guess:", get_MSE(real_inputs, real_guess_rec))
 
-    print("MSE reconstruction")
-    print(get_MSE(real_inputs, real_label_rec))
-    print(get_MSE(real_inputs, real_guess_rec))
-
-    print("Cosine Similarity")
-    print(get_cosine_similarity(real_inputs, real_label_rec))
-    print(get_cosine_similarity(real_inputs, real_guess_rec))
+    print("Cosine Similarity reconstruction")
+    print("label:", get_cosine_similarity(real_inputs, real_label_rec))
+    print("guess:", get_cosine_similarity(real_inputs, real_guess_rec))
+    
     data = {
              "synt_labels": synt_labels,
              "synt_guess": synt_guess,
              "real_labels": real_labels,
              "real_guess": real_guess,
              }
-    plot_bars(data, max=72)
+    plot_bars(data, max=None)
 
     data = {
             # "synt_inputs": synt_inputs,

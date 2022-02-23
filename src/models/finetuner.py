@@ -37,6 +37,7 @@ class FineTunerLowNumMut(FineTuner):
                  num_units=400,
                  cutoff=0.001,
                  sigmoid_params=[5000, 2000]):
+        num_classes = 73  # To account for <unknown> label TODO(oleguer): fix this
         super(FineTunerLowNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,
@@ -131,6 +132,8 @@ class FineTunerLargeNumMut(FineTuner, nn.Module):
                                                  num_units=num_units,
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
+        raise NotImplementedError("You shouldnt be using this")
+        num_classes = num_classes + 1  # adding unknown dim
         self.init_args["model_type"] = "FineTunerLargeNumMut"
 
         self.input_layer = nn.Linear(96+num_classes+3, num_units)  # Baseline guess path
