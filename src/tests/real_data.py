@@ -34,8 +34,8 @@ def read_real_data():
     return inputs, baselines, labels, nummut
 
 def read_synt_data():
-    input_batch = csv_to_tensor("../../data/exp_not_norm/sd2/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/sd2/test_generator_label.csv")
+    input_batch = csv_to_tensor("../../data/exp_not_norm/sd1.5/test_generator_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_not_norm/sd1.5/test_generator_label.csv")
     # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
     signatures = read_signatures("../../data/data.xlsx")
     baseline = Baseline(signatures)
@@ -45,8 +45,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_not_norm"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_sd2",
-                                            large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large_sd2")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_0_15",
+                                            large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large_0_15")
     return finetuner
 
 def normalize(a, b):
@@ -55,6 +55,20 @@ def normalize(a, b):
     a_mean = torch.mean(a, dim=0)
     b_mean = torch.mean(b, dim=0)
     return (a/a_mean)*b_mean
+
+def small_to_unkown(a, thr = 0.01):
+    """
+    Small values to unknown category
+    """
+    print(a)
+    b = a.detach().clone()
+    b[b>=thr] = 0
+    print(b)
+    print(a)
+    unknown = torch.sum(b, dim=1)
+    print(unknown)
+    a[a<thr] = 0
+    return torch.cat([a, unknown.reshape(-1,1)], dim = 1)
 
 if __name__=="__main__":
     data_folder = "../../data/"
@@ -69,6 +83,10 @@ if __name__=="__main__":
     real_guess = finetuner(mutation_dist=real_inputs_norm, num_mut=real_nummut)
     synt_guess = finetuner(mutation_dist=synt_inputs, num_mut=synt_nummut)
 
+    real_labels_unknown = small_to_unkown(real_labels)
+    synt_labels_unknown = small_to_unkown(synt_labels)
+    real_guess_unknown = small_to_unkown(real_guess)
+    synt_guess_unknown = small_to_unkown(synt_guess)
 
     signatures = read_signatures(data_folder + "data.xlsx")
     real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)))
@@ -76,9 +94,17 @@ if __name__=="__main__":
     synt_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_labels)))
     synt_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_guess)))
 
-    print("MSE reconstruction")
-    print(get_MSE(synt_labels, synt_guess))
-    print(get_MSE(real_labels, real_guess))
+
+    # synt_inputs = synt_inputs[synt_nummut > 1e3]
+    # synt_labels = synt_labels[synt_nummut > 1e3]
+    # synt_guess = synt_guess[synt_nummut > 1e3]
+    # synt_label_rec = synt_label_rec[synt_nummut > 1e3]
+    # synt_guess_rec = synt_guess_rec[synt_nummut > 1e3]
+
+
+    print("MSE weights")
+    print(get_MSE(synt_labels_unknown, synt_guess_unknown))
+    print(get_MSE(real_labels_unknown, real_guess_unknown))
 
     print("MSE reconstruction")
     print(get_MSE(real_inputs, real_label_rec))
@@ -88,12 +114,12 @@ if __name__=="__main__":
     print(get_cosine_similarity(real_inputs, real_label_rec))
     print(get_cosine_similarity(real_inputs, real_guess_rec))
     data = {
-             "synt_labels": synt_labels,
-             "synt_guess": synt_guess,
-             "real_labels": real_labels,
-             "real_guess": real_guess,
+             "synt_labels": synt_labels_unknown,
+             "synt_guess": synt_guess_unknown,
+             "real_labels": real_labels_unknown,
+             "real_guess": real_guess_unknown,
              }
-    plot_bars(data, max=72)
+    plot_bars(data, max=73)
 
     data = {
             # "synt_inputs": synt_inputs,
@@ -106,4 +132,13 @@ if __name__=="__main__":
             }
     plot_bars(data)
 
-    
+    data = {
+            "synt_inputs": synt_inputs,
+            "synt_label_rec": synt_label_rec,
+            "synt_guess_rec": synt_guess_rec,
+            "real_inputs": real_inputs,
+            # "real_inputs_norm": real_inputs_norm,
+            "real_label_rec": real_label_rec,
+            "real_guess_rec": real_guess_rec,
+            }
+    plot_bars(data)
