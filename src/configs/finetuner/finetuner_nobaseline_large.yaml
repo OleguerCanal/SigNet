@@ -1,7 +1,7 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "finetuner_not_norm_no_baseline_large"
+    data_id: "exp_not_norm/sd1.5"
+    model_id: "finetuner_not_norm_no_baseline_large_0_15"
     models_dir: "../trained_models/exp_not_norm"
 
     # Training params
