@@ -66,7 +66,7 @@ if __name__ == "__main__":
     if cosmic_version == 'v3':
         data_folder = "../../data/"
         signatures_file = data_folder + "data.xlsx"
-        experiment_id = "exp_not_norm/sd1.5/"
+        experiment_id = "exp_not_norm"
     elif cosmic_version == 'v2':
         data_folder = "../../data/"
         signatures_file = data_folder + "data_v2.xlsx"
@@ -76,11 +76,18 @@ if __name__ == "__main__":
 
     in_files = [
         # generator
+        "/%s/train_generator_low_input.csv"%experiment_id,
         "/%s/train_generator_large_input.csv"%experiment_id,
+        "/%s/val_generator_low_input.csv"%experiment_id,
         "/%s/val_generator_large_input.csv"%experiment_id,
+        "/%s/train_perturbed_low_input.csv"%experiment_id,
+        "/%s/train_perturbed_large_input.csv"%experiment_id,
+        "/%s/val_perturbed_low_input.csv"%experiment_id,
+        "/%s/val_perturbed_large_input.csv"%experiment_id,
 
         # tests
         "/%s/test_generator_input.csv"%experiment_id,
+        "/%s/test_perturbed_input.csv"%experiment_id,
     ]    
 
     for in_file in in_files:

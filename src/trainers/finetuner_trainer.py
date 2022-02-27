@@ -85,13 +85,10 @@ class FinetunerTrainer:
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
-            for train_input, train_label, baseline_guess, num_mut, _ in tqdm(dataloader):
+            for train_input, train_label, _, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                optimizer.zero_grad()
-                if self.network_type == "large":
-                    train_prediction = model(train_input, baseline_guess, num_mut)
-                elif self.network_type == "low":
-                    train_prediction = model(train_input, num_mut)
+                optimizer.zero_grad()                
+                train_prediction = model(train_input, num_mut)
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                                     prediction_batch=train_prediction)
                 train_FP, train_FN = None, None
@@ -107,7 +104,7 @@ class FinetunerTrainer:
                 with torch.no_grad():
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
                                                                               prediction_batch=train_prediction)
-                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
                     val_FP, val_FN = None, None
                     # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                     #                                 prediction_batch=val_prediction)
