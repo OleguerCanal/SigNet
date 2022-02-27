@@ -3,7 +3,7 @@
 # cd ..
 
 
-python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id=generator --num_hidden_layers=5 --latent_dim=100 --lr_decoder=0.0005;
+# python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id=generator --num_hidden_layers=5 --latent_dim=100 --lr_decoder=0.0005;
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id=generator1 --num_hidden_layers=5 --latent_dim=150 --lr_decoder=0.0005;
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id=generator2 --num_hidden_layers=8 --latent_dim=150 --lr_decoder=0.0005;
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id=generator3 --num_hidden_layers=5 --latent_dim=200 --lr_decoder=0.0005;
@@ -18,7 +18,11 @@ python3 train_generator.py --config_file=configs/generator/generator.yaml --mode
 
 # python train_classifier.py --config_file=configs/classifier/classifier.yaml;
 
-# python train_finetuner.py --config_file=configs/finetuner/finetuner_perturbed_large.yaml;
+python train_finetuner.py --config_file=configs/finetuner/finetuner_ensemble.yaml --model_id=m_0;
+python train_finetuner.py --config_file=configs/finetuner/finetuner_ensemble.yaml --model_id=m_1;
+python train_finetuner.py --config_file=configs/finetuner/finetuner_ensemble.yaml --model_id=m_2;
+python train_finetuner.py --config_file=configs/finetuner/finetuner_ensemble.yaml --model_id=m_3;
+
 # python train_finetuner.py --config_file=configs/finetuner/finetuner_perturbed_low.yaml;
 # python train_finetuner.py --config_file=configs/finetuner/finetuner_realistic_large.yaml;
 # python train_finetuner.py --config_file=configs/finetuner/finetuner_realistic_low.yaml;

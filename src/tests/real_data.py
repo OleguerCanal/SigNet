@@ -11,6 +11,7 @@ from utilities.normalize_data import normalize_data
 from utilities.metrics import get_MSE, get_cosine_similarity
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
+from modules.finetuner_ensemble import FineTunerEnsemble
 
 def read_real_data():
     inputs = data_folder + "real_data/PCAWG_data.csv"
@@ -43,11 +44,14 @@ def read_synt_data():
     return input_batch, baselines, label_batch[:, :-1], label_batch[:, -1]
 
 def read_finetuner():
-    experiment_id = "exp_not_norm"
+    experiment_id = "ensemble"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_0_15",
-                                            large_mum_mut_dir=models_path + "finetuner_generator_large_baseline")
-    return finetuner
+    models = []
+    model_ids = ["m_0", "m_2", "m_3"]
+    for model_id in model_ids:
+        models.append(CombinedFinetuner(low_mum_mut_dir="../../trained_models/exp_not_norm/finetuner_not_norm_no_baseline_low_0_15",
+                                        large_mum_mut_dir=models_path + model_id))
+    return FineTunerEnsemble(models=models)
 
 def normalize(a, b):
     """Normalize 1 wrt b
@@ -116,25 +120,26 @@ if __name__=="__main__":
     print("Cosine Similarity")
     print(get_cosine_similarity(real_inputs, real_label_rec))
     print(get_cosine_similarity(real_inputs, real_guess_rec))
+    
     data = {
              "synt_labels": synt_labels_unknown,
              "synt_guess": synt_guess_unknown,
              "real_labels": real_labels_unknown,
              "real_guess": real_guess_unknown,
-             "baseline_guess": real_baseline_unknown,
+            #  "baseline_guess": real_baseline_unknown,
              }
     plot_bars(data, max=73)
 
-    data = {
-            # "synt_inputs": synt_inputs,
-            # "synt_label_rec": synt_label_rec,
-            # "synt_guess_rec": synt_guess_rec,
-            "real_inputs": real_inputs,
-            # "real_inputs_norm": real_inputs_norm,
-            "real_label_rec": real_label_rec,
-            "real_guess_rec": real_guess_rec,
-            }
-    plot_bars(data)
+    # data = {
+    #         # "synt_inputs": synt_inputs,
+    #         # "synt_label_rec": synt_label_rec,
+    #         # "synt_guess_rec": synt_guess_rec,
+    #         "real_inputs": real_inputs,
+    #         # "real_inputs_norm": real_inputs_norm,
+    #         "real_label_rec": real_label_rec,
+    #         "real_guess_rec": real_guess_rec,
+    #         }
+    # plot_bars(data)
 
     data = {
             "synt_inputs": synt_inputs,
