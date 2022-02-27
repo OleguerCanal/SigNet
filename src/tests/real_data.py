@@ -4,7 +4,7 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import csv_to_tensor, read_signatures
+from utilities.io import csv_to_tensor, read_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
 from utilities.plotting import plot_reconstruction, plot_bars
 from utilities.normalize_data import normalize_data
@@ -46,7 +46,7 @@ def read_finetuner():
     experiment_id = "exp_not_norm"
     models_path = "../../trained_models/%s/"%experiment_id
     finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_0_15",
-                                            large_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_large_0_15")
+                                            large_mum_mut_dir=models_path + "finetuner_generator_large_baseline")
     return finetuner
 
 def normalize(a, b):
@@ -80,13 +80,16 @@ if __name__=="__main__":
     real_inputs_norm = real_inputs
 
     finetuner = read_finetuner()
-    real_guess = finetuner(mutation_dist=real_inputs_norm, num_mut=real_nummut)
-    synt_guess = finetuner(mutation_dist=synt_inputs, num_mut=synt_nummut)
+    real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
+    synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
 
     real_labels_unknown = small_to_unkown(real_labels)
     synt_labels_unknown = small_to_unkown(synt_labels)
     real_guess_unknown = small_to_unkown(real_guess)
     synt_guess_unknown = small_to_unkown(synt_guess)
+    real_baseline_unknown = small_to_unkown(real_baseline)
+    tensor_to_csv(real_baseline, "../../data/real_data/baseline_signet.csv")
+    tensor_to_csv(real_guess_unknown, "../../data/real_data/real_data_signet.csv")
 
     signatures = read_signatures(data_folder + "data.xlsx")
     real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)))
@@ -118,6 +121,7 @@ if __name__=="__main__":
              "synt_guess": synt_guess_unknown,
              "real_labels": real_labels_unknown,
              "real_guess": real_guess_unknown,
+             "baseline_guess": real_baseline_unknown,
              }
     plot_bars(data, max=73)
 
