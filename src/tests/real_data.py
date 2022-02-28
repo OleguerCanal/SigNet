@@ -123,7 +123,7 @@ if __name__=="__main__":
              "real_guess": real_guess_unknown,
              "baseline_guess": real_baseline_unknown,
              }
-    plot_bars(data, max=73)
+    # plot_bars(data, max=73)
 
     data = {
             # "synt_inputs": synt_inputs,
@@ -134,15 +134,49 @@ if __name__=="__main__":
             "real_label_rec": real_label_rec,
             "real_guess_rec": real_guess_rec,
             }
-    plot_bars(data)
+    # plot_bars(data)
 
-    data = {
-            "synt_inputs": synt_inputs,
-            "synt_label_rec": synt_label_rec,
-            "synt_guess_rec": synt_guess_rec,
-            "real_inputs": real_inputs,
-            # "real_inputs_norm": real_inputs_norm,
-            "real_label_rec": real_label_rec,
-            "real_guess_rec": real_guess_rec,
-            }
-    plot_bars(data)
+    def boxplots(real_guess, real_labels, num_sigs_range = [0,36]):
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        import numpy as np
+
+        # gs_kw = {"width_ratios": [1], "height_ratios":[9, 1]}
+        # fig, ax_dict = plt.subplot_mosaic([['upper'],
+        #                               ['lower']],
+        #                                gridspec_kw=gs_kw, figsize=(5.5, 3.5),
+        #                                constrained_layout=True)
+
+        # for i in range(3)
+            # bp = plt.boxplot(A, positions = [3*i+1, 3*i+2], widths = 0.6)
+
+        fig = plt.figure()
+        axs = plt.axes()
+
+        real_guess_changed = real_guess.detach().clone()
+        real_labels_changed = real_labels.detach().clone()
+
+        real_guess_changed[real_guess_changed<0.01] = 0
+        real_guess_changed[real_guess_changed>=0.01] = 1
+        prop_tumors_real = torch.sum(real_guess_changed, dim=0)/real_guess_changed.shape[0] 
+
+        real_labels_changed[real_labels_changed<0.01] = 0
+        real_labels_changed[real_labels_changed>=0.01] = 1
+        prop_tumors_labels = torch.sum(real_labels_changed, dim=0)/real_labels_changed.shape[0] 
+
+        axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, prop_tumors_real[num_sigs_range[0]:num_sigs_range[1]])
+        axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, prop_tumors_labels[num_sigs_range[0]:num_sigs_range[1]])
+        plt.legend(["SigNet", "Sigprofiler"])
+        axs.boxplot(torch.transpose(real_guess[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, widths = 0.1)
+        axs.boxplot(torch.transpose(real_labels[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, widths = 0.1)
+        # bp = plt.boxplot(C, positions = [7, 8], widths = 0.6)
+
+        # set axes limits and labels
+        # plt.xlim(0,9)
+        # plt.ylim(0,9)
+        axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
+        axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
+        plt.show()
+
+    boxplots(real_guess, real_labels, num_sigs_range = [0,36])
+    boxplots(real_guess, real_labels, num_sigs_range = [36,72])
