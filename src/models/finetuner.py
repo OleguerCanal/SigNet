@@ -124,13 +124,12 @@ class FineTunerLargeNumMut(FineTuner):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.001,
-                 sigmoid_params=[5000, 2000]):
+                 cutoff=0.001):
         super(FineTunerLargeNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,
                                                  cutoff=cutoff,
-                                                 sigmoid_params=sigmoid_params)
+                                                 sigmoid_params=None)
         self.init_args["model_type"] = "FineTunerLargeNumMut"
         print(self.init_args)
 
@@ -164,16 +163,13 @@ class FineTunerLargeNumMut(FineTuner):
                 num_mut):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
-        # mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
         weights = self.activation(self.layer1_1(baseline_guess))
-        # weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
         num_mut = torch.log10(num_mut)/6
         num_mut = self.activation(self.layer1_3(num_mut))
-        # num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
@@ -184,7 +180,6 @@ class FineTunerLargeNumMut(FineTuner):
 
         # Apply output layer
         comb = self.output_layer(comb)
-        # comb += baseline_guess
         comb = self.softmax(comb)
 
         # If in eval mode, send small values to 0

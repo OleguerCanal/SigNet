@@ -1,25 +1,24 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "finetuner_not_norm_large"
-    models_dir: "../trained_models/exp_not_norm"
+    data_id: "exp_not_norm/sd1.5"
+    model_id: "model_id"
+    models_dir: "../trained_models/ensemble"
 
     # Training params
     source: "generator_large"
     network_type: "large"
-    iterations: 100
+    iterations: 30
     num_classes: 72
-    sigmoid_params: [50000, 10000]
-    batch_size: 500
-    lr: 0.0005
+    batch_size: 283
+    lr: 0.0015
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator_split"
+    wandb_project_id: "finetuner_ensemble"
 
     # Network params
-    num_hidden_layers: 2
-    num_neurons: 300
+    num_hidden_layers: 3
+    num_neurons: 100
 
     # Misc
     device: "cuda"
