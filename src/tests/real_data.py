@@ -60,13 +60,9 @@ def small_to_unkown(a, thr = 0.01):
     """
     Small values to unknown category
     """
-    print(a)
     b = a.detach().clone()
     b[b>=thr] = 0
-    print(b)
-    print(a)
     unknown = torch.sum(b, dim=1)
-    print(unknown)
     a[a<thr] = 0
     return torch.cat([a, unknown.reshape(-1,1)], dim = 1)
 
@@ -105,17 +101,17 @@ if __name__=="__main__":
     # synt_guess_rec = synt_guess_rec[synt_nummut > 1e3]
 
 
-    print("MSE weights")
-    print(get_MSE(synt_labels_unknown, synt_guess_unknown))
-    print(get_MSE(real_labels_unknown, real_guess_unknown))
+    # print("MSE weights")
+    # print(get_MSE(synt_labels_unknown, synt_guess_unknown))
+    # print(get_MSE(real_labels_unknown, real_guess_unknown))
 
-    print("MSE reconstruction")
-    print(get_MSE(real_inputs, real_label_rec))
-    print(get_MSE(real_inputs, real_guess_rec))
+    # print("MSE reconstruction")
+    # print(get_MSE(real_inputs, real_label_rec))
+    # print(get_MSE(real_inputs, real_guess_rec))
 
-    print("Cosine Similarity")
-    print(get_cosine_similarity(real_inputs, real_label_rec))
-    print(get_cosine_similarity(real_inputs, real_guess_rec))
+    # print("Cosine Similarity")
+    # print(get_cosine_similarity(real_inputs, real_label_rec))
+    # print(get_cosine_similarity(real_inputs, real_guess_rec))
     data = {
              "synt_labels": synt_labels_unknown,
              "synt_guess": synt_guess_unknown,
@@ -136,47 +132,67 @@ if __name__=="__main__":
             }
     # plot_bars(data)
 
-    def boxplots(real_guess, real_labels, num_sigs_range = [0,36]):
+    def boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False):
         import matplotlib.pyplot as plt
         import pandas as pd
         import numpy as np
 
-        # gs_kw = {"width_ratios": [1], "height_ratios":[9, 1]}
-        # fig, ax_dict = plt.subplot_mosaic([['upper'],
-        #                               ['lower']],
-        #                                gridspec_kw=gs_kw, figsize=(5.5, 3.5),
-        #                                constrained_layout=True)
+        if only_present:
+            real_guess_changed = real_guess.detach().clone()
+            real_labels_changed = real_labels.detach().clone()
 
-        # for i in range(3)
-            # bp = plt.boxplot(A, positions = [3*i+1, 3*i+2], widths = 0.6)
+            real_guess_changed = real_guess_changed.detach().numpy()
+            real_guess_changed = np.where(real_guess_changed>0.01, real_guess_changed, np.nan)
+            real_labels_changed = real_labels_changed.detach().numpy()
+            real_labels_changed = np.where(real_labels_changed>0.01, real_labels_changed, np.nan)
+            
+            mask = ~np.isnan(real_guess_changed)
+            real_guess_changed = [d[m] for d, m in zip(real_guess_changed.T, mask.T)]
+            mask = ~np.isnan(real_labels_changed)
+            real_labels_changed = [d[m] for d, m in zip(real_labels_changed.T, mask.T)]
+            fig = plt.figure()
+            axs = plt.axes()
 
-        fig = plt.figure()
-        axs = plt.axes()
+            axs.boxplot(real_guess_changed[num_sigs_range[0]:num_sigs_range[1]], positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, widths = 0.1)
+            axs.boxplot(real_labels_changed[num_sigs_range[0]:num_sigs_range[1]], positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, widths = 0.1)
 
-        real_guess_changed = real_guess.detach().clone()
-        real_labels_changed = real_labels.detach().clone()
+            axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
+            axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
+            plt.show()
+        else:
+            fig = plt.figure()
+            axs = plt.axes()
 
-        real_guess_changed[real_guess_changed<0.01] = 0
-        real_guess_changed[real_guess_changed>=0.01] = 1
-        prop_tumors_real = torch.sum(real_guess_changed, dim=0)/real_guess_changed.shape[0] 
+            real_guess_changed = real_guess.detach().clone()
+            real_labels_changed = real_labels.detach().clone()
 
-        real_labels_changed[real_labels_changed<0.01] = 0
-        real_labels_changed[real_labels_changed>=0.01] = 1
-        prop_tumors_labels = torch.sum(real_labels_changed, dim=0)/real_labels_changed.shape[0] 
+            real_guess_changed[real_guess_changed<0.01] = 0
+            real_guess_changed[real_guess_changed>=0.01] = 1
+            prop_tumors_real = torch.sum(real_guess_changed, dim=0)/real_guess_changed.shape[0] 
 
-        axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, prop_tumors_real[num_sigs_range[0]:num_sigs_range[1]])
-        axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, prop_tumors_labels[num_sigs_range[0]:num_sigs_range[1]])
-        plt.legend(["SigNet", "Sigprofiler"])
-        axs.boxplot(torch.transpose(real_guess[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, widths = 0.1)
-        axs.boxplot(torch.transpose(real_labels[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, widths = 0.1)
-        # bp = plt.boxplot(C, positions = [7, 8], widths = 0.6)
+            real_labels_changed[real_labels_changed<0.01] = 0
+            real_labels_changed[real_labels_changed>=0.01] = 1
+            prop_tumors_labels = torch.sum(real_labels_changed, dim=0)/real_labels_changed.shape[0] 
 
-        # set axes limits and labels
-        # plt.xlim(0,9)
-        # plt.ylim(0,9)
-        axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
-        axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
-        plt.show()
+            axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, prop_tumors_real[num_sigs_range[0]:num_sigs_range[1]])
+            axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, prop_tumors_labels[num_sigs_range[0]:num_sigs_range[1]])
+            plt.legend(["SigNet Guess", "Synthetic Labels"])
+            axs.boxplot(torch.transpose(real_guess[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, widths = 0.1)
+            axs.boxplot(torch.transpose(real_labels[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, widths = 0.1)
 
-    boxplots(real_guess, real_labels, num_sigs_range = [0,36])
-    boxplots(real_guess, real_labels, num_sigs_range = [36,72])
+            axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
+            axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
+            plt.show()
+
+    # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = True)
+    # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = True)
+
+    boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False)
+    boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = False)
+    boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = True)
+    boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = True)
+
+    # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = False)
+    # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = False)
+    # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = True)
+    # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = True)
