@@ -52,7 +52,7 @@ class GeneratorLogger:
         wandb.log({"val_mu_variance": val_variance})
         
         def KL(mu, sigma):
-            return torch.mean((sigma**2 + mu**2)/2. - torch.log(sigma) - 1/2)
+            return (0.5*(sigma + mu**2 - torch.log(sigma) - 1).sum(dim=1)).mean(dim=0)
         
         val_KL = KL(val_mu, val_sigma).item()
         wandb.log({"train_KL": KL(train_mu, train_sigma).item()})

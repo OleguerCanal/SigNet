@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utilities.metrics import get_jensen_shannon, get_kl_divergence
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -41,9 +42,16 @@ class GeneratorTrainer:
         self.logger = GeneratorLogger()
 
     def __loss(self, input, pred, z_mu, z_var):
-        kl_div = torch.mean((z_var**2 + z_mu**2)/2. - torch.log(z_var) - 1/2)
+        kl_div = (0.5*(z_var + z_mu**2 - torch.log(z_var) - 1).sum(dim=1)).mean(dim=0)
         mse = nn.MSELoss()(input, pred)
-        return self.batch_size_factor*(mse + self.adapted_lagrange_param*kl_div)
+
+        # kl_loss =  (-0.5*(1+ torch.log(z_var) - z_mu**2- z_var).sum(dim = 1)).mean(dim =0)        
+        # recon_loss_criterion = nn.MSELoss() #Reconstruction Loss
+        # recon_loss = recon_loss_criterion(input, pred)
+        # loss = recon_loss*self.lagrange_param + kl_loss
+
+        return mse + self.adapted_lagrange_param*kl_div
+        # return loss
 
     def objective(self,
                   batch_size,
@@ -76,6 +84,7 @@ class GeneratorTrainer:
         # l_vals = collections.deque(maxlen=50)
         # max_found = -np.inf
         step = 0
+        # total_steps = 1000*len(self.train_dataset)
         total_steps = self.iterations*len(self.train_dataset)
         # self.batch_size_factor = batch_size/len(self.train_dataset)
         self.batch_size_factor = 1.
@@ -85,8 +94,12 @@ class GeneratorTrainer:
                 optimizer.zero_grad()
                 train_pred, train_mean, train_var = model(train_input)
                 # self.adapted_lagrange_param = self.lagrange_param
-                self.adapted_lagrange_param = self.lagrange_param * \
-                    float(total_steps - step)/float(total_steps)
+                if step < total_steps*0.8:
+                    self.adapted_lagrange_param = self.lagrange_param * \
+                        float(total_steps - step)/float(total_steps)
+                else:
+                    self.adapted_lagrange_param = self.lagrange_param * \
+                        float(total_steps - total_steps*0.8)/float(total_steps)
                 train_loss = self.__loss(input=train_input,
                                          pred=train_pred,
                                          z_mu=train_mean,

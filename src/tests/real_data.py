@@ -6,9 +6,6 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import csv_to_tensor, read_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
-from utilities.plotting import plot_reconstruction, plot_bars
-from utilities.normalize_data import normalize_data
-from utilities.metrics import get_MSE, get_cosine_similarity
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
 
@@ -34,8 +31,8 @@ def read_real_data():
     return inputs, baselines, labels, nummut
 
 def read_synt_data():
-    input_batch = csv_to_tensor("../../data/exp_not_norm/sd1.5/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/sd1.5/test_generator_label.csv")
+    input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_label.csv")
     # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
     signatures = read_signatures("../../data/data.xlsx")
     baseline = Baseline(signatures)
@@ -45,8 +42,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_not_norm"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low_0_15",
-                                            large_mum_mut_dir=models_path + "finetuner_generator_large_baseline")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low",
+                                            large_mum_mut_dir=models_path + "finetuner_not_norm_large")
     return finetuner
 
 def normalize(a, b):
@@ -132,7 +129,7 @@ if __name__=="__main__":
             }
     # plot_bars(data)
 
-    def boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False):
+    def boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'] ):
         import matplotlib.pyplot as plt
         import pandas as pd
         import numpy as np
@@ -158,7 +155,7 @@ if __name__=="__main__":
 
             axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
             axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
-            plt.show()
+            # plt.show()
         else:
             fig = plt.figure()
             axs = plt.axes()
@@ -176,23 +173,36 @@ if __name__=="__main__":
 
             axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, prop_tumors_real[num_sigs_range[0]:num_sigs_range[1]])
             axs.bar(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, prop_tumors_labels[num_sigs_range[0]:num_sigs_range[1]])
-            plt.legend(["SigNet Guess", "Synthetic Labels"])
+            plt.legend(legend_names)
             axs.boxplot(torch.transpose(real_guess[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2, widths = 0.1)
             axs.boxplot(torch.transpose(real_labels[:,num_sigs_range[0]:num_sigs_range[1]],1,0), positions = np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+1, widths = 0.1)
 
             axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
             axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
-            plt.show()
+            # plt.show()
 
+    # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
     # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = True)
     # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = True)
 
-    boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False)
-    boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = False)
-    boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = True)
-    boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = True)
+    # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])
+    # boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])
+    # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = True)
+    # boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = True)
 
-    # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = False)
-    # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = False)
+    # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
     # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = True)
     # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = True)
+
+
+    generator = read_model("../../trained_models/exp_not_norm/generator_best_3", device="cpu")
+    examples = generator.generate(10000, std = 1).detach()
+    import matplotlib.pyplot as plt
+
+    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = True)
+    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = True)
+    plt.show()

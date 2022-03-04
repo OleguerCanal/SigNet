@@ -36,6 +36,7 @@ class Generator(nn.Module):
 
         self.decoder_layers = nn.ModuleList(modules=decoder_layers)
         self.activation = nn.LeakyReLU(0.1)
+        self.relu = nn.ReLU()
 
         self.Normal = torch.distributions.Normal(0, 1)
         if device == "cuda":
@@ -55,14 +56,18 @@ class Generator(nn.Module):
         return z_mu, z_var
 
     def decode(self, x):
-        for layer in self.decoder_layers:
+        for layer in self.decoder_layers[:-1]:
             x = self.activation(layer(x))
+        x = self.relu(self.decoder_layers[-1](x))
+        x = x/x.sum(dim=1).reshape(-1,1)
         return x
 
     def forward(self, x, noise=True):
         z_mu, z_var = self.encode(x)
         if noise:
-            z = z_mu + z_var*self.Normal.sample(z_mu.shape)
+            # z = z_mu + z_var*self.Normal.sample(z_mu.shape)
+            z = torch.randn(size = (z_mu.size(0),z_mu.size(1)))
+            z = z_mu + z_var*z
         else:
             z = z_mu
         x = self.decode(z)
@@ -72,6 +77,4 @@ class Generator(nn.Module):
         shape = tuple((batch_size, self.latent_dim))
         z = self.Normal.sample(shape)*std
         labels = self.decode(z)
-        labels = torch.max(torch.zeros_like(labels), labels)
-        labels = labels/labels.sum(dim=1).reshape(-1,1)
         return labels
