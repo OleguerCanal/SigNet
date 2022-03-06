@@ -159,8 +159,8 @@ def read_data_generator(device, data_id, data_folder = "../data/", cosmic_versio
         
     data = real_data[torch.randperm(real_data.size()[0]),:]
 
-    # train_input = data[:int(real_data.size()[0]*0.95)]
-    train_input = data
+    train_input = data[:int(real_data.size()[0]*0.95)]
+    # train_input = data
     val_input = data[int(real_data.size()[0]*0.95):]
 
     train_data = GeneratorData(inputs=train_input)

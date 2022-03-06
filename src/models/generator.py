@@ -49,11 +49,9 @@ class Generator(nn.Module):
         for layer in self.encoder_layers:
             x = self.activation(layer(x))
         z_mu = self.mean_layer(x)
-        z_var = torch.exp(self.var_layer(x))
-        # z_var = torch.ones_like(z_mu)
-        # z_var = torch.ones_like(z_mu)*0.7
-        # z_var = torch.ones_like(z_mu)*0.0001
-        return z_mu, z_var
+        z_log_var = self.var_layer(x)
+        z_std = torch.exp(0.5*z_log_var)
+        return z_mu, z_std
 
     def decode(self, x):
         for layer in self.decoder_layers[:-1]:
@@ -63,18 +61,35 @@ class Generator(nn.Module):
         return x
 
     def forward(self, x, noise=True):
-        z_mu, z_var = self.encode(x)
+        z_mu, z_std = self.encode(x)
         if noise:
-            # z = z_mu + z_var*self.Normal.sample(z_mu.shape)
-            z = torch.randn(size = (z_mu.size(0),z_mu.size(1)))
-            z = z_mu + z_var*z
+            # z = z_mu + z_std*self.Normal.sample(z_mu.shape)
+            z = torch.randn(size = (z_mu.size(0), z_mu.size(1)))
+            z = z_mu + z_std*z
         else:
             z = z_mu
         x = self.decode(z)
-        return x, z_mu, z_var
+        return x, z_mu, z_std
 
     def generate(self, batch_size:int, std = 1.0):
         shape = tuple((batch_size, self.latent_dim))
         z = self.Normal.sample(shape)*std
         labels = self.decode(z)
         return labels
+
+    def filter(self, syntethic_data, real_labels, quantile=0.75, print_dist_stats=False):
+        """Remove outliers of synthetic_data by omitting
+           (1 - quantile)% most-different points from the original dataset
+        """
+        def min_dist(point):
+            return ((real_labels - point).pow(2)).mean(dim=1).min()
+        distances = torch.tensor([min_dist(p) for p in syntethic_data])
+
+        if print_dist_stats:
+            print("Min dist:", distances.min())
+            print("Mean dist:", distances.mean())
+            print("Max dist:", distances.max())
+
+        quantiles = torch.quantile(distances, torch.tensor([quantile]), keepdim=True)
+        accepted = distances < quantiles.flatten()[-1].item()
+        return syntethic_data[accepted, ...]
