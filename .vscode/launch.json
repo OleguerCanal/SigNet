@@ -113,5 +113,15 @@
             "cwd": "${workspaceFolder}/src/tests/test_by_module/",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Generate Dataset",
+            "type": "python",
+            "request": "launch",
+            "program": "generate_data_realistic.py",
+            "cwd": "${workspaceFolder}/src/",
+            "args": ["v3"],
+            "console": "integratedTerminal"
+        }
     ]
 }
