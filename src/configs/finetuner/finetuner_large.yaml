@@ -1,8 +1,8 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "finetuner_not_norm_large"
-    models_dir: "../trained_models/exp_not_norm"
+    data_id: "exp_cleaned_generator"
+    model_id: "finetuner_cleaned_generator_large"
+    models_dir: "../trained_models/exp_cleaned_generator"
 
     # Training params
     source: "generator_large"
@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator_not_norm"
+    wandb_project_id: "finetuner_generator_clean"
 
     # Network params
     num_hidden_layers: 2
