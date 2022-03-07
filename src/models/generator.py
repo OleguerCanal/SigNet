@@ -83,7 +83,8 @@ class Generator(nn.Module):
         """
         def min_dist(point):
             return ((real_labels - point).pow(2)).mean(dim=1).min()
-        distances = torch.tensor([min_dist(p) for p in syntethic_data])
+        with torch.no_grad():
+            distances = torch.tensor([min_dist(p) for p in syntethic_data])
 
         if print_dist_stats:
             print("Min dist:", distances.min())
