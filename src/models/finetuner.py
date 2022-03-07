@@ -144,10 +144,6 @@ class FineTunerLargeNumMut(FineTuner):
         # Number of mutations path
         self.layer1_3 = nn.Linear(1, num_units_branch_mut)
 
-        self.layer2_1 = nn.Linear(num_units, num_units)
-        self.layer2_2 = nn.Linear(num_units, num_units)
-        self.layer2_3 = nn.Linear(num_units_branch_mut, num_units_branch_mut)
-
         self.hidden_layers = nn.ModuleList(
             modules=[nn.Linear(num_units_joined_path, num_units_joined_path)
                      for _ in range(num_hidden_layers)])
@@ -164,16 +160,13 @@ class FineTunerLargeNumMut(FineTuner):
                 num_mut):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
-        # mutation_dist = self.activation(self.layer2_2(mutation_dist))
 
         # Baseline head
         weights = self.activation(self.layer1_1(baseline_guess))
-        # weights = self.activation(self.layer2_1(weights))
 
         # Number of mutations head
         num_mut = torch.log10(num_mut)/6
         num_mut = self.activation(self.layer1_3(num_mut))
-        # num_mut = self.activation(self.layer2_3(num_mut))
 
         # Concatenate
         comb = torch.cat([mutation_dist, weights, num_mut], dim=1)
