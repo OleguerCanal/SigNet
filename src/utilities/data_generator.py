@@ -250,12 +250,14 @@ class DataGenerator:
                 1000    # The -1 means real distribution
             batch_size = len(num_muts)
 
-        labels = generator.generate(batch_size, std = std)
         if self.real_labels is not None:
+            labels = generator.generate(int((batch_size - self.real_labels.size(0))/0.75), std = std)
             labels = generator.filter(labels, self.real_labels)
             labels = torch.cat([labels, self.real_labels], dim=0)
-            batch_size = labels.size(0)
-        
+        else:
+            labels = generator.generate(batch_size, std = std)
+
+
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
