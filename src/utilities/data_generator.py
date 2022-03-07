@@ -15,11 +15,19 @@ class DataGenerator:
 
     def __init__(self,
                  signatures,
+                 real_labels=None,
                  seed=None,
                  shuffle=True):
         self.signatures = signatures
         self.total_signatures = signatures.shape[1]
         print("Total signatures:", self.total_signatures)
+        if real_labels is not None:
+            labels = csv_to_tensor(real_labels, header=0, index_col=0)
+            labels = labels/torch.sum(labels, axis=1).reshape(-1, 1)
+            self.real_labels = torch.cat([labels, torch.zeros(labels.size(0), 7).to(labels)], dim=1)
+        else:
+            self.real_labels = None
+
         self.shuffle = shuffle
         if seed is not None:
             torch.seed = seed
@@ -243,6 +251,10 @@ class DataGenerator:
             batch_size = len(num_muts)
 
         labels = generator.generate(batch_size, std = std)
+        if self.real_labels is not None:
+            labels = generator.filter(labels, self.real_labels)
+            labels = torch.cat([labels, self.real_labels], dim=0)
+        
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
