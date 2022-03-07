@@ -229,66 +229,57 @@ class DataGenerator:
         if set == "train":
             if large_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
-                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 +\
-                    [3]*50000 + [4]*50000 + [5]*50000 + [6]*50000 +\
-                    [7]*50000 + [-1]*50000
+                num_samples = 50000
             elif large_low == 'large':
                 range_muts = [1e4, 5e4, 1e5, 5e5]
-                # The -1 means real distribution
-                ind_range_muts = [0]*100000 + [1]*100000 + [-1]*100000
-            batch_size = len(ind_range_muts)
+                num_samples = 100000
         elif set == "val":
             if large_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000]
             elif large_low == 'large':
                 range_muts = [1e4, 5e4, 1e5, 5e5]
-            ind_range_muts = [0]*1000 + [1]*1000 + [-1]*1000  # The -1 means real distribution
-            batch_size = len(ind_range_muts)
+            num_samples = 1000
         elif set == "test":
-            num_muts = [25]*1000 + [50]*1000 + [100]*1000 + [250]*1000 + [500]*1000 + [1e3]*1000 +\
-                [5e3]*1000 + [1e4]*1000 + [5e4]*1000 + [1e5] * \
-                1000    # The -1 means real distribution
-            batch_size = len(num_muts)
+            range_muts = [25,50,100,250,500,1e3,5e3,1e4,1e5,0]
+            num_samples = 1000
 
-        if self.real_labels is not None:
-            labels = generator.generate(int((batch_size - self.real_labels.size(0))/0.75), std = std)
-            labels = generator.filter(labels, self.real_labels)
-            labels = torch.cat([labels, self.real_labels], dim=0)
-        else:
-            labels = generator.generate(batch_size, std = std)
-
-
+        batch_size = (len(range_muts)-1)*num_samples
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
-        for i in tqdm(range(batch_size)):
-            # Compute resulting signature
-            signature = torch.einsum("ij,j->i", (self.signatures, labels[i]))
+        for i in tqdm(range(len(range_muts)-1)):
 
-            # Sample (NOTE: This bit is a mess, we should rethink it)
-            if set == "test":
-                num_mut = num_muts[i]
+            # Generate labels with generator 
+            if self.real_labels is not None and set == "train":
+                labels = generator.generate(int((num_samples - self.real_labels.size(0))/0.75), std = std)
+                labels = generator.filter(labels, self.real_labels)
+                labels = torch.cat([labels, self.real_labels], dim=0)
+                num_samples = labels.shape[0]
             else:
-                if ind_range_muts[i] != -1:
-                    num_mut = np.random.randint(
-                        range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
-                else:
-                    num_mut = -1
+                labels = generator.generate(num_samples, std = std)
+            
+            for j in range(num_samples):
+                # Compute resulting signature
+                signature = torch.einsum("ij,j->i", (self.signatures, labels[j]))
 
-            if num_mut != -1:
-                sample = self.__sample_from_sig(signature=signature,
+                if set == "test":
+                    num_mut = range_muts[i]
+                else:
+                    num_mut = np.random.randint(range_muts[i], range_muts[i+1])
+
+                if num_mut<1e5:
+                    sample = self.__sample_from_sig(signature=signature,
                                                 num_mut=int(num_mut),
                                                 normalize=normalize)
-                # Store
-                input_batch[i, :] = sample
-                labels_batch[i, :] = torch.cat(
-                    [labels[i, :], torch.tensor([float(num_mut)])])
-            else:
-                # Store
-                input_batch[i, :] = signature
-                # For the real distribution we say we have more than 1e5 mutations
-                labels_batch[i, :] = torch.cat(
-                    [labels[i, :], torch.tensor([float(np.random.randint(1e5, 1e6))])])
+                    # Store
+                    input_batch[i*num_samples+j, :] = sample
+                    labels_batch[i*num_samples+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
+                else:
+                    # Store
+                    input_batch[i*num_samples+j, :] = signature
+                    labels_batch[i*num_samples+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
         return input_batch, labels_batch
 
     def make_real_set(self):
