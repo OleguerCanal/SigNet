@@ -45,9 +45,10 @@ class FinetunerTrainer:
 
     def __loss(self, prediction, label, FP, FN):
         # if self.network_type == 'low':
-        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        # l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        l = get_kl_divergence(predicted_label=prediction, true_label=label)
         # if self.network_type == 'large':
-        l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -165,7 +166,8 @@ def train_finetuner(config) -> float:
     train_data, val_data = read_data(experiment_id=config["data_id"],
                                      source=config["source"],
                                      device=dev,
-                                     n_points=-7)
+                                     n_points=-7,
+                                     small_to_zero=False)
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
