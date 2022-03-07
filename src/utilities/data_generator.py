@@ -215,6 +215,10 @@ class DataGenerator:
                     [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
         return input_batch, label_batch
 
+    def shuffle_and_cut(self, labels, num):
+        indexes = torch.randperm(inputs.shape[0])
+        return labels[indexes[:num], ...]
+
     def make_realistic_set(self,
                            generator_model_path,
                            set,
@@ -251,10 +255,10 @@ class DataGenerator:
 
             # Generate labels with generator 
             if self.real_labels is not None and set == "train":
-                labels = generator.generate(int((num_samples - self.real_labels.size(0))/0.75), std = std)
+                labels = generator.generate(int(num_samples/0.75), std = std)
                 labels = generator.filter(labels, self.real_labels)
                 labels = torch.cat([labels, self.real_labels], dim=0)
-                num_samples = labels.shape[0]
+                labels = self.shuffle_and_cut(labels, num_samples)
             else:
                 labels = generator.generate(num_samples, std = std)
             
