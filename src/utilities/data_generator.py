@@ -254,6 +254,7 @@ class DataGenerator:
         if self.real_labels is not None:
             labels = generator.filter(labels, self.real_labels)
             labels = torch.cat([labels, self.real_labels], dim=0)
+            batch_size = labels.size(0)
         
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
