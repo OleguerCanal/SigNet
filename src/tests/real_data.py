@@ -8,6 +8,8 @@ from utilities.io import csv_to_tensor, read_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
+from utilities.plotting import plot_bars
+from utilities.metrics import get_cosine_similarity, get_MSE
 
 def read_real_data():
     inputs = data_folder + "real_data/PCAWG_data.csv"
@@ -31,19 +33,19 @@ def read_real_data():
     return inputs, baselines, labels, nummut
 
 def read_synt_data():
-    input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_label.csv")
-    # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    signatures = read_signatures("../../data/data.xlsx")
-    baseline = Baseline(signatures)
-    baselines = baseline.get_weights_batch(input_batch)
+    input_batch = csv_to_tensor("../../data/exp_cleaned_generator/test_generator_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_cleaned_generator/test_generator_label.csv")
+    baselines = csv_to_tensor("../../data/exp_cleaned_generator/test_generator_baseline.csv")
+    # signatures = read_signatures("../../data/data.xlsx")
+    # baseline = Baseline(signatures)
+    # baselines = baseline.get_weights_batch(input_batch)
     return input_batch, baselines, label_batch[:, :-1], label_batch[:, -1]
 
 def read_finetuner():
-    experiment_id = "exp_not_norm"
+    experiment_id = "exp_cleaned_generator"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_not_norm_no_baseline_low",
-                                            large_mum_mut_dir=models_path + "finetuner_not_norm_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_cleaned_generator_low",
+                                  large_mum_mut_dir=models_path + "finetuner_cleaned_generator_large")
     return finetuner
 
 def normalize(a, b):
@@ -67,28 +69,28 @@ if __name__=="__main__":
     data_folder = "../../data/"
 
     real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
-    # synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
+    synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
 
-    # # real_inputs_norm = normalize(real_inputs, synt_inputs)
-    # real_inputs_norm = real_inputs
+    # real_inputs_norm = normalize(real_inputs, synt_inputs)
+    real_inputs_norm = real_inputs
 
-    # finetuner = read_finetuner()
-    # real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
-    # synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
+    finetuner = read_finetuner()
+    real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
+    synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
 
-    # real_labels_unknown = small_to_unkown(real_labels)
-    # synt_labels_unknown = small_to_unkown(synt_labels)
-    # real_guess_unknown = small_to_unkown(real_guess)
-    # synt_guess_unknown = small_to_unkown(synt_guess)
-    # real_baseline_unknown = small_to_unkown(real_baseline)
+    real_labels_unknown = small_to_unkown(real_labels)
+    synt_labels_unknown = small_to_unkown(synt_labels)
+    real_guess_unknown = small_to_unkown(real_guess)
+    synt_guess_unknown = small_to_unkown(synt_guess)
+    real_baseline_unknown = small_to_unkown(real_baseline)
     # tensor_to_csv(real_baseline, "../../data/real_data/baseline_signet.csv")
     # tensor_to_csv(real_guess_unknown, "../../data/real_data/real_data_signet.csv")
 
-    # signatures = read_signatures(data_folder + "data.xlsx")
-    # real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)))
-    # real_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_guess)))
-    # synt_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_labels)))
-    # synt_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_guess)))
+    signatures = read_signatures(data_folder + "data.xlsx")
+    real_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_labels)))
+    real_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(real_guess)))
+    synt_label_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_labels)))
+    synt_guess_rec = torch.einsum("ij,bj->bi", (signatures, torch.tensor(synt_guess)))
 
 
     # # synt_inputs = synt_inputs[synt_nummut > 1e3]
@@ -98,25 +100,26 @@ if __name__=="__main__":
     # # synt_guess_rec = synt_guess_rec[synt_nummut > 1e3]
 
 
-    # # print("MSE weights")
-    # # print(get_MSE(synt_labels_unknown, synt_guess_unknown))
-    # # print(get_MSE(real_labels_unknown, real_guess_unknown))
+    print("MSE weights")
+    print("synt", get_MSE(synt_labels_unknown, synt_guess_unknown))
+    print("real", get_MSE(real_labels_unknown, real_guess_unknown))
 
-    # # print("MSE reconstruction")
-    # # print(get_MSE(real_inputs, real_label_rec))
-    # # print(get_MSE(real_inputs, real_guess_rec))
+    print("MSE reconstruction")
+    print("label", get_MSE(real_inputs, real_label_rec))
+    print("guess", get_MSE(real_inputs, real_guess_rec))
 
-    # # print("Cosine Similarity")
-    # # print(get_cosine_similarity(real_inputs, real_label_rec))
-    # # print(get_cosine_similarity(real_inputs, real_guess_rec))
+    print("Cosine Similarity")
+    print("label", get_cosine_similarity(real_inputs, real_label_rec))
+    print("guess", get_cosine_similarity(real_inputs, real_guess_rec))
+    
     # data = {
-    #          "synt_labels": synt_labels_unknown,
-    #          "synt_guess": synt_guess_unknown,
+    #         #  "synt_labels": synt_labels_unknown,
+    #         #  "synt_guess": synt_guess_unknown,
     #          "real_labels": real_labels_unknown,
     #          "real_guess": real_guess_unknown,
     #          "baseline_guess": real_baseline_unknown,
     #          }
-    # # plot_bars(data, max=73)
+    # plot_bars(data, max=73)
 
     # data = {
     #         # "synt_inputs": synt_inputs,
@@ -127,7 +130,7 @@ if __name__=="__main__":
     #         "real_label_rec": real_label_rec,
     #         "real_guess_rec": real_guess_rec,
     #         }
-    # # plot_bars(data)
+    # plot_bars(data)
 
     def boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'] ):
         import matplotlib.pyplot as plt
@@ -179,7 +182,7 @@ if __name__=="__main__":
 
             axs.set_xticks(np.array(range(num_sigs_range[1]-num_sigs_range[0]))*2+0.5)
             axs.set_xticklabels(list(pd.read_excel("../../data/data.xlsx").columns)[(num_sigs_range[0]+1):(num_sigs_range[1]+1)], rotation=90)
-            # plt.show()
+            plt.show()
 
     # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
     # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
@@ -191,20 +194,20 @@ if __name__=="__main__":
     # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = True)
     # boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = True)
 
-    # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
-    # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
     # boxplots(real_labels, synt_labels, num_sigs_range = [0,36], only_present = True)
     # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = True)
 
     # generator = read_model("../../trained_models/exp_not_norm/generator_best_3", device="cpu")
-    generator = read_model("../../trained_models/exp_not_norm/generator_300", device="cpu")
-    examples = generator.generate(10000, std = 1).detach()
-    examples = generator.filter(examples, real_labels)
+    # generator = read_model("../../trained_models/exp_not_norm/generator_300", device="cpu")
+    # examples = generator.generate(10000, std = 1).detach()
+    # examples = generator.filter(examples, real_labels)
 
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
-    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
-    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = True)
-    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = True)
-    plt.show()
+    # boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    # boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    # boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = True)
+    # boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = True)
+    # plt.show()
