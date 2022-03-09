@@ -11,9 +11,11 @@ class GanLogger:
         pass
 
     def log(self,
-            train_loss,
+            discriminator_loss,
+            generator_loss,
             val_loss,
             step):
 
-        wandb.log({"train_loss": train_loss})
+        wandb.log({"discriminator_loss": discriminator_loss})
+        wandb.log({"generator_loss": generator_loss})
         wandb.log({"val_loss": val_loss})

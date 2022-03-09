@@ -9,8 +9,8 @@ config:
     iterations: 1000
     num_classes: 72
     batch_size: 50
-    lr_generator: 0.005
-    lr_discriminator: 0.0005
+    lr_generator: 0.0005
+    lr_discriminator: 0.0001
 
     # WANDB params
     enable_logging: True

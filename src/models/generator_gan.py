@@ -19,7 +19,7 @@ class Generator(nn.Module):
 
     def forward(self, x):
         x = self.activation(self.input_layer(x))
-        for layer in self.layers:
+        for layer in self.layers[:-1]:
             x = self.activation(layer(x))
         x = self.relu(self.layers[-1](x))
         x = x/x.sum(dim=1).reshape(-1,1)
@@ -75,20 +75,28 @@ class GAN(nn.Module):
         indexes = torch.randperm(x.size(0))
         return x[indexes, ...], y[indexes, ...]
 
-    def forward(self, real_inputs):
+    def forward(self, real_inputs, origin):
         batch_size = real_inputs.size(0)
-        
-        # Append synt inputs
-        synt_inputs = self.generator.sample(batch_size=batch_size)
-        merged_inputs = torch.cat([real_inputs, synt_inputs], dim=0)
-        
-        # Create real/fake labels (real=1, fake=0)
-        ones = torch.ones((batch_size, 1), dtype=torch.float).to(self.device)
-        zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
-        labels = torch.cat([ones, zeros], dim=0)
 
+        if origin == "real":
+            ones = torch.ones((batch_size, 1), dtype=torch.float).to(self.device)
+            return self.discriminator(real_inputs), ones
+        elif origin == "mixed":
+            synt_inputs = self.generator.sample(batch_size=batch_size)
+            merged_inputs = torch.cat([real_inputs, synt_inputs], dim=0)
+            
+            # Create real/fake labels (real=1, fake=0)
+            ones = torch.ones((batch_size, 1), dtype=torch.float).to(self.device)
+            zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
+            labels = torch.cat([ones, zeros], dim=0)
 
-        # Shuffle stuff (NOTE(oleguer): I dont think this step is necessary actually)
-        merged_inputs, labels = self._shuffle(merged_inputs, labels)
+            # Shuffle stuff (NOTE(oleguer): I dont think this step is necessary actually)
+            merged_inputs, labels = self._shuffle(merged_inputs, labels)
+            return self.discriminator(merged_inputs), labels
+        elif origin == "fake":
+            # Append synt inputs
+            synt_inputs = self.generator.sample(batch_size=batch_size)
+            zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
 
-        return self.discriminator(merged_inputs), labels
+            return self.discriminator(synt_inputs), zeros
+        raise  ValueError("Origin should be: real, mixed or fake :)")

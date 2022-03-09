@@ -64,11 +64,12 @@ class GanTrainer:
 
         wandb.watch(model, log_freq=100)
 
-        # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
-        optimizer = optim.Adam([
-            {'params': model.generator.parameters(), 'lr': lr_generator},
-            {'params': model.discriminator.parameters(), 'lr': lr_discriminator}
-        ])
+        optimizer_discriminator = optim.Adam(model.generator.parameters(), lr=lr_discriminator, weight_decay=1e-5)
+        optimizer_generator = optim.Adam(model.discriminator.parameters(), lr=lr_generator, weight_decay=1e-5)
+        # optimizer = optim.Adam([
+            # {'params': model.generator.parameters(), 'lr': lr_generator},
+            # {'params': model.discriminator.parameters(), 'lr': lr_discriminator}
+        # ])
 
         # l_vals = collections.deque(maxlen=50)
         # max_found = -np.inf
@@ -76,25 +77,40 @@ class GanTrainer:
         for iteration in range(self.iterations):
             for train_input in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                optimizer.zero_grad()
-                train_pred, train_labels = model(train_input)
+                model.discriminator.zero_grad()
 
-                train_loss = self.__loss(pred=train_pred,
-                                         target=train_labels)
+                mixed_pred, mixed_labels = model(train_input, origin="mixed")
+                mixed_loss = self.__loss(pred=mixed_pred,
+                                         target=mixed_labels)
+                mixed_loss.backward()
 
-                train_loss.backward()
-                optimizer.step()
+                # fake_pred, fake_labels = model(train_input, origin="fake")
+                # fake_loss = self.__loss(pred=fake_pred,
+                #                         target=fake_labels)
+                # fake_loss.backward()
+
+                optimizer_discriminator.step()
+
+                model.generator.zero_grad()
+
+                generator_pred, fake_labels = model(train_input, origin="fake")
+                generator_loss = self.__loss(pred=generator_pred,
+                                             target=1-fake_labels)
+                generator_loss.backward()
+                
+                optimizer_generator.step()
 
                 model.eval()
                 with torch.no_grad():
-                    val_pred, val_labels = model(self.val_dataset.inputs)
+                    val_pred, val_labels = model(self.val_dataset.inputs, origin="mixed")
                     val_loss = self.__loss(pred=val_pred,
                                            target=val_labels)
                     # l_vals.append(val_loss.item())
                     # max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot and step % self.log_freq == 0:
-                    self.logger.log(train_loss=train_loss,
+                    self.logger.log(discriminator_loss=mixed_loss,
+                                    generator_loss=generator_loss,
                                     val_loss=val_loss,
                                     step=step)
 
