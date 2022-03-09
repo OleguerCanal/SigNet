@@ -19,7 +19,7 @@ config:
     # Network params
     generator_num_hidden_layers: 2
     discriminator_num_hidden_layers: 2
-    latent_dim: 20
+    latent_dim: 72
 
     # Misc
     device: "cuda"

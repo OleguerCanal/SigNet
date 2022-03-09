@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.gan_trainer import train_gan
 from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/generator/generator.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/gan/gan.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments

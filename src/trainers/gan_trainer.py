@@ -36,10 +36,10 @@ class GanTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
-        self.logger = GeneratorLogger()
+        self.logger = GanLogger()
 
     def __loss(self, pred, target):
-        return nn.CrossEntropyLoss()(pred, target)
+        return nn.BCELoss()(pred, target)
 
     def objective(self,
                   batch_size,
@@ -50,8 +50,7 @@ class GanTrainer:
                   latent_dim,
                   plot=False):
 
-        print(batch_size, lr_generator, lr_discriminator,
-              num_hidden_layers, latent_dim)
+        print(locals())
 
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
@@ -109,7 +108,7 @@ class GanTrainer:
         return None
 
 
-def train_generator(config) -> float:
+def train_gan(config) -> float:
     """Train a classification model and get the validation score
 
     Args:
