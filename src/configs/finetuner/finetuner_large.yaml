@@ -1,7 +1,7 @@
 config:
     # IDs & paths
     data_id: "exp_cleaned_generator"
-    model_id: "finetuner_cleaned_generator_large"
+    model_id: "finetuner_cleaned_generator_nosmalltozero_COS_large"
     models_dir: "../trained_models/exp_cleaned_generator"
 
     # Training params
@@ -11,7 +11,7 @@ config:
     num_classes: 72
     sigmoid_params: [50000, 10000]
     batch_size: 500
-    lr: 0.0005
+    lr: 0.0002
 
     # WANDB params
     enable_logging: True
