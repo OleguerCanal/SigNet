@@ -116,7 +116,7 @@ def train_generator(config) -> float:
         config (dict): Including all the needed args
         to load data, and train the model 
     """
-    from utilities.io import read_data_gan
+    from utilities.io import read_data_generator
 
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"
@@ -128,9 +128,9 @@ def train_generator(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    train_data, val_data = read_data_gan(device=dev,
-                                         data_id=config['data_id'],
-                                         cosmic_version=config['cosmic_version'])
+    train_data, val_data = read_data_generator(device=dev,
+                                               data_id=config['data_id'],
+                                               cosmic_version=config['cosmic_version'])
 
     trainer = GanTrainer(iterations=config["iterations"],  # Passes through all dataset
                          train_data=train_data,
