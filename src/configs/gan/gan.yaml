@@ -1,0 +1,25 @@
+config:
+    # IDs & paths
+    data_id: "exp_not_norm"
+    model_id: "gan_0"
+    models_dir: "../trained_models/exp_gan/"
+    cosmic_version: "v3"
+
+    # Training params
+    iterations: 1000
+    num_classes: 72
+    batch_size: 50
+    lr_generator: 0.005
+    lr_discriminator: 0.0005
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "gan"
+
+    # Network params
+    generator_num_hidden_layers: 2
+    discriminator_num_hidden_layers: 2
+    latent_dim: 20
+
+    # Misc
+    device: "cuda"
