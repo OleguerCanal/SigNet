@@ -16,7 +16,7 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import save_model
-from models.generator_gan import GAN
+from models.generator_gan import GAN, Discriminator, Generator
 from loggers.gan_logger import GanLogger
 
 class GanTrainer:
@@ -60,12 +60,21 @@ class GanTrainer:
                     generator_num_hidden_layers=generator_num_hidden_layers,
                     discriminator_num_hidden_layers=discriminator_num_hidden_layers,
                     device=self.device)
+        model_discriminator = Discriminator(num_layers=discriminator_num_hidden_layers,
+                                            input_size=self.num_classes)
+        model_generator = Generator(num_hidden_layers=generator_num_hidden_layers,
+                                    input_size=latent_dim,
+                                    output_size=self.num_classes)
         model.to(self.device)
+        model_discriminator.to(self.device)
+        model_generator.to(self.device)
 
         wandb.watch(model, log_freq=100)
+        wandb.watch(model_discriminator, log_freq=100)
+        wandb.watch(model_generator, log_freq=100)
 
-        optimizer_discriminator = optim.Adam(model.generator.parameters(), lr=lr_discriminator, weight_decay=1e-5)
-        optimizer_generator = optim.Adam(model.discriminator.parameters(), lr=lr_generator, weight_decay=1e-5)
+        optimizer_discriminator = optim.Adam(model_generator.parameters(), lr=lr_discriminator, betas=(0.5, 0.999))
+        optimizer_generator = optim.Adam(model_discriminator.parameters(), lr=lr_generator, betas=(0.5, 0.999))
         # optimizer = optim.Adam([
             # {'params': model.generator.parameters(), 'lr': lr_generator},
             # {'params': model.discriminator.parameters(), 'lr': lr_discriminator}
@@ -76,42 +85,50 @@ class GanTrainer:
         step = 0
         for iteration in range(self.iterations):
             for train_input in tqdm(dataloader):
-                model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                model.discriminator.zero_grad()
+                model_discriminator.train()  # NOTE: Very important! Otherwise we zero the gradient
+                model_generator.train()  # NOTE: Very important! Otherwise we zero the gradient
+                model_discriminator.zero_grad()
 
-                mixed_pred, mixed_labels = model(train_input, origin="mixed")
-                mixed_loss = self.__loss(pred=mixed_pred,
-                                         target=mixed_labels)
-                mixed_loss.backward()
+                # Train with all real batch
+                batch_size = train_input.size(0)
+                ones = torch.ones((batch_size, 1), dtype=torch.float).to(self.device)
+                output = model_discriminator(train_input)
+                real_loss = self.__loss(pred=output,
+                                         target=ones)
+                real_loss.backward()
 
-                # fake_pred, fake_labels = model(train_input, origin="fake")
-                # fake_loss = self.__loss(pred=fake_pred,
-                #                         target=fake_labels)
-                # fake_loss.backward()
-
+                # Train with all fake batch
+                noise = torch.randn(batch_size, latent_dim)
+                fake = model_generator(noise)
+                zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
+                output = model_discriminator(fake.detach())
+                fake_loss = self.__loss(pred=output,
+                                        target=zeros)
+                fake_loss.backward()
                 optimizer_discriminator.step()
 
-                model.generator.zero_grad()
+                # Update generator network
+                model_generator.zero_grad()
 
-                generator_pred, fake_labels = model(train_input, origin="fake")
-                generator_loss = self.__loss(pred=generator_pred,
-                                             target=1-fake_labels)
+                output = model_discriminator(fake)
+                generator_loss = self.__loss(pred=output,
+                                             target=ones)
                 generator_loss.backward()
                 
                 optimizer_generator.step()
-
-                model.eval()
-                with torch.no_grad():
-                    val_pred, val_labels = model(self.val_dataset.inputs, origin="mixed")
-                    val_loss = self.__loss(pred=val_pred,
-                                           target=val_labels)
+                model_discriminator.eval()
+                model_generator.eval()
+                # with torch.no_grad():
+                #     val_pred, val_labels = model(self.val_dataset.inputs, origin="mixed")
+                #     val_loss = self.__loss(pred=val_pred,
+                #                            target=val_labels)
                     # l_vals.append(val_loss.item())
                     # max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot and step % self.log_freq == 0:
-                    self.logger.log(discriminator_loss=mixed_loss,
+                    self.logger.log(discriminator_loss=real_loss+fake_loss,
                                     generator_loss=generator_loss,
-                                    val_loss=val_loss,
+                                    val_loss=0,
                                     step=step)
 
                 if self.model_path is not None and step % 500 == 0:

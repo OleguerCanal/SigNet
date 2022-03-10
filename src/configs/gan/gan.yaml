@@ -6,11 +6,11 @@ config:
     cosmic_version: "v3"
 
     # Training params
-    iterations: 1000
+    iterations: 5000
     num_classes: 72
-    batch_size: 50
-    lr_generator: 0.0005
-    lr_discriminator: 0.0001
+    batch_size: 100
+    lr_generator: 0.0002
+    lr_discriminator: 0.0002
 
     # WANDB params
     enable_logging: True
