@@ -37,9 +37,7 @@ class GanTrainer:
         self.train_dataset = train_data
         self.val_dataset = val_data
         self.logger = GanLogger()
-
-    def __loss(self, pred, target):
-        return nn.BCELoss()(pred, target)
+        self.__loss = nn.BCELoss()
 
     def objective(self,
                   batch_size,
@@ -55,69 +53,59 @@ class GanTrainer:
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
                                 shuffle=True)
-        model = GAN(num_classes=self.num_classes,
-                    generator_input_size=latent_dim,
-                    generator_num_hidden_layers=generator_num_hidden_layers,
-                    discriminator_num_hidden_layers=discriminator_num_hidden_layers,
-                    device=self.device)
         model_discriminator = Discriminator(num_layers=discriminator_num_hidden_layers,
                                             input_size=self.num_classes)
         model_generator = Generator(num_hidden_layers=generator_num_hidden_layers,
                                     input_size=latent_dim,
                                     output_size=self.num_classes)
-        model.to(self.device)
         model_discriminator.to(self.device)
         model_generator.to(self.device)
 
-        wandb.watch(model, log_freq=100)
         wandb.watch(model_discriminator, log_freq=100)
         wandb.watch(model_generator, log_freq=100)
 
-        optimizer_discriminator = optim.Adam(model_generator.parameters(), lr=lr_discriminator, betas=(0.5, 0.999))
-        optimizer_generator = optim.Adam(model_discriminator.parameters(), lr=lr_generator, betas=(0.5, 0.999))
-        # optimizer = optim.Adam([
-            # {'params': model.generator.parameters(), 'lr': lr_generator},
-            # {'params': model.discriminator.parameters(), 'lr': lr_discriminator}
-        # ])
+        optimizer_discriminator = optim.Adam(model_discriminator.parameters(), lr=lr_discriminator, betas=(0.5, 0.999))
+        optimizer_generator = optim.Adam(model_generator.parameters(), lr=lr_generator, betas=(0.5, 0.999))
 
-        # l_vals = collections.deque(maxlen=50)
-        # max_found = -np.inf
+        model_discriminator.train()  # NOTE: Very important! Otherwise we zero the gradient
+        model_generator.train()  # NOTE: Very important! Otherwise we zero the gradient
+
         step = 0
         for iteration in range(self.iterations):
             for train_input in tqdm(dataloader):
-                model_discriminator.train()  # NOTE: Very important! Otherwise we zero the gradient
-                model_generator.train()  # NOTE: Very important! Otherwise we zero the gradient
-                model_discriminator.zero_grad()
+                # model_discriminator.train()  # NOTE: Not needed if we dont call .eval()
+                # model_generator.train()  # NOTE: Not needed if we dont call .eval()
+                optimizer_discriminator.zero_grad()
 
                 # Train with all real batch
                 batch_size = train_input.size(0)
-                ones = torch.ones((batch_size, 1), dtype=torch.float).to(self.device)
+                ones = torch.ones((batch_size, 1), dtype=torch.float, device=self.device)
                 output = model_discriminator(train_input)
-                real_loss = self.__loss(pred=output,
-                                         target=ones)
-                real_loss.backward()
+                real_loss = self.__loss(input=output,
+                                        target=ones)
 
                 # Train with all fake batch
-                noise = torch.randn(batch_size, latent_dim)
+                noise = torch.randn(batch_size, latent_dim, device=self.device, requires_grad=True)
                 fake = model_generator(noise)
                 zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
                 output = model_discriminator(fake.detach())
-                fake_loss = self.__loss(pred=output,
+                fake_loss = self.__loss(input=output,
                                         target=zeros)
-                fake_loss.backward()
+                discriminator_loss = real_loss + fake_loss
+                discriminator_loss.backward()
                 optimizer_discriminator.step()
 
                 # Update generator network
-                model_generator.zero_grad()
+                optimizer_generator.zero_grad()
 
                 output = model_discriminator(fake)
-                generator_loss = self.__loss(pred=output,
+                generator_loss = self.__loss(input=output,
                                              target=ones)
                 generator_loss.backward()
-                
                 optimizer_generator.step()
-                model_discriminator.eval()
-                model_generator.eval()
+
+                # model_discriminator.eval()
+                # model_generator.eval()
                 # with torch.no_grad():
                 #     val_pred, val_labels = model(self.val_dataset.inputs, origin="mixed")
                 #     val_loss = self.__loss(pred=val_pred,
@@ -131,14 +119,14 @@ class GanTrainer:
                                     val_loss=0,
                                     step=step)
 
-                if self.model_path is not None and step % 500 == 0:
-                    save_model(model=model, directory=self.model_path)
-                step += 1
-        if self.model_path is not None:
-            save_model(model=model, directory=self.model_path)
+        #         if self.model_path is not None and step % 500 == 0:
+        #             save_model(model=model, directory=self.model_path)
+        #         step += 1
+        # if self.model_path is not None:
+        #     save_model(model=model, directory=self.model_path)
         
         # Return last mse and KL obtained in validation
-        return None
+        return None, None
 
 
 def train_gan(config) -> float:
