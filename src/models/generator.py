@@ -46,7 +46,7 @@ class Decoder(nn.Module):
         self.init_args = locals()
         self.init_args.pop("self")
         self.init_args.pop("__class__")
-        self.init_args["model_type"] = "Generator"
+        self.init_args["model_type"] = "Decoder"
         super(Decoder, self).__init__()
 
         self.latent_dim = latent_dim
@@ -86,17 +86,21 @@ class Discriminator(nn.Module):
     def __init__(self,
                  input_size=72,
                  num_layers=3):
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "Discriminator"
         super(Discriminator, self).__init__()
         layers = [nn.Linear(input_size, input_size) for _ in range(num_layers)]
         self.layers = nn.ModuleList(modules=layers)
         self.output_layer = nn.Linear(input_size, 1)
-        self.sigmoid = nn.Sigmoid()
+        self.out_act = nn.Tanh()
         self.activation = nn.LeakyReLU(0.1)
 
     def forward(self, x):
         for layer in self.layers:
             x = self.activation(layer(x))
-        return self.sigmoid(self.output_layer(x))
+        return self.out_act(self.output_layer(x))
 
 class Generator(nn.Module):
     
