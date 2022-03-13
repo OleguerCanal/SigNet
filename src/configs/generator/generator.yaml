@@ -8,7 +8,7 @@ config:
     # Training params
     iterations: 1000
     num_classes: 72
-    lagrange_param: 0.001
+    lagrange_param: 0.00001
     batch_size: 100
     lr_encoder: 0.005
     lr_decoder: 0.0005
@@ -19,7 +19,7 @@ config:
 
     # Network params
     num_hidden_layers: 3
-    latent_dim: 20
+    latent_dim: 40
 
     # Misc
     device: "cuda"
