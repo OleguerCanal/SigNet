@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+import seaborn as sn
 from sklearn.metrics import confusion_matrix
 import torch
 
@@ -529,7 +529,7 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
 
     df_cm = pd.DataFrame(conf_mat, index=class_names,
                          columns=class_names).astype(int)
-    heatmap = sns.heatmap(df_cm, annot=True, fmt="d")
+    heatmap = sn.heatmap(df_cm, annot=True, fmt="d")
 
     heatmap.yaxis.set_ticklabels(
         heatmap.yaxis.get_ticklabels(), rotation=0, ha='right', fontsize=15)
@@ -601,6 +601,12 @@ def plot_bars(data, max=None):
         y = torch.mean(data[key], dim=0).detach().numpy()[:max]
         bars.append(plt.bar(x + width*i, y, width, align='edge'))
     plt.legend(bars, data.keys())
+    plt.show()
+
+def plot_correlation_matrix(data, signatures):
+    df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
+    corrMatrix = df.corr()
+    sn.heatmap(corrMatrix, annot=False)
     plt.show()
 
 if __name__ == "__main__":
