@@ -9,7 +9,7 @@ import torch
 
 from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
-from models.generator import Generator
+from models.generator import Generator, Discriminator, Decoder
 from models.classifier import Classifier
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 from models.error_finder import ErrorFinder
@@ -229,7 +229,13 @@ def read_model(directory, device="cpu"):
     init_args.pop("model_type")
     print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
+    assert(model_type in ["Classifier",
+                          "FineTunerLowNumMut",
+                          "FineTunerLargeNumMut",
+                          "ErrorFinder",
+                          "Generator",
+                          "Decoder",
+                          "Discriminator"])
     if "device" in init_args.keys():
         init_args["device"] = device
         
@@ -244,6 +250,10 @@ def read_model(directory, device="cpu"):
         model = FineTunerLargeNumMut(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)
+    elif model_type == "Decoder":
+        model = Decoder(**init_args)
+    elif model_type == "Discriminator":
+        model = Discriminator(**init_args)
     
     # Load model weights
     state_dict_file = os.path.join(directory, "state_dict")
