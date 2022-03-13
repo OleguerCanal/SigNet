@@ -70,8 +70,8 @@ class GeneratorTrainer:
 
         # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
         optimizer = optim.Adam([
-            {'params': model.encoder_layers.parameters(), 'lr': lr_encoder},
-            {'params': model.decoder_layers.parameters(), 'lr': lr_decoder}
+            {'params': model.encoder.parameters(), 'lr': lr_encoder},
+            {'params': model.decoder.parameters(), 'lr': lr_decoder}
         ])
 
         # l_vals = collections.deque(maxlen=50)

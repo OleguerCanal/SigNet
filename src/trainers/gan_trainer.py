@@ -15,8 +15,9 @@ from utilities.metrics import get_jensen_shannon, get_kl_divergence
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import save_model
-from models.generator_gan import GAN, Discriminator, Generator
+from utilities.io import save_model, read_model
+from models.generator import Decoder
+from models.generator_gan import Discriminator
 from loggers.gan_logger import GanLogger
 
 class GanTrainer:
@@ -46,6 +47,7 @@ class GanTrainer:
                   generator_num_hidden_layers,
                   discriminator_num_hidden_layers,
                   latent_dim,
+                  pretrained_generator=None,
                   plot=False):
 
         print(locals())
@@ -55,9 +57,13 @@ class GanTrainer:
                                 shuffle=True)
         model_discriminator = Discriminator(num_layers=discriminator_num_hidden_layers,
                                             input_size=self.num_classes)
-        model_generator = Generator(num_hidden_layers=generator_num_hidden_layers,
-                                    input_size=latent_dim,
-                                    output_size=self.num_classes)
+
+        if pretrained_generator is not None:
+            model_generator = read_model(pretrained_generator).decoder
+        else:
+            model_generator = Decoder(num_hidden_layers=generator_num_hidden_layers,
+                                      latent_dim=latent_dim,
+                                      input_size=self.num_classes)
         model_discriminator.to(self.device)
         model_generator.to(self.device)
 
@@ -165,6 +171,7 @@ def train_gan(config) -> float:
                                         generator_num_hidden_layers=config["generator_num_hidden_layers"],
                                         discriminator_num_hidden_layers=config["discriminator_num_hidden_layers"],
                                         latent_dim=config["latent_dim"],
+                                        pretrained_generator=config["pretrained_generator"],
                                         plot=config["enable_logging"])
 
     return val_mse, val_KL

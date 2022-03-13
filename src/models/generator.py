@@ -1,8 +1,7 @@
 import torch
 from torch import nn
 
-class Generator(nn.Module):
-    
+class Encoder(nn.Module):
     def __init__(self,
                  input_size=72,
                  num_hidden_layers=2,
@@ -12,7 +11,7 @@ class Generator(nn.Module):
         self.init_args.pop("self")
         self.init_args.pop("__class__")
         self.init_args["model_type"] = "Generator"
-        super(Generator, self).__init__()
+        super(Encoder, self).__init__()
 
         self.latent_dim = latent_dim
         encoder_layers = []
@@ -25,7 +24,31 @@ class Generator(nn.Module):
         self.encoder_layers = nn.ModuleList(modules=encoder_layers)
         self.mean_layer = nn.Linear(latent_dim, latent_dim)
         self.var_layer = nn.Linear(latent_dim, latent_dim)
+        self.activation = nn.LeakyReLU(0.1)
+        self.relu = nn.ReLU()
 
+    def forward(self, x):
+        for layer in self.encoder_layers:
+            x = self.activation(layer(x))
+        z_mu = self.mean_layer(x)
+        z_log_var = self.var_layer(x)
+        z_std = torch.exp(0.5*z_log_var)
+        return z_mu, z_std
+
+class Decoder(nn.Module):
+    def __init__(self,
+                 input_size=72,
+                 latent_dim=50,
+                 num_hidden_layers=2,
+                 device="cuda") -> None:
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "Generator"
+        super(Decoder, self).__init__()
+
+        self.latent_dim = latent_dim
+        self.device = device
         decoder_layers = []
         for i in reversed(range(num_hidden_layers+1)):
             in_features = int(input_size - (input_size-latent_dim)*(i+1)/(num_hidden_layers + 1))
@@ -44,27 +67,54 @@ class Generator(nn.Module):
             self.Normal.loc = self.Normal.loc.cuda()
             self.Normal.scale = self.Normal.scale.cuda()
 
-
-    def encode(self, x):
-        for layer in self.encoder_layers:
-            x = self.activation(layer(x))
-        z_mu = self.mean_layer(x)
-        z_log_var = self.var_layer(x)
-        z_std = torch.exp(0.5*z_log_var)
-        return z_mu, z_std
-
-    def decode(self, x):
+    def forward(self, x):
         for layer in self.decoder_layers[:-1]:
             x = self.activation(layer(x))
         x = self.relu(self.decoder_layers[-1](x))
         x = x/x.sum(dim=1).reshape(-1,1)
         return x
 
+    def sample(self, batch_size=1, mean=0, std=1):
+        z = mean + std*torch.randn(batch_size, self.latent_dim, requires_grad=True).to(self.device)
+        return self.forward(z)
+
+
+class Generator(nn.Module):
+    
+    def __init__(self,
+                 input_size=72,
+                 num_hidden_layers=2,
+                 latent_dim=50,
+                 device="cuda") -> None:
+        self.init_args = locals()
+        self.init_args.pop("self")
+        self.init_args.pop("__class__")
+        self.init_args["model_type"] = "Generator"
+        super(Generator, self).__init__()
+
+        self.latent_dim = latent_dim
+        self.device = device
+        self.encoder = Encoder(input_size=input_size,
+                               num_hidden_layers=num_hidden_layers,
+                               latent_dim=latent_dim,
+                               device=device)
+
+        self.decoder = Decoder(input_size=input_size,
+                               num_hidden_layers=num_hidden_layers,
+                               latent_dim=latent_dim,
+                               device=device)
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, x):
+        return self.decoder(x)
+
     def forward(self, x, noise=True):
         z_mu, z_std = self.encode(x)
         if noise:
             # z = z_mu + z_std*self.Normal.sample(z_mu.shape)
-            z = torch.randn(size = (z_mu.size(0), z_mu.size(1)))
+            z = torch.randn(size = (z_mu.size(0), z_mu.size(1)), device=self.device)
             z = z_mu + z_std*z
         else:
             z = z_mu

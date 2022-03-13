@@ -3,12 +3,13 @@ config:
     data_id: "exp_not_norm"
     model_id: "gan_0"
     models_dir: "../trained_models/exp_gan/"
+    pretrained_generator: "../trained_models/exp_not_norm/generator_not_norm_relu_norm_guide"
     cosmic_version: "v3"
 
     # Training params
     iterations: 5000
     num_classes: 72
-    batch_size: 100
+    batch_size: 20
     lr_generator: 0.0002
     lr_discriminator: 0.0002
 
@@ -19,7 +20,7 @@ config:
     # Network params
     generator_num_hidden_layers: 2
     discriminator_num_hidden_layers: 2
-    latent_dim: 72
+    latent_dim: 20  # must be the same as the pre-trained one
 
     # Misc
     device: "cuda"
