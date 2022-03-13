@@ -29,11 +29,13 @@ if __name__=="__main__":
     data_folder = "../../../data/"
 
     real_inputs, real_labels, real_nummut = read_real_data()
-    generator = read_model("../../../trained_models/exp_gan/gan_pretrained_generator")
-    noise = torch.randn((2000, 20))
-    synt_labels = generator(noise)
+    generator_vae = read_model("../../../trained_models/exp_gan/generator_vae")
+    generator_gan = read_model("../../../trained_models/exp_gan/gan_pretrained_generator")
+    noise = torch.randn((2000, 40))
+    # synt_labels_gan = generator_gan(noise)
+    synt_labels_vae = generator_vae.decode(noise)
 
-    for l in synt_labels[0:10]:
+    for l in synt_labels_vae[0:10]:
         print(l)
     # print(synt_labels[0])
 
@@ -41,5 +43,5 @@ if __name__=="__main__":
     signatures = sort_signatures(file=data_folder + "data.xlsx",
                                  mutation_type_order=data_folder + "mutation_type_order.xlsx")
     plot_correlation_matrix(data=real_labels, signatures=signatures)
-    plot_correlation_matrix(data=synt_labels, signatures=signatures)
+    plot_correlation_matrix(data=synt_labels_vae, signatures=signatures)
 

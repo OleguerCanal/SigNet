@@ -3,7 +3,7 @@ config:
     data_id: "exp_not_norm"
     model_id: "gan_pretrained"
     models_dir: "../trained_models/exp_gan/"
-    pretrained_generator: "../trained_models/exp_not_norm/generator_not_norm_relu_norm_guide"
+    pretrained_generator: "../trained_models/exp_gan/generator_vae"
     cosmic_version: "v3"
 
     # Training params

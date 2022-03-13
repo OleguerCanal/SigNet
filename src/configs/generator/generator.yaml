@@ -1,8 +1,8 @@
 config:
     # IDs & paths
     data_id: "exp_not_norm"
-    model_id: "generator_not_norm_relu_norm_guide"
-    models_dir: "../trained_models/exp_not_norm/"
+    model_id: "generator_vae"
+    models_dir: "../trained_models/exp_gan/"
     cosmic_version: "v3"
 
     # Training params
@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator_new"
+    wandb_project_id: "generator_vae"
 
     # Network params
     num_hidden_layers: 3
