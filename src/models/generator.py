@@ -36,6 +36,8 @@ class Encoder(nn.Module):
         return z_mu, z_std
 
 class Decoder(nn.Module):
+    """This module is used both in the VAE and GAN versions of the generator
+    """
     def __init__(self,
                  input_size=72,
                  latent_dim=50,
@@ -78,6 +80,23 @@ class Decoder(nn.Module):
         z = mean + std*torch.randn(batch_size, self.latent_dim, requires_grad=True).to(self.device)
         return self.forward(z)
 
+class Discriminator(nn.Module):
+    """This module is used in the GAN version of the generator
+    """
+    def __init__(self,
+                 input_size=72,
+                 num_layers=3):
+        super(Discriminator, self).__init__()
+        layers = [nn.Linear(input_size, input_size) for _ in range(num_layers)]
+        self.layers = nn.ModuleList(modules=layers)
+        self.output_layer = nn.Linear(input_size, 1)
+        self.sigmoid = nn.Sigmoid()
+        self.activation = nn.LeakyReLU(0.1)
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = self.activation(layer(x))
+        return self.sigmoid(self.output_layer(x))
 
 class Generator(nn.Module):
     

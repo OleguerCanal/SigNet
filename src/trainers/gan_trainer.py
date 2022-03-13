@@ -16,8 +16,7 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import save_model, read_model
-from models.generator import Decoder
-from models.generator_gan import Discriminator
+from models.generator import Decoder, Discriminator
 from loggers.gan_logger import GanLogger
 
 class GanTrainer:
