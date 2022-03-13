@@ -39,6 +39,19 @@ class GanTrainer:
         self.logger = GanLogger()
         self.__loss = nn.BCELoss()
 
+    def __get_labels(self, value, batch_size):
+        # Label smoothing (https://github.com/soumith/ganhacks):
+        noise = 0.2*torch.randn((batch_size, 1), device=self.device)
+        if value == 1:
+            ones = torch.ones((batch_size, 1), dtype=torch.float, device=self.device)
+            ones = torch.clip(ones + noise, 0, 1)
+            return ones
+        if value == 0:
+            zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
+            zeros = torch.clip(zeros + noise, 0, 1)
+            return zeros
+        raise ValueError("value should either be 0 or 1")
+
     def objective(self,
                   batch_size,
                   lr_generator,
@@ -69,7 +82,7 @@ class GanTrainer:
         wandb.watch(model_discriminator, log_freq=100)
         wandb.watch(model_generator, log_freq=100)
 
-        optimizer_discriminator = optim.Adam(model_discriminator.parameters(), lr=lr_discriminator, betas=(0.5, 0.999))
+        optimizer_discriminator = optim.SGD(model_discriminator.parameters(), lr=lr_discriminator)
         optimizer_generator = optim.Adam(model_generator.parameters(), lr=lr_generator, betas=(0.5, 0.999))
 
         model_discriminator.train()  # NOTE: Very important! Otherwise we zero the gradient
@@ -84,18 +97,17 @@ class GanTrainer:
 
                 # Train with all real batch
                 batch_size = train_input.size(0)
-                ones = torch.ones((batch_size, 1), dtype=torch.float, device=self.device)
                 output = model_discriminator(train_input)
                 real_loss = self.__loss(input=output,
-                                        target=ones)
+                                        target=self.__get_labels(value=1, batch_size=batch_size))
 
                 # Train with all fake batch
                 noise = torch.randn(batch_size, latent_dim, device=self.device, requires_grad=True)
                 fake = model_generator(noise)
-                zeros = torch.zeros((batch_size, 1), dtype=torch.float).to(self.device)
+
                 output = model_discriminator(fake.detach())
                 fake_loss = self.__loss(input=output,
-                                        target=zeros)
+                                        target=self.__get_labels(value=0, batch_size=batch_size))
                 discriminator_loss = real_loss + fake_loss
                 discriminator_loss.backward()
                 optimizer_discriminator.step()
@@ -105,7 +117,7 @@ class GanTrainer:
 
                 output = model_discriminator(fake)
                 generator_loss = self.__loss(input=output,
-                                             target=ones)
+                                             target=self.__get_labels(value=1, batch_size=batch_size))
                 generator_loss.backward()
                 optimizer_generator.step()
 
@@ -124,11 +136,13 @@ class GanTrainer:
                                     val_loss=0,
                                     step=step)
 
-        #         if self.model_path is not None and step % 500 == 0:
-        #             save_model(model=model, directory=self.model_path)
-        #         step += 1
-        # if self.model_path is not None:
-        #     save_model(model=model, directory=self.model_path)
+                if self.model_path is not None and step % 500 == 0:
+                    save_model(model=model_discriminator, directory=self.model_path + "_discriminator")
+                    save_model(model=model_generator, directory=self.model_path + "_generator")
+                step += 1
+        if self.model_path is not None:
+            save_model(model=model_discriminator, directory=self.model_path + "_discriminator")
+            save_model(model=model_generator, directory=self.model_path + "_generator")
         
         # Return last mse and KL obtained in validation
         return None, None
