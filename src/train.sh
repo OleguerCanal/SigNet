@@ -3,9 +3,12 @@
 # cd ..
 
 
-# python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_1" --lagrange_param=0.01 --latent_dim=40 --num_hidden_layers=2  --lr_encoder=0.005 --lr_decoder=0.0005
-# python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_2" --lagrange_param=0.01 --latent_dim=40 --num_hidden_layers=4 --lr_encoder=0.005 --lr_decoder=0.0005
-# python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_3" --lagrange_param=0.001 --latent_dim=40 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
+python3 train_finetuner.py --config_file=configs/finetuner/finetuner_large.yaml --model_id="finetuner_augmented_large" --source="augmented_real_large"
+# python3 train_finetuner.py --config_file=configs/finetuner/finetuner_nobaseline_low.yaml --model_id="finetuner_augmented_low" --source="augmented_real_low"
+python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id="generator_augmented" --type="augmented_real"
+
+
+# python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id="generator_3" --lagrange_param=0.001 --latent_dim=40 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_4" --lagrange_param=0.001 --latent_dim=40 --num_hidden_layers=4 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_5" --lagrange_param=0.0001 --latent_dim=40 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_6" --lagrange_param=0.0001 --latent_dim=40 --num_hidden_layers=4  --lr_encoder=0.005 --lr_decoder=0.0005
@@ -19,7 +22,7 @@
 
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_13" --lagrange_param=0.01 --latent_dim=60 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_14" --lagrange_param=0.01 --latent_dim=60 --num_hidden_layers=4 --lr_encoder=0.005 --lr_decoder=0.0005
-python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id="generator_300" --lagrange_param=0.00001 --latent_dim=50 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
+# python3 train_generator.py --config_file=configs/generator/generator.yaml --model_id="generator_300" --lagrange_param=0.00001 --latent_dim=50 --num_hidden_layers=2 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_301" --lagrange_param=0.0001 --latent_dim=100 --num_hidden_layers=4 --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_17" --lagrange_param=0.0001 --latent_dim=60 --num_hidden_layers=2  --lr_encoder=0.005 --lr_decoder=0.0005
 # python3 train_generator.py --config_file=configs/generator/generator.yaml --lagrange_param=0.001 --model_id="generator_18" --lagrange_param=0.0001 --latent_dim=60 --num_hidden_layers=4 --lr_encoder=0.005 --lr_decoder=0.0005

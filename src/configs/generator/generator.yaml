@@ -1,25 +1,26 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "generator_not_norm_relu_norm_guide"
-    models_dir: "../trained_models/exp_not_norm/"
+    data_id: "exp_real_data"
+    model_id: "generator_perturbed"
+    models_dir: "../trained_models/exp_real_data/"
     cosmic_version: "v3"
+    type: "real"
 
     # Training params
     iterations: 1000
     num_classes: 72
-    lagrange_param: 0.001
+    lagrange_param: 0.00001
     batch_size: 100
     lr_encoder: 0.005
     lr_decoder: 0.0005
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator_new"
+    wandb_project_id: "generator_perturbed"
 
     # Network params
     num_hidden_layers: 3
-    latent_dim: 20
+    latent_dim: 40
 
     # Misc
     device: "cuda"

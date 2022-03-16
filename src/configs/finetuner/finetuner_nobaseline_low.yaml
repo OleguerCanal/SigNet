@@ -1,13 +1,13 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm/sd1.5"
-    model_id: "finetuner_not_norm_no_baseline_low_0_15"
-    models_dir: "../trained_models/exp_not_norm"
+    data_id: "exp_real_data"
+    model_id: "finetuner_perturbed_low"
+    models_dir: "../trained_models/exp_real_data"
 
     # Training params
-    source: "generator_low"
+    source: "perturbed_low"
     network_type: "low"
-    iterations: 70
+    iterations: 100
     num_classes: 72
     sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
     batch_size: 283
@@ -15,7 +15,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_no_baseline"
+    wandb_project_id: "finetuner_real_data"
 
     # Network params
     num_hidden_layers: 4

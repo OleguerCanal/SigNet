@@ -41,17 +41,10 @@ class GeneratorTrainer:
         self.val_dataset = val_data
         self.logger = GeneratorLogger()
 
-    def __loss(self, input, pred, z_mu, z_var):
-        kl_div = (0.5*(z_var + z_mu**2 - torch.log(z_var) - 1).sum(dim=1)).mean(dim=0)
+    def __loss(self, input, pred, z_mu, z_std):
+        kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
         mse = nn.MSELoss()(input, pred)
-
-        # kl_loss =  (-0.5*(1+ torch.log(z_var) - z_mu**2- z_var).sum(dim = 1)).mean(dim =0)        
-        # recon_loss_criterion = nn.MSELoss() #Reconstruction Loss
-        # recon_loss = recon_loss_criterion(input, pred)
-        # loss = recon_loss*self.lagrange_param + kl_loss
-
         return mse + self.adapted_lagrange_param*kl_div
-        # return loss
 
     def objective(self,
                   batch_size,
@@ -92,7 +85,7 @@ class GeneratorTrainer:
             for train_input in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()
-                train_pred, train_mean, train_var = model(train_input)
+                train_pred, train_mean, train_std = model(train_input)
                 # self.adapted_lagrange_param = self.lagrange_param
                 if step < total_steps*0.8:
                     self.adapted_lagrange_param = self.lagrange_param * \
@@ -103,19 +96,19 @@ class GeneratorTrainer:
                 train_loss = self.__loss(input=train_input,
                                          pred=train_pred,
                                          z_mu=train_mean,
-                                         z_var=train_var)
+                                         z_std=train_std)
 
                 train_loss.backward()
                 optimizer.step()
 
                 model.eval()
                 with torch.no_grad():
-                    val_pred, val_mean, val_var = model(
+                    val_pred, val_mean, val_std = model(
                         self.val_dataset.inputs)
                     val_loss = self.__loss(input=self.val_dataset.inputs,
                                            pred=val_pred,
                                            z_mu=val_mean,
-                                           z_var=val_var)
+                                           z_std=val_std)
                     # l_vals.append(val_loss.item())
                     # max_found = max(max_found, -np.nanmean(l_vals))
 
@@ -127,9 +120,9 @@ class GeneratorTrainer:
                                                       val_prediction=val_pred,
                                                       val_label=self.val_dataset.inputs,
                                                       train_mu=train_mean,
-                                                      train_sigma=train_var,
+                                                      train_sigma=train_std,
                                                       val_mu=val_mean,
-                                                      val_sigma=val_var,
+                                                      val_sigma=val_std,
                                                       step=step)
 
                 if self.model_path is not None and step % 500 == 0:
@@ -161,7 +154,7 @@ def train_generator(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    train_data, val_data = read_data_generator(device=dev, data_id = config['data_id'], cosmic_version = config['cosmic_version'])
+    train_data, val_data = read_data_generator(device=dev, data_id = config['data_id'], cosmic_version = config['cosmic_version'], type=config['type'])
 
     trainer = GeneratorTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
