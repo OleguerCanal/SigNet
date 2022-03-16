@@ -143,28 +143,38 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3'):
+def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real'):
+    '''
+    type should be: 'real', 'perturbed' or 'augmented_real'.
+    '''
     data_folder = data_folder + data_id
-    if cosmic_version == 'v3':
-        real_data = csv_to_tensor(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
-                                device=device, header=0, index_col=0)
-        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
-        real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
-    elif cosmic_version == 'v2':
-        real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
-                                device=device, header=0, index_col=0)
-        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+    if type == 'real':
+        if cosmic_version == 'v3':
+            real_data = csv_to_tensor(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
+                                    device=device, header=0, index_col=0)
+            real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+            real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+        elif cosmic_version == 'v2':
+            real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
+                                    device=device, header=0, index_col=0)
+            real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        else:
+            raise NotImplementedError
+            
+        data = real_data[torch.randperm(real_data.size()[0]),:]
+
+        train_input = data[:int(real_data.size()[0]*0.95)]
+        val_input = data[int(real_data.size()[0]*0.95):]
+
+        train_data = GeneratorData(inputs=train_input)
+        val_data = GeneratorData(inputs=val_input)
     else:
-        raise NotImplementedError
-        
-    data = real_data[torch.randperm(real_data.size()[0]),:]
-
-    # train_input = data[:int(real_data.size()[0]*0.95)]
-    train_input = data
-    val_input = data[int(real_data.size()[0]*0.95):]
-
-    train_data = GeneratorData(inputs=train_input)
-    val_data = GeneratorData(inputs=val_input)
+        train_input = csv_to_tensor(data_folder + "/train_%s_low_label.csv"%type,
+                                    device=device, header=None, index_col=None)
+        val_input = csv_to_tensor(data_folder + "/val_%s_low_label.csv"%type,
+                                    device=device, header=None, index_col=None)
+        train_data = GeneratorData(inputs=train_input[:,:-1])
+        val_data = GeneratorData(inputs=val_input[:,:-1])
 
     return train_data, val_data
 
