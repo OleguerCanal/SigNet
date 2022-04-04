@@ -1,7 +1,7 @@
 config:
     # IDs & paths
     data_id: "real_data"
-    model_id: "oversampled_dotdist_largelatent_generator_5_120_3"
+    model_id: "cancer_type_oversampler"
     models_dir: "../trained_models/fig_generator/"
     cosmic_version: "v3"
     type: "real"
@@ -20,7 +20,7 @@ config:
 
     # Network params
     num_hidden_layers: 3
-    latent_dim: 120
+    latent_dim: 100
 
     # Misc
     device: "cuda"

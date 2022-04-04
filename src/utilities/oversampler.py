@@ -26,3 +26,25 @@ class OverSampler:
         to_append = [to_repeat]*n_repetitions
         oversampled = torch.cat([oversampled] + to_append, dim=0)
         return oversampled[np.random.permutation(oversampled.size(0)), ...]
+
+
+class CancerTypeOverSampler:
+    def __init__(self, data, cancer_types):
+        self.data = data
+        self.cancer_types = cancer_types
+        self.counts = torch.bincount(cancer_types.to(torch.int))
+        # print(cancer_types)
+        # print(self.counts)
+
+    def get_oversampled_set(self, rarity=0.1, n_repetitions=5):
+        """Take the rarity% and repeats it n_repetitions
+        """
+        oversampled = copy.deepcopy(self.data)
+        uniform_count = int(self.cancer_types.size(0)/self.counts.size(0))
+        for i in range(self.cancer_types.size(0)):
+            count = self.counts[int(self.cancer_types[i].item())]
+            times_to_repeat = min(int(torch.round(uniform_count/count)), 10)  # dont repeat more than 10 times
+            # print(i, int(self.cancer_types[i].item()), count, times_to_repeat)
+            to_append = [self.data[i, :].unsqueeze(0)]*times_to_repeat
+            oversampled = torch.cat([oversampled] + to_append, dim=0)
+        return oversampled[np.random.permutation(oversampled.size(0)), ...]

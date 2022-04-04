@@ -19,7 +19,7 @@ from utilities.io import save_model
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from loggers.generator_logger import GeneratorLogger
-from utilities.oversampler import OverSampler
+from utilities.oversampler import OverSampler, CancerTypeOverSampler
 
 class GeneratorTrainer:
     def __init__(self,
@@ -47,7 +47,7 @@ class GeneratorTrainer:
             signatures=signatures,
             device=device)
 
-        os = OverSampler(self.train_dataset.inputs)
+        os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
         self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
