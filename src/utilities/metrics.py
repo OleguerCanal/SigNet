@@ -235,6 +235,26 @@ def get_reconstruction_error(mutation_dist, guess, signatures):
     errors = torch.sum(torch.nn.MSELoss(reduction='none')(reconstruction, mutation_dist), dim=1)
     return errors
 
+def sets_distances(real, fake):
+    """Distances between points of two sets
+    """
+    def min_dist(point_set, point):
+        """Minimum distance between a set and a point
+        """
+        return torch.sqrt(((point_set - point).pow(2)).mean(dim=1).min())
+    with torch.no_grad():
+        real_distances = torch.tensor([min_dist(fake, p) for p in real])
+        fake_distances = torch.tensor([min_dist(real, p) for p in fake])
+    return real_distances, fake_distances
+
+def get_distances_metrics(distances, quantiles=[0.99]):
+    metrics = {}
+    metrics["mean"] = np.format_float_scientific(torch.mean(distances).item(), precision = 2, exp_digits=1)
+    metrics["median"] = np.format_float_scientific(torch.median(distances).item(), precision = 2, exp_digits=1)
+    metrics["max"] = np.format_float_scientific(torch.max(distances).item(), precision = 2, exp_digits=1)
+    quantiles = torch.quantile(distances, torch.tensor(quantiles), keepdim=True)
+    metrics["quantiles"] = np.round(quantiles.detach().cpu().numpy(), 3)
+    return metrics
 
 METRICS_DICT = {
     "mse" : get_MSE,

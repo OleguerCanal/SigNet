@@ -1,26 +1,26 @@
 config:
     # IDs & paths
-    data_id: "exp_real_data"
-    model_id: "generator_perturbed"
-    models_dir: "../trained_models/exp_real_data/"
+    data_id: "real_data"
+    model_id: "oversampled_dotdist_largelatent_generator_5_120_3"
+    models_dir: "../trained_models/fig_generator/"
     cosmic_version: "v3"
     type: "real"
 
     # Training params
-    iterations: 1000
+    iterations: 3000
     num_classes: 72
     lagrange_param: 0.00001
-    batch_size: 100
-    lr_encoder: 0.005
-    lr_decoder: 0.0005
+    batch_size: 200
+    lr_encoder: 0.001
+    lr_decoder: 0.0001
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator_perturbed"
+    wandb_project_id: "fix_generator"
 
     # Network params
     num_hidden_layers: 3
-    latent_dim: 40
+    latent_dim: 120
 
     # Misc
     device: "cuda"

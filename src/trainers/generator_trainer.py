@@ -19,12 +19,14 @@ from utilities.io import save_model
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from loggers.generator_logger import GeneratorLogger
+from utilities.oversampler import OverSampler
 
 class GeneratorTrainer:
     def __init__(self,
                  iterations,
                  train_data,
                  val_data,
+                 signatures,
                  lagrange_param=1.0,
                  loging_path="../runs",
                  num_classes=72,
@@ -39,7 +41,14 @@ class GeneratorTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
-        self.logger = GeneratorLogger()
+        self.logger = GeneratorLogger(
+            train_inputs=train_data.inputs,
+            val_inputs=val_data.inputs,
+            signatures=signatures,
+            device=device)
+
+        os = OverSampler(self.train_dataset.inputs)
+        self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
         kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
@@ -123,7 +132,8 @@ class GeneratorTrainer:
                                                       train_sigma=train_std,
                                                       val_mu=val_mean,
                                                       val_sigma=val_std,
-                                                      step=step)
+                                                      step=step,
+                                                      model=model)
 
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
@@ -142,7 +152,7 @@ def train_generator(config) -> float:
         config (dict): Including all the needed args
         to load data, and train the model 
     """
-    from utilities.io import read_data_generator
+    from utilities.io import read_data_generator, sort_signatures
 
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"
@@ -156,9 +166,14 @@ def train_generator(config) -> float:
 
     train_data, val_data = read_data_generator(device=dev, data_id = config['data_id'], cosmic_version = config['cosmic_version'], type=config['type'])
 
+    ddata_folder = "../data/"
+    signatures = sort_signatures(file=ddata_folder + "data.xlsx",
+                                 mutation_type_order=ddata_folder + "mutation_type_order.xlsx")
+
     trainer = GeneratorTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
                                val_data=val_data,
+                               signatures=signatures,
                                lagrange_param=config["lagrange_param"],
                                num_classes=config["num_classes"],
                                device=torch.device(dev),

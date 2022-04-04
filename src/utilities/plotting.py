@@ -538,7 +538,6 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
-    return conf_mat
 
 def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     num_classes = len(guessed_labels)
@@ -603,10 +602,22 @@ def plot_bars(data, max=None):
     plt.legend(bars, data.keys())
     plt.show()
 
-def plot_correlation_matrix(data, signatures):
+def get_correlation_matrix(data, signatures):
+    fig = plt.figure()
     df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
     corrMatrix = df.corr()
     sn.heatmap(corrMatrix, annot=False)
+    return fig
+
+def plot_correlation_matrix(data, signatures):
+    fig = get_correlation_matrix(data, signatures)
+    plt.show()
+
+def plot_histograms(data_dict, bins=100):
+    for key in data_dict:
+        data = data_dict[key].detach().cpu().numpy()
+        plt.hist(data, density=True, bins=bins, label=key, alpha=0.5)  # density=False would make counts
+    plt.legend()
     plt.show()
 
 if __name__ == "__main__":

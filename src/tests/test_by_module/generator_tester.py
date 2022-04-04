@@ -2,10 +2,11 @@ import os
 import sys
 
 import torch
-
+from pprint import pprint
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from utilities.plotting import plot_correlation_matrix
+from utilities.plotting import plot_correlation_matrix, plot_histograms
+from utilities.metrics import sets_distances, get_distances_metrics
 from utilities.io import csv_to_tensor, read_model, read_signatures, sort_signatures
 
 def read_real_data():
@@ -30,20 +31,33 @@ if __name__=="__main__":
 
     real_inputs, real_labels, real_nummut = read_real_data()
     print("ok")
-    # generator_vae = read_model("../../../trained_models/exp_real_data/generator_augmented")
-    generator_vae = read_model("../../../trained_models/exp_real_data/generator_perturbed")
-    noise = torch.randn((2000, 40))
+
+    generator_vae = read_model("../../../trained_models/fig_generator/oversampled_dotdist_largelatent_generator_5_120_3")
+    # generator_vae = read_model("../../../trained_models/exp_real_data/generator_perturbed")
+    noise = torch.randn((2000, 120))
     synt_labels_vae = generator_vae.decode(noise)
     # synt_labels_gan = generator_gan(noise)
 
-    for l in synt_labels_vae[0:10]:
-        print(l)
-    # print(synt_labels[0])
+    real_dists, fake_dists = sets_distances(real_labels, synt_labels_vae)
+
+
+    print("Real distances")
+    real_dists_metrics = get_distances_metrics(real_dists)
+    pprint(real_dists_metrics)
+    
+    print("Fake distances")
+    pprint(get_distances_metrics(fake_dists))
+
+    data_dict = {
+        "fake": fake_dists,
+        "real": real_dists
+    }
+    plot_histograms(data_dict)
 
     # Correlation matrices
-    signatures = sort_signatures(file=data_folder + "data.xlsx",
-                                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
-    plot_correlation_matrix(data=real_labels, signatures=signatures)
-    plot_correlation_matrix(data=synt_labels_vae, signatures=signatures)
+    # signatures = sort_signatures(file=data_folder + "data.xlsx",
+    #                              mutation_type_order=data_folder + "mutation_type_order.xlsx")
+    # plot_correlation_matrix(data=real_labels, signatures=signatures)
+    # plot_correlation_matrix(data=synt_labels_vae, signatures=signatures)
     # plot_correlation_matrix(data=synt_labels_gan, signatures=signatures)
 
