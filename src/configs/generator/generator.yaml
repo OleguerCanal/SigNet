@@ -1,8 +1,8 @@
 config:
     # IDs & paths
     data_id: "real_data"
-    model_id: "cancer_type_oversampler"
-    models_dir: "../trained_models/fig_generator/"
+    model_id: "cancer_type_oversampler_all"
+    models_dir: "../trained_models/fix_generator/"
     cosmic_version: "v3"
     type: "real"
 
