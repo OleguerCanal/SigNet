@@ -5,6 +5,7 @@ import yaml
 
 import json
 import pandas as pd
+import random
 from sklearn import preprocessing
 import torch
 
@@ -59,9 +60,9 @@ def csv_to_pandas(file, device="cpu", header=None, index_col=None, type_df=None)
 
 def csv_to_tensor(file, device="cpu", header=None, index_col=None, type_df=None):
     df = pd.read_csv(file, header=header, index_col=index_col)
-    df.index = df.index.map(lambda x: x.split("..")[-1])
 
     if type_df is not None:
+        df.index = df.index.map(lambda x: x.split("..")[-1])
         cancer_type_df = pd.read_csv(type_df, header=0)[["Cancer Types", "Sample Names"]]
         df = df.merge(cancer_type_df, left_index=True, right_on="Sample Names").set_index("Sample Names")
         le = preprocessing.LabelEncoder()
@@ -174,6 +175,7 @@ def read_data_generator(device, data_id, data_folder = "../data/", cosmic_versio
                                     type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
             
             num_ctypes = real_data['cancer_type'][-1]+1
+            random.seed(10)     # for reproducibility
             real_data = real_data.groupby('cancer_type').sample(frac=1)       #Shuffle samples inside the same cancer type
             # print(real_data.size(0)/num_ctypes*prop_train)
             real_data_train = real_data.groupby('cancer_type').head(int(round(real_data.shape[0]/num_ctypes*prop_train)))  #Take the first prop_train % of samples in each cancer type
