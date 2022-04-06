@@ -175,8 +175,7 @@ def read_data_generator(device, data_id, data_folder = "../data/", cosmic_versio
                                     type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
             
             num_ctypes = real_data['cancer_type'][-1]+1
-            random.seed(10)     # for reproducibility
-            real_data = real_data.groupby('cancer_type').sample(frac=1)       #Shuffle samples inside the same cancer type
+            real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)       #Shuffle samples inside the same cancer type
             # print(real_data.size(0)/num_ctypes*prop_train)
             real_data_train = real_data.groupby('cancer_type').head(int(round(real_data.shape[0]/num_ctypes*prop_train)))  #Take the first prop_train % of samples in each cancer type
             real_data_rest = pd.concat([real_data, real_data_train]).drop_duplicates(keep=False)                    # The rest is for validation and testing
