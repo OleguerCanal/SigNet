@@ -247,6 +247,24 @@ def sets_distances(real, fake):
         fake_distances = torch.tensor([min_dist(real, p) for p in fake])
     return real_distances, fake_distances
 
+def prop_distances(real, fake):
+    """Distances between the proportion of signatures in the real and fake samples
+    """
+    real_changed = real.detach().clone()
+    fake_changed = fake.detach().clone()
+
+    real_changed[real_changed<0.01] = 0
+    real_changed[real_changed>=0.01] = 1
+    prop_tumors_real = torch.sum(real_changed, dim=0)/real_changed.shape[0]
+
+    fake_changed[fake_changed<0.01] = 0
+    fake_changed[fake_changed>=0.01] = 1
+    prop_tumors_fake = torch.sum(fake_changed, dim=0)/fake_changed.shape[0]
+        
+    se_prop = ((prop_tumors_fake-prop_tumors_real)**2).detach().numpy()
+    mse_prop = np.mean(se_prop)
+    return se_prop, mse_prop
+
 def get_distances_metrics(distances, quantiles=[0.99]):
     metrics = {}
     metrics["mean"] = np.format_float_scientific(torch.mean(distances).item(), precision = 2, exp_digits=1)

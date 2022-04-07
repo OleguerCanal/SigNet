@@ -1,12 +1,14 @@
+import json
 import os
 import sys
 
+import pandas as pd
 import torch
 from pprint import pprint
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utilities.plotting import plot_correlation_matrix, plot_histograms
-from utilities.metrics import sets_distances, get_distances_metrics
+from utilities.metrics import prop_distances, sets_distances, get_distances_metrics
 from utilities.io import csv_to_tensor, read_model, read_signatures, sort_signatures
 
 def read_real_data():
@@ -30,29 +32,54 @@ if __name__=="__main__":
     data_folder = "../../../data/"
 
     real_inputs, real_labels, real_nummut = read_real_data()
-    print("ok")
 
-    generator_vae = read_model("../../../trained_models/fig_generator/oversampled_dotdist_largelatent_generator_5_120_3")
-    # generator_vae = read_model("../../../trained_models/exp_real_data/generator_perturbed")
-    noise = torch.randn((2000, 120))
-    synt_labels_vae = generator_vae.decode(noise)
-    # synt_labels_gan = generator_gan(noise)
+    results_dict = {'model_id': [],
+                    'DQ99G': [],
+                    'DMeanG': [],
+                    'DQ99R': [],
+                    'DMeanR': [],
+                    'prop_distance': [],
+                    'mean_prop_distance': []}
 
-    real_dists, fake_dists = sets_distances(real_labels, synt_labels_vae)
+    list_of_dirs = ["../../../trained_models/fix_generator_oversample/cancer_type_oversampler_" + str(i+1) for i in range(20)]
 
+    for directory in list_of_dirs:
+        generator_vae = read_model(directory)
 
-    print("Real distances")
-    real_dists_metrics = get_distances_metrics(real_dists)
-    pprint(real_dists_metrics)
-    
-    print("Fake distances")
-    pprint(get_distances_metrics(fake_dists))
+        init_args_file = os.path.join(directory, 'init_args.json')
+        with open(init_args_file, 'r') as fp:
+            init_args = json.load(fp)
+        latent_dim = init_args["latent_dim"]
 
-    data_dict = {
-        "fake": fake_dists,
-        "real": real_dists
-    }
-    plot_histograms(data_dict)
+        noise = torch.randn((2000, latent_dim))
+        synt_labels_vae = generator_vae.decode(noise)
+
+        real_dists, fake_dists = sets_distances(real_labels, synt_labels_vae)
+
+        real_dists_metrics = get_distances_metrics(real_dists)
+        # pprint(real_dists_metrics)
+        
+        fake_dists_metrics = get_distances_metrics(fake_dists)
+        # pprint(fake_dists_metrics)
+
+        results_dict['model_id'].append(directory.split('/')[-1])
+        results_dict['DQ99G'].append(fake_dists_metrics['quantiles'][0][0])
+        results_dict['DMeanG'].append(fake_dists_metrics['mean'])
+        results_dict['DQ99R'].append(real_dists_metrics['quantiles'][0][0])
+        results_dict['DMeanR'].append(real_dists_metrics['mean'])
+        results_dict['prop_distance'].append(prop_distances(real_labels, synt_labels_vae)[0])
+        results_dict['mean_prop_distance'].append(prop_distances(real_labels, synt_labels_vae)[1])
+
+    results_df = pd.DataFrame(results_dict)
+    print(results_df)
+    results_df.to_csv("generator_performance.csv")
+    # data_dict = {
+    #     "fake": fake_dists,
+    #     "real": real_dists
+    # }
+    # plot_histograms(data_dict)
+
+    # print(prop_distances(real_labels, synt_labels_vae))
 
     # Correlation matrices
     # signatures = sort_signatures(file=data_folder + "data.xlsx",

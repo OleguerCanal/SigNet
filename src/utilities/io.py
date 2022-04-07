@@ -5,6 +5,7 @@ import yaml
 
 import json
 import pandas as pd
+import random
 from sklearn import preprocessing
 import torch
 
@@ -44,11 +45,24 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
         signatures_data.to_csv(output_file, index=False)
     return signatures_data
 
-def csv_to_tensor(file, device="cpu", header=None, index_col=None, type_df=None):
+def csv_to_pandas(file, device="cpu", header=None, index_col=None, type_df=None):
     df = pd.read_csv(file, header=header, index_col=index_col)
     df.index = df.index.map(lambda x: x.split("..")[-1])
 
     if type_df is not None:
+        cancer_type_df = pd.read_csv(type_df, header=0)[["Cancer Types", "Sample Names"]]
+        df = df.merge(cancer_type_df, left_index=True, right_on="Sample Names").set_index("Sample Names")
+        le = preprocessing.LabelEncoder()
+        le.fit(df["Cancer Types"])
+        df['cancer_type'] = le.transform(df["Cancer Types"])
+        df = df.drop("Cancer Types", axis=1)
+    return df
+
+def csv_to_tensor(file, device="cpu", header=None, index_col=None, type_df=None):
+    df = pd.read_csv(file, header=header, index_col=index_col)
+
+    if type_df is not None:
+        df.index = df.index.map(lambda x: x.split("..")[-1])
         cancer_type_df = pd.read_csv(type_df, header=0)[["Cancer Types", "Sample Names"]]
         df = df.merge(cancer_type_df, left_index=True, right_on="Sample Names").set_index("Sample Names")
         le = preprocessing.LabelEncoder()
@@ -149,38 +163,54 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real'):
+def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real', prop_train = 0.9):
     '''
     type should be: 'real', 'perturbed' or 'augmented_real'.
     '''
     data_folder = data_folder + data_id
     if type == 'real':
         if cosmic_version == 'v3':
-            real_data = csv_to_tensor(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
+            real_data = csv_to_pandas(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
                                     device=device, header=0, index_col=0,
                                     type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
-            real_data, cancer_types = real_data[:, :-1], real_data[:, -1]
-            real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
-            real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+            
+            num_ctypes = real_data['cancer_type'][-1]+1
+            real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)       #Shuffle samples inside the same cancer type
+            # print(real_data.size(0)/num_ctypes*prop_train)
+            real_data_train = real_data.groupby('cancer_type').head(int(round(real_data.shape[0]/num_ctypes*prop_train)))  #Take the first prop_train % of samples in each cancer type
+            real_data_rest = pd.concat([real_data, real_data_train]).drop_duplicates(keep=False)                    # The rest is for validation and testing
+
+            real_data_train = torch.tensor(real_data_train.values, dtype=torch.float)
+            real_data_rest = torch.tensor(real_data_rest.values, dtype=torch.float)
+
+            train_input, train_cancer_types = real_data_train[:, :-1], real_data_train[:, -1]
+            train_input = train_input/torch.sum(train_input, axis=1).reshape(-1, 1)
+            train_input = torch.cat([train_input, torch.zeros(train_input.size(0), 7).to(train_input)], dim=1)
+            train_data = GeneratorData(inputs=train_input, cancer_types=train_cancer_types)
+
+            val_input, val_cancer_types = real_data_rest[:, :-1], real_data_rest[:, -1]
+            val_input = val_input/torch.sum(val_input, axis=1).reshape(-1, 1)
+            val_input = torch.cat([val_input, torch.zeros(val_input.size(0), 7).to(val_input)], dim=1)
+            val_data = GeneratorData(inputs=val_input, cancer_types=val_cancer_types)
+
         elif cosmic_version == 'v2':
             real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
                                     device=device, header=0, index_col=0)
             real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+
+            perm = torch.randperm(real_data.size(0))
+            data = real_data[perm, :]
+
+            train_input = data[:int(real_data.size(0)*0.95)]
+            val_input = data[int(real_data.size(0)*0.95):]
+
+            train_data = GeneratorData(inputs=train_input)
+            val_data = GeneratorData(inputs=val_input)
+
         else:
             raise NotImplementedError
+
         
-        perm = torch.randperm(real_data.size(0))
-        data = real_data[perm, :]
-        print(cancer_types)
-        cancer_types = cancer_types[perm]
-
-        train_input = data[:int(real_data.size(0)*0.95)]
-        train_cancer_types = cancer_types[:int(real_data.size(0)*0.95)]
-        val_input = data[int(real_data.size(0)*0.95):]
-        val_cancer_types = cancer_types[int(real_data.size(0)*0.95):]
-
-        train_data = GeneratorData(inputs=train_input, cancer_types=train_cancer_types)
-        val_data = GeneratorData(inputs=val_input, cancer_types=val_cancer_types)
     else:
         train_input = csv_to_tensor(data_folder + "/train_%s_low_label.csv"%type,
                                     device=device, header=None, index_col=None)

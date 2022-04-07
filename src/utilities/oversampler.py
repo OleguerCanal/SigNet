@@ -48,3 +48,38 @@ class CancerTypeOverSampler:
             to_append = [self.data[i, :].unsqueeze(0)]*times_to_repeat
             oversampled = torch.cat([oversampled] + to_append, dim=0)
         return oversampled[np.random.permutation(oversampled.size(0)), ...]
+
+    def get_even_set(self):
+        """Oversample to have the same number of samples for each cancer type
+        """
+        oversampled = torch.tensor([])
+        max_count = torch.max(self.counts)
+        for i in range(self.cancer_types.size(0)):
+            count = self.counts[int(self.cancer_types[i].item())]
+            times_to_repeat = int(torch.round(max_count/count))
+            # print(i, int(self.cancer_types[i].item()), count, times_to_repeat)
+            to_append = [self.data[i, :].unsqueeze(0)]*times_to_repeat
+            oversampled = torch.cat([oversampled] + to_append, dim=0)
+        return oversampled[np.random.permutation(oversampled.size(0)), ...]
+
+
+if __name__=="__main__":
+    import os
+    import sys
+
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from utilities.io import csv_to_tensor, csv_to_pandas
+
+    real_data = csv_to_pandas("../../data/real_data/sigprofiler_not_norm_PCAWG.csv",
+                                    device="cpu", header=0, index_col=0,
+                                    type_df="../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+    print(real_data)
+    real_data_g = real_data.groupby('cancer_type').sample(frac=1)
+    print(real_data_g.groupby('cancer_type').head(3))
+    print(real_data_g.groupby('cancer_type').tail(3))
+    print(real_data_g['cancer_type'][-1])
+    print(real_data.shape[0])
+    # real_data, cancer_types = real_data[:, :-1], real_data[:, -1]
+
+    # oversampler = CancerTypeOverSampler(real_data, cancer_types)
+    # new_set = oversampler.get_even_set()
