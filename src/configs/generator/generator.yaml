@@ -7,7 +7,7 @@ config:
     type: "real"
 
     # Training params
-    iterations: 3000
+    iterations: 2001
     num_classes: 72
     lagrange_param: 0.00001
     batch_size: 200

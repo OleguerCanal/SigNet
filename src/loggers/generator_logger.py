@@ -74,6 +74,7 @@ class GeneratorLogger:
         wandb.log({"train_sigma": torch.mean(train_sigma)})
         wandb.log({"val_sigma": torch.mean(val_sigma)})
 
+        train_DQ99R = None
         if self.counter % self.plot_freq == 0:
             n = self.train_inputs.size(0) + self.train_inputs.size(1)
             noise = torch.randn((n, model.latent_dim), device=self.device)
@@ -89,11 +90,12 @@ class GeneratorLogger:
             train_fake_metrics = get_distances_metrics(train_fake_dists)
             val_real_metrics = get_distances_metrics(val_real_dists)
             val_fake_metrics = get_distances_metrics(val_fake_dists)
+            train_DQ99R = train_real_metrics["quantiles"][-1]
             wandb.log({"train_DQ99R" : train_real_metrics["quantiles"][-1],
                        "train_DQ99G" : train_fake_metrics["quantiles"][-1]})
             wandb.log({"val_DQ99R" : val_real_metrics["quantiles"][-1],
                        "val_DQ99G" : val_fake_metrics["quantiles"][-1]})
-            if self.counter % 20*self.plot_freq == 0:
+            if self.counter % 50000*self.plot_freq == 0:
                 fig = get_correlation_matrix(generated, self.signatures)
                 wandb.log({"correlation": wandb.Image(fig)})
                 plt.cla()
@@ -108,5 +110,4 @@ class GeneratorLogger:
                 wandb.log({"error_by_signature": plt})
             
         self.counter += 1
-        # return val_mse, val_KL
-        return None, None
+        return train_DQ99R
