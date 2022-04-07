@@ -433,3 +433,50 @@ class DataGenerator:
             inputs_sets[set] = input_batch
             labels_output_sets[set] = labels_batch
         return inputs_sets['train'], labels_output_sets['train'],inputs_sets['val'], labels_output_sets['val'],inputs_sets['test'], labels_output_sets['test']
+
+    def make_input(self, labels, set, large_low, normalize=True):
+        """Create a labelled dataset of mutation vectors
+        from a tensor of labels.
+        """
+
+        if set == "train":
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+            elif large_low == 'large':
+                range_muts = [1e4, 5e4, 1e5, 5e5]
+        elif set == "val":
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000]
+            elif large_low == 'large':
+                range_muts = [1e4, 5e4, 1e5, 5e5]
+        elif set == "test":
+            range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+
+        batch_size = (len(range_muts)-1)*labels.shape[0]
+        input_batch = torch.empty((batch_size, 96))
+        labels_batch = torch.empty((batch_size, self.total_signatures + 1))
+
+        for i in tqdm(range(len(range_muts)-1)):
+            for j in range(labels.shape[0]):
+                # Compute resulting signature
+                signature = torch.einsum("ij,j->i", (self.signatures, labels[j]))
+
+                if set == "test":
+                    num_mut = range_muts[i]
+                else:
+                    num_mut = np.random.randint(range_muts[i], range_muts[i+1])
+
+                if num_mut<1e5:
+                    sample = self.__sample_from_sig(signature=signature,
+                                                num_mut=int(num_mut),
+                                                normalize=normalize)
+                    # Store
+                    input_batch[i*labels.shape[0]+j, :] = sample
+                    labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
+                else:
+                    # Store
+                    input_batch[i*labels.shape[0]+j, :] = signature
+                    labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
+        return input_batch, labels_batch

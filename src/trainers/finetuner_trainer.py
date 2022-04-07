@@ -1,12 +1,12 @@
 from loggers.finetuner_logger import FinetunerLogger
+from models.baseline import Baseline
+from utilities.data_generator import DataGenerator
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import save_model, read_model
+from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model
 from utilities.data_partitions import DataPartitions
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 import collections
-import copy
 import os
-import pathlib
 import sys
 
 import numpy as np
@@ -14,6 +14,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utilities.oversampler import CancerTypeOverSampler
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -143,9 +144,7 @@ class FinetunerTrainer:
 
 
 def train_finetuner(config) -> float:
-    from utilities.io import read_data
-    from models.finetuner import baseline_guess_to_finetuner_guess
-
+    import os
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"
@@ -161,10 +160,43 @@ def train_finetuner(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    # Load data
-    train_data, val_data = read_data(experiment_id=config["data_id"],
-                                     source=config["source"],
-                                     device=dev)
+    load_data = config["load_data"]
+    if load_data == True:
+        # Load data
+        train_data, val_data = read_data(experiment_id=config["data_id"],
+                                        source=config["source"],
+                                        device=dev)
+    else:
+        ########################################################################################################################################
+        # New data with oversampled even set of real data
+
+        train_data, val_data = read_data_generator(device=dev, data_id = "real_data", data_folder = "../data/", cosmic_version = 'v3', type='real')
+        os = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
+        train_label = os.get_even_set()         # Oversample to create set with same number of samples per cancer type
+        val_label = val_data.inputs       
+
+        # Create inputs associated to the labels
+        signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+        data_generator = DataGenerator(signatures=signatures,
+                                    seed=None,
+                                    shuffle=True)
+        train_input, train_label = data_generator.make_input(train_label, "train", "large", normalize=True)
+        val_input, val_label = data_generator.make_input(val_label, "val", "large", normalize=True)
+        
+        # Run Baseline
+        sf = Baseline(signatures)
+        train_baseline = sf.get_weights_batch(train_input)
+        val_baseline = sf.get_weights_batch(val_input)
+        
+        # Create DataPartitions
+        train_data = DataPartitions(inputs=train_input,
+                                    prev_guess=train_baseline,
+                                    labels=train_label)
+        val_data = DataPartitions(inputs=val_input,
+                                    prev_guess=val_baseline,
+                                    labels=val_label)
+
+        ########################################################################################################################################
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

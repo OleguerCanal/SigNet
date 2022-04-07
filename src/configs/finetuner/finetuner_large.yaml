@@ -1,11 +1,12 @@
 config:
     # IDs & paths
     data_id: "exp_real_data"
-    model_id: "finetuner_perturbed_large"
+    model_id: "finetuner_real_oversampled_large"
     models_dir: "../trained_models/exp_real_data"
-
+    load_data: False
+    
     # Training params
-    source: "perturbed_large"
+    source: "real_large"
     network_type: "large"
     iterations: 1000
     num_classes: 72

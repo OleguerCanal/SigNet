@@ -48,7 +48,7 @@ class GeneratorTrainer:
             device=device)
 
         os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
-        self.train_dataset.inputs = os.get_oversampled_set()
+        self.train_dataset.inputs = os.get_even_set()
 
     def __loss(self, input, pred, z_mu, z_std):
         kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
