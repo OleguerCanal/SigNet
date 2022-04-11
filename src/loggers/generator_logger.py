@@ -97,7 +97,7 @@ class GeneratorLogger:
                        "val_DQ99G" : val_fake_metrics["quantiles"][-1]})
             plt.switch_backend('agg')
             if self.counter % 50000*self.plot_freq == 0:
-                fig = get_correlation_matrix(generated, self.signatures)
+                fig, _ = get_correlation_matrix(generated, self.signatures)
                 wandb.log({"correlation": wandb.Image(fig)})
                 plt.cla()
                 plt.clf()

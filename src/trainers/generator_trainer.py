@@ -41,6 +41,7 @@ class GeneratorTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
+
         self.logger = GeneratorLogger(
             train_inputs=train_data.inputs,
             val_inputs=val_data.inputs,
@@ -48,12 +49,14 @@ class GeneratorTrainer:
             device=device)
 
         os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
+        # os = OverSampler(self.train_dataset.inputs)
         self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
         kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
-        mse = nn.MSELoss()(input, pred)
-        return mse + self.adapted_lagrange_param*kl_div
+        reconstruction = nn.MSELoss()(input, pred)
+        # reconstruction = get_jensen_shannon(predicted_label=pred, true_label=input)
+        return reconstruction + self.adapted_lagrange_param*kl_div
 
     def objective(self,
                   batch_size,

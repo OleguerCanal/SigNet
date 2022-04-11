@@ -11,4 +11,7 @@ class GeneratorData(Dataset):
 
     def __getitem__(self, i):
         return self.inputs[i]
-            
+    
+    def to(self, device):
+        self.inputs = self.inputs.to(device)
+        self.cancer_types = self.cancer_types.to(device)
