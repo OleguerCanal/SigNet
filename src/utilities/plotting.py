@@ -133,7 +133,7 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     plt.close()
     ############################################################################################
     
-    # fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8,6))
 
     list_of_metrics = ["accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %"]
 

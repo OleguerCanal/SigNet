@@ -33,7 +33,7 @@ baseline_guess = baseline.get_weights_batch(test_input)
 # Load finetuner and get predictions
 
 models_path = "../../trained_models/%s/"%experiment_id
-finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_perturbed_low",
+finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_real_oversampled_low",
                               large_mum_mut_dir=models_path + "finetuner_real_oversampled_large")
 finetuner_guess = finetuner(mutation_dist=test_input,
                             baseline_guess=baseline_guess,
@@ -60,15 +60,15 @@ plot_weights_comparison(true_labels=metrics_baseline["MAE_sign"],
                         #labels={"true":"baseline", "guessed":"finetuner"})
 
 
-# # list_of_metrics = ["MAE_p", "MAE_n", "fp", "fn"]
+# list_of_metrics = ["MAE_p", "MAE_n", "fpr", "fnr"]
 
-# # plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label_batch, "../../plots/%s/metrics_vs_sigs.png"%experiment_id)
-# # plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label_batch, "../../plots/%s/metric_vs_mutations.png"%experiment_id)
+# plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, test_label, "../../plots/%s/metrics_vs_sigs.png"%experiment_id)
+# plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, test_label, "../../plots/%s/metric_vs_mutations.png"%experiment_id)
 
-list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
+# list_of_metrics = ["accuracy %", "sens: tp/p %", "spec: tn/n %"]
 
-# plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label_batch, "../../plots/%s/metrics_acc_vs_sigs.png"%experiment_id)
-# plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label_batch, show=True)
+# plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, test_label, "../../plots/%s/metrics_acc_vs_sigs.png"%experiment_id)
+# plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, test_label, show=True)
 
 
 # indexes = (label_batch[:,-1]<1e3)

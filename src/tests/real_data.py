@@ -4,10 +4,11 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import csv_to_tensor, read_signatures, tensor_to_csv
+from utilities.io import csv_to_tensor, read_data_generator, read_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
+from utilities.data_generator import DataGenerator
 
 def read_real_data():
     inputs = data_folder + "real_data/PCAWG_data.csv"
@@ -42,8 +43,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_real_data"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_perturbed_low",
-                                            large_mum_mut_dir=models_path + "finetuner_perturbed_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_real_oversampled_low",
+                                            large_mum_mut_dir=models_path + "finetuner_real_oversampled_large")
     return finetuner
 
 def normalize(a, b):
@@ -66,13 +67,32 @@ def small_to_unkown(a, thr = 0.01):
 if __name__=="__main__":
     data_folder = "../../data/"
 
-    real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
-    synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
+    train_data, test_data = read_data_generator(device='cpu', data_id = "real_data", data_folder = "../../data/", cosmic_version = 'v3', type='real')
+    test_label = test_data.inputs 
+    train_label = train_data.inputs 
+    signatures = read_signatures("../../data/data.xlsx")
+    data_generator = DataGenerator(signatures=signatures,
+                                    seed=None,
+                                    shuffle=True)
+    test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
+    train_input, train_label = data_generator.make_input(labels=train_label, set="train", large_low="large", normalize=True)
+
+
+    # real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
+    # synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
 
     # real_inputs_norm = normalize(real_inputs, synt_inputs)
-    real_inputs_norm = real_inputs
+    # real_inputs_norm = real_inputs
 
-    # finetuner = read_finetuner()
+    baseline = Baseline(signatures)
+    baseline_guess = baseline.get_weights_batch(test_input)
+    finetuner = read_finetuner()
+    real_guess = finetuner(mutation_dist=test_input, baseline_guess=baseline_guess, num_mut=test_label[:,-1])
+
+    baseline = Baseline(signatures)
+    baseline_guess = baseline.get_weights_batch(train_input)
+    finetuner = read_finetuner()
+    train_real_guess = finetuner(mutation_dist=train_input, baseline_guess=baseline_guess, num_mut=train_label[:,-1])
     # real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
     # synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
 
@@ -182,11 +202,18 @@ if __name__=="__main__":
             # plt.show()
 
     import matplotlib.pyplot as plt
-    # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    # boxplots(real_guess, real_labels, num_sigs_range = [0,36], only_present = True)
-    # boxplots(real_guess, real_labels, num_sigs_range = [36,72], only_present = True)
-    # plt.show()
+    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [0,36], only_present = True)
+    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [36,72], only_present = True)
+    plt.show()
+
+    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = True)
+    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = True)
+    plt.show()
+
 
     # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])
     # boxplots(synt_guess, synt_labels, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])
@@ -199,12 +226,12 @@ if __name__=="__main__":
     # boxplots(real_labels, synt_labels, num_sigs_range = [36,72], only_present = True)
 
 
-    generator = read_model("../../trained_models/fix_generator/cancer_type_oversampler_all", device="cpu")
-    examples = generator.generate(3000, std = 1).detach()
-    import matplotlib.pyplot as plt
+    # generator = read_model("../../trained_models/fix_generator/cancer_type_oversampler_all", device="cpu")
+    # examples = generator.generate(3000, std = 1).detach()
+    # import matplotlib.pyplot as plt
 
-    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
-    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
-    boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = True)
-    boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = True)
-    plt.show()
+    # boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    # boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = False, legend_names = ['SigProfiler Labels', 'Synthetic Labels'])
+    # boxplots(real_labels, examples, num_sigs_range = [0,36], only_present = True)
+    # boxplots(real_labels, examples, num_sigs_range = [36,72], only_present = True)
+    # plt.show()

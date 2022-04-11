@@ -1,14 +1,14 @@
 config:
     # IDs & paths
     data_id: "exp_real_data"
-    model_id: "test"
+    model_id: "finetuner_real_oversampled_low"
     models_dir: "../trained_models/exp_real_data"
     load_data: False
     
     # Training params
-    source: "perturbed_low"
+    source: "real_low"
     network_type: "low"
-    iterations: 100
+    iterations: 300
     num_classes: 72
     sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
     batch_size: 283

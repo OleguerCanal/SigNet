@@ -180,13 +180,13 @@ def train_finetuner(config) -> float:
         data_generator = DataGenerator(signatures=signatures,
                                     seed=None,
                                     shuffle=True)
-        train_input, train_label = data_generator.make_input(train_label, "train", "large", normalize=True)
-        val_input, val_label = data_generator.make_input(val_label, "val", "large", normalize=True)
+        train_input, train_label = data_generator.make_input(train_label, "train", config["network_type"], normalize=True)
+        val_input, val_label = data_generator.make_input(val_label, "val", config["network_type"], normalize=True)
         
         # Run Baseline
         sf = Baseline(signatures)
-        train_baseline = sf.get_weights_batch(train_input)
-        val_baseline = sf.get_weights_batch(val_input)
+        train_baseline = sf.get_weights_batch(train_input, n_workers=2)
+        val_baseline = sf.get_weights_batch(val_input, n_workers=2)
         
         # Create DataPartitions
         train_data = DataPartitions(inputs=train_input,
