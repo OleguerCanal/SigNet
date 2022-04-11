@@ -8,7 +8,7 @@ config:
     # Training params
     source: "real_low"
     network_type: "low"
-    iterations: 300
+    iterations: 150
     num_classes: 72
     sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
     batch_size: 283
@@ -19,8 +19,8 @@ config:
     wandb_project_id: "finetuner_real_data"
 
     # Network params
-    num_hidden_layers: 4
-    num_neurons: 150
+    num_hidden_layers: 1
+    num_neurons: 100
 
     # Misc
     device: "cuda"

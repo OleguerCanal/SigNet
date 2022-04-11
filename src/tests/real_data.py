@@ -4,11 +4,12 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utilities.io import csv_to_tensor, read_data_generator, read_signatures, tensor_to_csv
+from utilities.io import csv_to_tensor, read_data_generator, read_signatures, sort_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
 from modules.combined_finetuner import CombinedFinetuner
 from models.baseline import Baseline
 from utilities.data_generator import DataGenerator
+from utilities.plotting import plot_correlation_matrix
 
 def read_real_data():
     inputs = data_folder + "real_data/PCAWG_data.csv"
@@ -213,6 +214,11 @@ if __name__=="__main__":
     boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = True)
     boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = True)
     plt.show()
+    
+    signatures = sort_signatures(file=data_folder + "data.xlsx",
+                                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
+    plot_correlation_matrix(real_guess, signatures)
+    plot_correlation_matrix(test_label[:,:-1], signatures)
 
 
     # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])

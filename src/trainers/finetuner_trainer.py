@@ -2,7 +2,7 @@ from loggers.finetuner_logger import FinetunerLogger
 from models.baseline import Baseline
 from utilities.data_generator import DataGenerator
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model
+from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
 from utilities.data_partitions import DataPartitions
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 import collections
@@ -48,7 +48,8 @@ class FinetunerTrainer:
         # if self.network_type == 'low':
         #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
         # if self.network_type == 'large':
-        l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        l = get_kl_divergence(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -196,6 +197,7 @@ def train_finetuner(config) -> float:
                                     prev_guess=val_baseline,
                                     labels=val_label)
 
+        tensor_to_csv(train_data.labels, "../data/real_data_oversampled.csv")
         ########################################################################################################################################
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
