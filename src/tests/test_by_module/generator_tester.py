@@ -9,7 +9,8 @@ from pprint import pprint
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utilities.plotting import plot_correlation_matrix, plot_histograms
 from utilities.metrics import prop_distances, sets_distances, get_distances_metrics
-from utilities.io import csv_to_tensor, read_model, read_signatures, sort_signatures
+from utilities.io import csv_to_tensor, read_data_generator, read_model, read_signatures, sort_signatures
+from utilities.oversampler import CancerTypeOverSampler
 
 def read_real_data():
     inputs = data_folder + "real_data/PCAWG_data.csv"
@@ -41,8 +42,8 @@ if __name__=="__main__":
                     'prop_distance': [],
                     'mean_prop_distance': []}
 
-    list_of_dirs = ["../../../trained_models/fix_generator_oversample/cancer_type_oversampler_" + str(i+1) for i in range(20)]
-
+    # list_of_dirs = ["../../../trained_models/fix_generator_oversample/cancer_type_oversampler_" + str(i+1) for i in range(20)]
+    list_of_dirs = ["../../../trained_models/fix_generator_oversample/fix_generator_light_oversample_bayesian"]
     for directory in list_of_dirs:
         generator_vae = read_model(directory)
 
@@ -57,10 +58,10 @@ if __name__=="__main__":
         real_dists, fake_dists = sets_distances(real_labels, synt_labels_vae)
 
         real_dists_metrics = get_distances_metrics(real_dists)
-        # pprint(real_dists_metrics)
+        pprint(real_dists_metrics)
         
         fake_dists_metrics = get_distances_metrics(fake_dists)
-        # pprint(fake_dists_metrics)
+        pprint(fake_dists_metrics)
 
         results_dict['model_id'].append(directory.split('/')[-1])
         results_dict['DQ99G'].append(fake_dists_metrics['quantiles'][0][0])
@@ -72,19 +73,32 @@ if __name__=="__main__":
 
     results_df = pd.DataFrame(results_dict)
     print(results_df)
-    results_df.to_csv("generator_performance.csv")
-    # data_dict = {
-    #     "fake": fake_dists,
-    #     "real": real_dists
-    # }
-    # plot_histograms(data_dict)
+    # results_df.to_csv("generator_performance.csv")
+    data_dict = {
+        "fake": fake_dists,
+        "real": real_dists
+    }
+    plot_histograms(data_dict)
 
-    # print(prop_distances(real_labels, synt_labels_vae))
+    print(prop_distances(real_labels, synt_labels_vae))
 
     # Correlation matrices
-    # signatures = sort_signatures(file=data_folder + "data.xlsx",
-    #                              mutation_type_order=data_folder + "mutation_type_order.xlsx")
-    # plot_correlation_matrix(data=real_labels, signatures=signatures)
-    # plot_correlation_matrix(data=synt_labels_vae, signatures=signatures)
+    signatures = sort_signatures(file=data_folder + "data.xlsx",
+                                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
+    plot_correlation_matrix(data=real_labels, signatures=signatures)
+    plot_correlation_matrix(data=synt_labels_vae, signatures=signatures)
+
+    train_data, val_data = read_data_generator(device='cpu',
+                                               data_id="real_data",
+                                               cosmic_version='v3',
+                                               data_folder=data_folder,
+                                               type="real")
+
+    os = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
+    real_labels_light_augmented = os.get_oversampled_set()
+    real_labels_augmented = os.get_even_set()
+
+    plot_correlation_matrix(data=real_labels_light_augmented, signatures=signatures)
+    plot_correlation_matrix(data=real_labels_augmented, signatures=signatures)
     # plot_correlation_matrix(data=synt_labels_gan, signatures=signatures)
 

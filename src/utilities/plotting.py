@@ -607,11 +607,12 @@ def get_correlation_matrix(data, signatures):
     df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
     corrMatrix = df.corr()
     sn.heatmap(corrMatrix, annot=False)
-    return fig
+    return fig, corrMatrix
 
 def plot_correlation_matrix(data, signatures):
-    fig = get_correlation_matrix(data, signatures)
+    fig, corrMatrix = get_correlation_matrix(data, signatures)
     plt.show()
+    return corrMatrix
 
 def plot_histograms(data_dict, bins=100):
     for key in data_dict:
