@@ -135,7 +135,7 @@ class GeneratorTrainer:
                                                         val_sigma=val_std,
                                                         step=step,
                                                         model=model)
-                    train_DQ99R = train_DQ99R if current_train_DQ99R is not None else train_DQ99R
+                    train_DQ99R = current_train_DQ99R if current_train_DQ99R is not None else train_DQ99R
 
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
@@ -171,7 +171,7 @@ def train_generator(config, data_folder="../data/") -> float:
     print("Using device:", dev)
 
     if config["enable_logging"]:
-        runt = wandb.init(project=config["wandb_project_id"],
+        run = wandb.init(project=config["wandb_project_id"],
                    entity='sig-net',
                    config=config,
                    name=config["model_id"])
