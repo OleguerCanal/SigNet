@@ -209,19 +209,3 @@ def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
     gc.collect()
     torch.cuda.empty_cache()
     return data
-
-
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1110012.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1110012_filtered.txt
-cat 1110012_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1110012_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1110022.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1110022_filtered.txt
-cat 1110022_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1110022_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1210012.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1210012_filtered.txt
-cat 1210012_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1210012_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1210022.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1210022_filtered.txt
-cat 1210022_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1210022_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1210032.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1210032_filtered.txt
-cat 1210032_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1210032_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1210042.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1210042_filtered.txt
-cat 1210042_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1210042_filtered_mut.txt
-/nfs/users/dweghorn/cserranocolome/software/gatk-4.2.0.0/gatk VariantsToTable -V 1210052.vcf -F CHROM -F POS -F REF -F ALT -F TYPE -GF AD -O 1210052_filtered.txt
-cat 1210052_filtered.txt | grep ",0" | grep SNP > tmp && mv tmp 1210052_filtered_mut.txt
