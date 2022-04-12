@@ -171,7 +171,7 @@ def train_finetuner(config) -> float:
         ########################################################################################################################################
         # New data with oversampled even set of real data
 
-        train_data, val_data = read_data_generator(device=dev, data_id = "real_data", data_folder = "../data/", cosmic_version = 'v3', type='real')
+        train_data, val_data = read_data_generator(device=dev, data_id = "real_data", data_folder = "../data/", cosmic_version = 'v3', type='real', prop_train = 0.8)
         os = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
         train_label = os.get_even_set()         # Oversample to create set with same number of samples per cancer type
         val_label = val_data.inputs       
@@ -197,7 +197,13 @@ def train_finetuner(config) -> float:
                                     prev_guess=val_baseline,
                                     labels=val_label)
 
-        tensor_to_csv(train_data.labels, "../data/real_data_oversampled.csv")
+        tensor_to_csv(train_data.inputs, "../data/exp_oversample/train_%s_input.csv"%config["network_type"])
+        tensor_to_csv(train_label, "../data/exp_oversample/train_%s_label.csv"%config["network_type"])
+        tensor_to_csv(train_data.prev_guess, "../data/exp_oversample/train_%s_baseline.csv"%config["network_type"])
+
+        tensor_to_csv(val_data.inputs, "../data/exp_oversample/val_%s_input.csv"%config["network_type"])
+        tensor_to_csv(val_label, "../data/exp_oversample/val_%s_label.csv"%config["network_type"])
+        tensor_to_csv(val_data.prev_guess, "../data/exp_oversample/val_%s_baseline.csv"%config["network_type"])
         ########################################################################################################################################
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
