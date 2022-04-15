@@ -1,13 +1,14 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm/sd1.5"
-    model_id: "finetuner_not_norm_no_baseline_large_0_15"
-    models_dir: "../trained_models/exp_not_norm"
-
+    data_id: "exp_oversample"
+    model_id: "finetuner_oversample_bayesian_large"
+    models_dir: "../trained_models/exp_oversample_bayesian"
+    load_data: True
+    
     # Training params
-    source: "generator_large"
-    network_type: "low"
-    iterations: 70
+    source: "large"
+    network_type: "large"
+    iterations: 150
     num_classes: 72
     sigmoid_params: [[1000, 1000], [10000, 2000], [100000, 5000]]
     batch_size: 283
@@ -15,10 +16,10 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_no_baseline"
+    wandb_project_id: "exp_oversample_bayesian_large"
 
     # Network params
-    num_hidden_layers: 3
+    num_hidden_layers: 1
     num_neurons: 100
 
     # Misc
