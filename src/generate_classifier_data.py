@@ -15,6 +15,7 @@ def shuffle(inputs, labels, num_mut):
 
 if __name__ == "__main__":
 
+    assert len(sys.argv) == 2, "Usage: python generate_classifier_data v3"
     cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
