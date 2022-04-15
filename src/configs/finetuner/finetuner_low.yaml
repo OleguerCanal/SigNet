@@ -1,25 +1,26 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "finetuner_not_norm_no_baseline_low"
-    models_dir: "../trained_models/exp_not_norm"
-
+    data_id: "exp_oversample"
+    model_id: "finetuner_low"
+    models_dir: "../trained_models/exp_finetuner"
+    load_data: True
+    
     # Training params
-    source: "generator_low"
+    source: "low"
     network_type: "low"
-    iterations: 400
+    iterations: 150
     num_classes: 72
-    sigmoid_params: [500,150]
-    batch_size: 500
-    lr: 0.001
+    sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
+    batch_size: 50
+    lr: 0.005
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "finetuner_generator_not_norm"
+    wandb_project_id: "exp_finetuner_low"
 
     # Network params
-    num_hidden_layers: 3
-    num_neurons: 60
+    num_hidden_layers: 1
+    num_neurons: 50
 
     # Misc
     device: "cuda"
