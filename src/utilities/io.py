@@ -215,6 +215,8 @@ def read_data_generator(device, data_id, data_folder = "../data/", cosmic_versio
         train_data = GeneratorData(inputs=train_input[:,:-1])
         val_data = GeneratorData(inputs=val_input[:,:-1])
 
+    train_data.to(device)
+    val_data.to(device)
     return train_data, val_data
 
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):

@@ -1,7 +1,14 @@
+import sys
+import os
+
 import copy
 
 import numpy as np
 import torch
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utilities.plotting import plot_correlation_matrix
+from utilities.io import sort_signatures
 
 class OverSampler:
     def __init__(self, data):
@@ -73,13 +80,36 @@ if __name__=="__main__":
     real_data = csv_to_pandas("../../data/real_data/sigprofiler_not_norm_PCAWG.csv",
                                     device="cpu", header=0, index_col=0,
                                     type_df="../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
-    print(real_data)
-    real_data_g = real_data.groupby('cancer_type').sample(frac=1)
-    print(real_data_g.groupby('cancer_type').head(3))
-    print(real_data_g.groupby('cancer_type').tail(3))
-    print(real_data_g['cancer_type'][-1])
-    print(real_data.shape[0])
-    # real_data, cancer_types = real_data[:, :-1], real_data[:, -1]
+    # print(real_data)
+    # real_data_g = real_data.groupby('cancer_type').sample(frac=1)
+    # print(real_data_g.groupby('cancer_type').head(3))
+    # print(real_data_g.groupby('cancer_type').tail(3))
+    # print(real_data_g['cancer_type'][-1])
+    # print(real_data.shape[0])
 
-    # oversampler = CancerTypeOverSampler(real_data, cancer_types)
-    # new_set = oversampler.get_even_set()
+    print(real_data)
+
+    real_data = torch.tensor(real_data.values)
+    real_data, cancer_types = real_data[:, :-1], real_data[:, -1]
+
+    real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+    real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+
+    oversampler = CancerTypeOverSampler(real_data, cancer_types)
+    new_set = oversampler.get_even_set()
+
+    print(real_data.size())
+    print(new_set.size())
+
+    print(sum(real_data[:,2]>0))
+    print(sum(new_set[:,2]>0))
+    print(sum(real_data[:,0]>0))
+    print(sum(new_set[:,0]>0))
+
+    data_folder = '../../data/'
+    signatures = sort_signatures(file=data_folder + "data.xlsx",
+                                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
+    corrMatrix = plot_correlation_matrix(data=new_set, signatures=signatures)
+    print(corrMatrix)
+    corrMatrix = plot_correlation_matrix(data=real_data, signatures=signatures)
+    print(corrMatrix)
