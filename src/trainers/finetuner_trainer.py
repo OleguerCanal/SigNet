@@ -1,12 +1,12 @@
 from loggers.finetuner_logger import FinetunerLogger
+from models.baseline import Baseline
+from utilities.data_generator import DataGenerator
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import save_model, read_model
+from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
 from utilities.data_partitions import DataPartitions
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 import collections
-import copy
 import os
-import pathlib
 import sys
 
 import numpy as np
@@ -14,6 +14,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utilities.oversampler import CancerTypeOverSampler
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -44,10 +45,11 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        if self.network_type == 'low':
-            l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        if self.network_type == 'large':
-            l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'low':
+        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        # if self.network_type == 'large':
+        # l = get_jensen_shannon(predicted_label=prediction, true_label=label)
+        l = get_kl_divergence(predicted_label=prediction, true_label=label)
         return l
 
     def objective(self,
@@ -79,19 +81,23 @@ class FinetunerTrainer:
         # if plot:
         #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
         step = 0
         for _ in range(self.iterations):
-            for train_input, train_label, train_weight_guess, num_mut, _ in tqdm(dataloader):
+            for train_input, train_label, train_baseline, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
-                optimizer.zero_grad()
-                train_prediction = model(train_input, train_weight_guess, num_mut)
+                optimizer.zero_grad()   
+                if self.network_type == "large":             
+                    train_prediction = model(train_input, train_baseline, num_mut)
+                else:
+                    train_prediction = model(train_input, num_mut)
+
+                train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
+                                                    prediction_batch=train_prediction)
                 train_FP, train_FN = None, None
-                # train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
-                #                                     prediction_batch=train_prediction)
                 train_loss = self.__loss(prediction=train_prediction,
                                          label=train_label,
                                          FP=train_FP,
@@ -104,7 +110,10 @@ class FinetunerTrainer:
                 with torch.no_grad():
                     train_classification_metrics = get_classification_metrics(label_batch=train_label,
                                                                               prediction_batch=train_prediction)
-                    val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    if self.network_type == "large":     
+                        val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
+                    else:
+                        val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
                     val_FP, val_FN = None, None
                     # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                     #                                 prediction_batch=val_prediction)
@@ -136,9 +145,7 @@ class FinetunerTrainer:
 
 
 def train_finetuner(config) -> float:
-    from utilities.io import read_data
-    from models.finetuner import baseline_guess_to_finetuner_guess
-
+    import os
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"
@@ -154,10 +161,50 @@ def train_finetuner(config) -> float:
                    config=config,
                    name=config["model_id"])
 
-    # Load data
-    train_data, val_data = read_data(experiment_id=config["data_id"],
-                                     source=config["source"],
-                                     device=dev)
+    load_data = config["load_data"]
+    if load_data == True:
+        # Load data
+        train_data, val_data = read_data(experiment_id=config["data_id"],
+                                        source=config["source"],
+                                        device=dev)
+    else:
+        ########################################################################################################################################
+        # New data with oversampled even set of real data
+
+        train_data, val_data = read_data_generator(device=dev, data_id = "real_data", data_folder = "../data/", cosmic_version = 'v3', type='real', prop_train = 0.8)
+        os = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
+        train_label = os.get_even_set()         # Oversample to create set with same number of samples per cancer type
+        val_label = val_data.inputs       
+
+        # Create inputs associated to the labels
+        signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+        data_generator = DataGenerator(signatures=signatures,
+                                    seed=None,
+                                    shuffle=True)
+        train_input, train_label = data_generator.make_input(train_label, "train", config["network_type"], normalize=True)
+        val_input, val_label = data_generator.make_input(val_label, "val", config["network_type"], normalize=True)
+        
+        # Run Baseline
+        sf = Baseline(signatures)
+        train_baseline = sf.get_weights_batch(train_input, n_workers=2)
+        val_baseline = sf.get_weights_batch(val_input, n_workers=2)
+        
+        # Create DataPartitions
+        train_data = DataPartitions(inputs=train_input,
+                                    prev_guess=train_baseline,
+                                    labels=train_label)
+        val_data = DataPartitions(inputs=val_input,
+                                    prev_guess=val_baseline,
+                                    labels=val_label)
+
+        tensor_to_csv(train_data.inputs, "../data/exp_oversample/train_%s_input.csv"%config["network_type"])
+        tensor_to_csv(train_label, "../data/exp_oversample/train_%s_label.csv"%config["network_type"])
+        tensor_to_csv(train_data.prev_guess, "../data/exp_oversample/train_%s_baseline.csv"%config["network_type"])
+
+        tensor_to_csv(val_data.inputs, "../data/exp_oversample/val_%s_input.csv"%config["network_type"])
+        tensor_to_csv(val_label, "../data/exp_oversample/val_%s_label.csv"%config["network_type"])
+        tensor_to_csv(val_data.prev_guess, "../data/exp_oversample/val_%s_baseline.csv"%config["network_type"])
+        ########################################################################################################################################
 
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

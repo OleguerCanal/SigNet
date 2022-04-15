@@ -1,0 +1,26 @@
+config:
+    # IDs & paths
+    data_id: "exp_oversample"
+    model_id: "finetuner_oversample_bayesian_large"
+    models_dir: "../trained_models/exp_oversample_bayesian"
+    load_data: True
+    
+    # Training params
+    source: "large"
+    network_type: "large"
+    iterations: 150
+    num_classes: 72
+    sigmoid_params: [[1000, 1000], [10000, 2000], [100000, 5000]]
+    batch_size: 283
+    lr: 0.0015
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "exp_oversample_bayesian_large"
+
+    # Network params
+    num_hidden_layers: 1
+    num_neurons: 100
+
+    # Misc
+    device: "cuda"

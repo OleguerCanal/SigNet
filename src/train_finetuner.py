@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import FinetunerTrainer, train_finetuner
 from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_realistic_low.yaml"]
-# DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_realistic_large.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_nobaseline_low.yaml"]
+# DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_large.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -37,6 +37,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '--sigmoid_params', action='store', nargs=1, type=list, required=False,
         help='Sigmoid parameters for normalization.'
+    )
+    parser.add_argument(
+        '--load_data', action='store', nargs=1, type=str, required=False,
+        help='Whether to load or generate data for the training'
     )
 
     # Train args

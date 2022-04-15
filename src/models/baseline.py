@@ -60,17 +60,35 @@ def create_baseline_dataset(input_file, output_file, signatures_path, which_base
 
 
 if __name__ == "__main__":
-    data_folder = "../../data/"
-    signatures_file = data_folder + "data.xlsx"
+
+    cosmic_version = str(sys.argv[1])
+
+    if cosmic_version == 'v3':
+        data_folder = "../../data/"
+        signatures_file = data_folder + "data.xlsx"
+        experiment_id = "exp_not_norm"
+    elif cosmic_version == 'v2':
+        data_folder = "../../data/"
+        signatures_file = data_folder + "data_v2.xlsx"
+        experiment_id = "exp_generator_v2"
+    else:
+        raise NotImplementedError
 
     in_files = [
         # generator
-        "/exp_generator/train_perturbed_low_input.csv",
-        "/exp_generator/train_perturbed_large_input.csv",
+        "/%s/train_generator_low_input.csv"%experiment_id,
+        "/%s/train_generator_large_input.csv"%experiment_id,
+        "/%s/val_generator_low_input.csv"%experiment_id,
+        "/%s/val_generator_large_input.csv"%experiment_id,
+        "/%s/train_perturbed_low_input.csv"%experiment_id,
+        "/%s/train_perturbed_large_input.csv"%experiment_id,
+        "/%s/val_perturbed_low_input.csv"%experiment_id,
+        "/%s/val_perturbed_large_input.csv"%experiment_id,
 
         # tests
-        # "/exp_generator/test_generator_low_input.csv",
-    ]
+        "/%s/test_generator_input.csv"%experiment_id,
+        "/%s/test_perturbed_input.csv"%experiment_id,
+    ]    
 
     for in_file in in_files:
         print("Computing baseline of:", in_file)

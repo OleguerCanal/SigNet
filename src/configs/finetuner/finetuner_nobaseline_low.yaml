@@ -1,0 +1,26 @@
+config:
+    # IDs & paths
+    data_id: "exp_oversample"
+    model_id: "finetuner_oversample_bayesian_low"
+    models_dir: "../trained_models/exp_oversample_bayesian"
+    load_data: True
+    
+    # Training params
+    source: "low"
+    network_type: "low"
+    iterations: 150
+    num_classes: 72
+    sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
+    batch_size: 283
+    lr: 0.0015
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "exp_oversample_bayesian_low"
+
+    # Network params
+    num_hidden_layers: 1
+    num_neurons: 100
+
+    # Misc
+    device: "cpu"

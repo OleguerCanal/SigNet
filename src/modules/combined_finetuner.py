@@ -50,7 +50,7 @@ class CombinedFinetuner:
         
         with torch.no_grad():
             guess_low = self.finetuner_low(
-                input_batch_low, baseline_guess_low, num_mut_low)
+                input_batch_low, num_mut_low)
 
             guess_large = self.finetuner_large(
                 input_batch_large, baseline_guess_large, num_mut_large)

@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import torch
 
@@ -12,16 +14,25 @@ def shuffle(inputs, labels, num_mut):
     return inputs[indexes, ...], labels[indexes, ...], num_mut[indexes, ...]
 
 if __name__ == "__main__":
+
+    cosmic_version = str(sys.argv[1])
+
+    if cosmic_version == 'v3':
+        experiment_id = "exp_not_norm"
+    elif cosmic_version == 'v2':
+        experiment_id = "exp_generator_v2"
+    else:
+        raise NotImplementedError
+
     data_folder = "../data"
-    experiment_id = "exp_generator"
 
     # Read all realistic data    
     train_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/train_generator_low_input.csv")
     train_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/train_generator_low_label.csv")[:, -1].view(-1, 1)
     val_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/val_generator_low_input.csv")
     val_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/val_generator_low_label.csv")[:, -1].view(-1, 1)
-    test_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_low_input.csv")
-    test_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_low_label.csv")[:, -1].view(-1, 1)
+    test_realistic_inputs = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_input.csv")
+    test_realistic_nummut = csv_to_tensor(data_folder + '/' + experiment_id + "/test_generator_label.csv")[:, -1].view(-1, 1)
     
     # Label all realistic data as a 1
     train_realistic_labels = torch.ones((train_realistic_inputs.shape[0], 1)).to(torch.float).view(-1, 1)
@@ -29,7 +40,7 @@ if __name__ == "__main__":
     test_realistic_labels = torch.ones((test_realistic_inputs.shape[0], 1)).to(torch.float).view(-1, 1)
 
     # Read random data
-    experiment_id_random = "exp_final"
+    experiment_id_random = experiment_id + "/random_data"
     train_random, val_random = read_data(device="cpu",
                                          experiment_id=experiment_id_random,
                                          source="random_low",
