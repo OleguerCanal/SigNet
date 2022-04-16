@@ -8,19 +8,19 @@ config:
     # Training params
     source: "low"
     network_type: "low"
-    iterations: 150
+    iterations: 50
     num_classes: 72
     sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
-    batch_size: 50
-    lr: 0.005
+    batch_size: 495
+    lr: 0.0048
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "exp_finetuner_low"
+    wandb_project_id: "exp_finetuner_final"
 
     # Network params
     num_hidden_layers: 1
-    num_neurons: 50
+    num_neurons: 100
 
     # Misc
     device: "cuda"
