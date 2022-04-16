@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import torch
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_signatures, tensor_to_csv, csv_to_tensor, read_model, read_data, read_test_data
 from utilities.data_partitions import DataPartitions
 from modules.combined_finetuner import CombinedFinetuner
