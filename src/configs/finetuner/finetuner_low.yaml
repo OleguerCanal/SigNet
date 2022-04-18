@@ -8,11 +8,11 @@ config:
     # Training params
     source: "low"
     network_type: "low"
-    iterations: 50
+    iterations: 100
     num_classes: 72
     sigmoid_params: [[500, 150], [5000, 1000], [10000, 5000]]
-    batch_size: 495
-    lr: 0.0048
+    batch_size: 167
+    lr: 0.001826
 
     # WANDB params
     enable_logging: True
@@ -20,7 +20,7 @@ config:
 
     # Network params
     num_hidden_layers: 1
-    num_neurons: 100
+    num_neurons: 800
 
     # Misc
     device: "cuda"
