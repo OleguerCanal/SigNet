@@ -11,13 +11,16 @@ from utilities.io import read_config, read_data
 from trainers.finetuner_trainer import train_finetuner
 from HyperParameterOptimizer.src.gaussian_process_search import GaussianProcessSearch
 
+assert len(sys.argv[1]) == 2, "Usage: python optimize_finetuner low"
+large_low = str(sys.argv[1])
+assert large_low in ["low", "large"], "Argument can only be large or low"
 
-experiment_id = "fixed_bayesian_finetuner_oversample_low"
+experiment_id = "fixed_bayesian_finetuner_oversample_%s"%large_low
 num_classes = 72
 
-batch_sizes = Integer(name='batch_size', low=50, high=500)
-learning_rates = Real(name='lr', low=1e-5, high=5e-3)
-num_neurons = Integer(name='num_neurons', low=50, high=800)
+batch_sizes = Integer(name='batch_size', low=20, high=500)
+learning_rates = Real(name='lr', low=1e-6, high=5e-3)
+num_neurons = Integer(name='num_neurons', low=50, high=1000)
 num_hidden_layers = Integer(name='num_hidden_layers', low=1, high=6)
 
 input_file = None  # Use None to start from zero
@@ -25,7 +28,7 @@ output_file = "search_results_" + experiment_id + ".csv"
 
 if __name__ == "__main__":
     # Read base config
-    config = read_config(path="../configs/finetuner/finetuner_low.yaml")
+    config = read_config(path="../configs/finetuner/finetuner_%s.yaml"%large_low)
     iterations = config['iterations']
 
     # Define hyperparameters to train
