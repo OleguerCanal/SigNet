@@ -1,10 +1,3 @@
-from loggers.finetuner_logger import FinetunerLogger
-from models.baseline import Baseline
-from utilities.data_generator import DataGenerator
-from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
-from utilities.data_partitions import DataPartitions
-from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 import collections
 import os
 import sys
@@ -14,11 +7,16 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utilities.oversampler import CancerTypeOverSampler
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from loggers.finetuner_logger import FinetunerLogger
+from models.baseline import Baseline
+from utilities.data_generator import DataGenerator
+from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
+from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
+from utilities.data_partitions import DataPartitions
+from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 
 class FinetunerTrainer:
     def __init__(self,
@@ -144,7 +142,7 @@ class FinetunerTrainer:
         return max_found
 
 
-def train_finetuner(config) -> float:
+def train_finetuner(config, data_folder="../data", name=None) -> float:
     import os
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
@@ -156,56 +154,17 @@ def train_finetuner(config) -> float:
     finetuner_path = os.path.join(config["models_dir"], config["model_id"])
 
     if config["enable_logging"]:
-        wandb.init(project=config["wandb_project_id"],
-                   entity='sig-net',
-                   config=config,
-                   name=config["model_id"])
+        run = wandb.init(project=config["wandb_project_id"],
+                         entity='sig-net',
+                         config=config,
+                         name=config["model_id"] if name is None else name)
 
     load_data = config["load_data"]
-    if load_data == True:
-        # Load data
-        train_data, val_data = read_data(experiment_id=config["data_id"],
-                                        source=config["source"],
-                                        device=dev)
-    else:
-        ########################################################################################################################################
-        # New data with oversampled even set of real data
-
-        train_data, val_data = read_data_generator(device=dev, data_id = "real_data", data_folder = "../data/", cosmic_version = 'v3', type='real', prop_train = 0.8)
-        os = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
-        train_label = os.get_even_set()         # Oversample to create set with same number of samples per cancer type
-        val_label = val_data.inputs       
-
-        # Create inputs associated to the labels
-        signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
-        data_generator = DataGenerator(signatures=signatures,
-                                    seed=None,
-                                    shuffle=True)
-        train_input, train_label = data_generator.make_input(train_label, "train", config["network_type"], normalize=True)
-        val_input, val_label = data_generator.make_input(val_label, "val", config["network_type"], normalize=True)
-        
-        # Run Baseline
-        sf = Baseline(signatures)
-        train_baseline = sf.get_weights_batch(train_input, n_workers=2)
-        val_baseline = sf.get_weights_batch(val_input, n_workers=2)
-        
-        # Create DataPartitions
-        train_data = DataPartitions(inputs=train_input,
-                                    prev_guess=train_baseline,
-                                    labels=train_label)
-        val_data = DataPartitions(inputs=val_input,
-                                    prev_guess=val_baseline,
-                                    labels=val_label)
-
-        tensor_to_csv(train_data.inputs, "../data/exp_oversample/train_%s_input.csv"%config["network_type"])
-        tensor_to_csv(train_label, "../data/exp_oversample/train_%s_label.csv"%config["network_type"])
-        tensor_to_csv(train_data.prev_guess, "../data/exp_oversample/train_%s_baseline.csv"%config["network_type"])
-
-        tensor_to_csv(val_data.inputs, "../data/exp_oversample/val_%s_input.csv"%config["network_type"])
-        tensor_to_csv(val_label, "../data/exp_oversample/val_%s_label.csv"%config["network_type"])
-        tensor_to_csv(val_data.prev_guess, "../data/exp_oversample/val_%s_baseline.csv"%config["network_type"])
-        ########################################################################################################################################
-
+    train_data, val_data = read_data(experiment_id=config["data_id"],
+                                    source=config["source"],
+                                    data_folder=data_folder,
+                                    device=dev)
+    
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
                                val_data=val_data,
@@ -220,4 +179,7 @@ def train_finetuner(config) -> float:
                                 num_hidden_layers=config["num_hidden_layers"],
                                 num_units=config["num_neurons"],
                                 plot=True)
+    if config["enable_logging"]:
+        wandb.log({"validation_score": min_val})
+        run.finish()
     return min_val

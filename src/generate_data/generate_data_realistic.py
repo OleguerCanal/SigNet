@@ -4,10 +4,9 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_generator import DataGenerator
 from utilities.io import read_model, read_data_generator, read_signatures, tensor_to_csv
-
-
 
 if __name__ == "__main__":
     assert len(sys.argv) == 2, "Usage: python generate_data_realistic v3"
