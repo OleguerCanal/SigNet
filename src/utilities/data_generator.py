@@ -119,6 +119,7 @@ class DataGenerator:
     def make_random_set(self,
                         set,
                         large_low,
+                        num_samples,
                         min_n_signatures=1,
                         max_n_signatures=10,
                         normalize=True):
@@ -129,27 +130,28 @@ class DataGenerator:
 
         if set == "train":
             if large_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
-                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + \
-                    [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
+                    [3] * num_samples + [4]*num_samples + [5]*num_samples + [6]*num_samples + [7]*num_samples
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
                 # The -1 means real distribution
-                ind_range_muts = [0]*50000 + [1]*50000 + \
-                    [2]*50000 + [3] * 50000 + [-1]*50000
+                ind_range_muts = [0]*num_samples + [1]*num_samples + \
+                    [2]*num_samples + [3] * num_samples + [-1]*num_samples
             batch_size = len(ind_range_muts)
         elif set == "val":
             if large_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000]
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
+                    [3] * num_samples + [4]*num_samples + [5]*num_samples + [6]*num_samples + [7]*num_samples
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
-            ind_range_muts = [0]*1000 + [1]*1000 + [2]*1000 + \
-                [3]*1000 + [-1]*1000  # The -1 means real distribution
+                ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
+                    [3]*num_samples + [-1]*num_samples  # The -1 means real distribution
             batch_size = len(ind_range_muts)
         elif set == "test":
-            num_muts = [25]*100 + [50]*100 + [100]*100 + [250]*100 + [500]*100 + [1e3]*100 +\
-                [5e3]*100 + [1e4]*100 + [5e4]*100 + [1e5] * \
-                100    # The -1 means real distribution
+            num_muts = [25]*num_samples + [50]*num_samples + [100]*num_samples + [250]*num_samples + [500]*num_samples + [1e3]*num_samples +\
+                [5e3]*num_samples + [1e4]*num_samples + [5e4]*num_samples + [1e5]*num_samples
             batch_size = len(num_muts)
 
         input_batch = torch.empty((batch_size, 96))
