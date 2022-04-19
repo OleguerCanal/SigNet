@@ -135,8 +135,8 @@ class FinetunerTrainer:
                                     val_classification_metrics=val_classification_metrics,
                                     step=step)
 
-                if self.model_path is not None and step % 500 == 0:
-                    save_model(model=model, directory=self.model_path)
+                if self.model_path is not None and step % 100 == 0:
+                    save_model(model=model, directory=self.model_path + '_it' + str(step))
                 step += 1
         save_model(model=model, directory=self.model_path)
         return max_found

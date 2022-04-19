@@ -13,7 +13,7 @@ from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mut
 from utilities.metrics import get_classification_metrics
 from utilities.data_generator import DataGenerator
 
-experiment_id = "exp_real_data"
+experiment_id = "exp_finetuner"
 
 # Load data
 # input_batch = csv_to_tensor("../../data/%s/test_perturbed_input.csv"%experiment_id, device="cpu")
@@ -33,8 +33,8 @@ baseline_guess = baseline.get_weights_batch(test_input)
 # Load finetuner and get predictions
 
 models_path = "../../trained_models/%s/"%experiment_id
-finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_real_oversampled_low",
-                              large_mum_mut_dir=models_path + "finetuner_real_oversampled_large")
+finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
+                              large_mum_mut_dir=models_path + "finetuner_large")
 finetuner_guess = finetuner(mutation_dist=test_input,
                             baseline_guess=baseline_guess,
                             num_mut=test_label[:,-1].view(-1, 1))
