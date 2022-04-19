@@ -15,21 +15,21 @@ from utilities.metrics import get_reconstruction_error
 data_folder = "../../../data/"
 
 # Load data
-data_path = "../../../data/exp_generator_v2/"
-inputs = csv_to_tensor(data_path + "test_generator_input.csv", device='cpu')
-labels = csv_to_tensor(data_path + "test_generator_label.csv", device='cpu')
+data_path = "../../../data/exp_oversample/"
+inputs = csv_to_tensor(data_path + "test_input.csv", device='cpu')
+labels = csv_to_tensor(data_path + "test_label.csv", device='cpu')
 num_mut = labels[:, -1].unsqueeze(1)
 
 print("data loaded")
 
 # Load model
-path = "../../../trained_models/exp_generator_v2/"
+path = "../../../trained_models/exp_all/"
 signet = SigNet(classifier=path + "classifier",
-                finetuner_realistic_low=path + "finetuner_generator_low",
-                finetuner_realistic_large=path + "finetuner_generator_large",
-                errorfinder=path + "errorfinder_generator",
+                finetuner_realistic_low=path + "finetuner_low",
+                finetuner_realistic_large=path + "finetuner_large",
+                errorfinder=path + "errorfinder",
                 opportunities_name_or_path=None,
-                signatures_path=data_folder + "data_v2.xlsx",
+                signatures_path=data_folder + "data.xlsx",
                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
 
 print("model read")
@@ -79,7 +79,7 @@ plot_metric_vs_mutations_classifier(guess=classification_results,
 # write_final_outputs(finetuner_guess, lower_bound, upper_bound, signet.baseline_guess.detach().numpy(), classification, reconstruction_error.detach().numpy(), input_file, output_path)
 
 # plot_reconstruction(inputs, finetuner_guess, signatures, list(range(0,inputs.shape[0], 1000)), output_path)
-# final_plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=False)
+final_plot_interval_metrics_vs_mutations(labels, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=True)
 # plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
 # plot_interval_metrics_vs_sigs(label, upper_bound, lower_bound, '')
 

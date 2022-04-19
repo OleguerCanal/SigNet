@@ -67,7 +67,7 @@ class SigNet:
                 normalized_mutation_vec, n_workers=nworkers)  # hack to be able to access it for benchmarking purposes
 
             finetuner_guess, upper_bound, lower_bound, classification = self.finetuner_errorfinder(
-                normalized_mutation_vec, num_mutations.reshape(-1, 1))
+                normalized_mutation_vec, self.baseline_guess, num_mutations.reshape(-1, 1))
 
         if numpy:
             return finetuner_guess.detach().numpy(), upper_bound.detach().numpy(), lower_bound.detach().numpy(), classification.detach().numpy(), normalized_mutation_vec.detach().numpy()

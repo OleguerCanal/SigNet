@@ -194,7 +194,7 @@ class ErrorTrainer:
         return max_found
 
 
-def train_errorfinder(config) -> float:
+def train_errorfinder(config, data_folder="../data") -> float:
     from utilities.io import read_data
     from modules.combined_finetuner import baseline_guess_to_combined_finetuner_guess
 
@@ -206,8 +206,8 @@ def train_errorfinder(config) -> float:
     # Set paths
     errorfinder_path = os.path.join(config["models_dir"], config["model_id"])
     classifier_path = os.path.join(config["models_dir"], config["classifier_id"])
-    finetuner_realistic_low_path = os.path.join(config["models_dir"], config["finetuner_realistic_low_id"])
-    finetuner_realistic_large_path = os.path.join(config["models_dir"], config["finetuner_realistic_large_id"])
+    finetuner_low_path = os.path.join(config["models_dir"], config["finetuner_low_id"])
+    finetuner_large_path = os.path.join(config["models_dir"], config["finetuner_large_id"])
 
     if config["enable_logging"]:
         wandb.init(project=config["wandb_project_id"],
@@ -217,45 +217,29 @@ def train_errorfinder(config) -> float:
 
     # Load data
     train_real_low, val_real_low = read_data(experiment_id=config["data_id"],
-                                            source="generator_low",
-                                            device="cpu",
-                                            n_points=None)
+                                            source="low",
+                                            data_folder=data_folder,
+                                            device=dev)
     train_real_large, val_real_large = read_data(experiment_id=config["data_id"],
-                                                source="generator_large",
-                                                device="cpu",
-                                                n_points=None)
-    train_perturbed_low, val_perturbed_low = read_data(experiment_id=config["data_id"],
-                                            source="perturbed_low",
-                                            device="cpu",
-                                            n_points=None)
-    train_perturbed_large, val_perturbed_large = read_data(experiment_id=config["data_id"],
-                                                source="perturbed_large",
-                                                device="cpu",
-                                                n_points=None)
+                                                source="large",
+                                                data_folder=data_folder,
+                                                device=dev)
     train_data = train_real_low
     train_data.append(train_real_large)
-    train_data.append(train_perturbed_low)
-    train_data.append(train_perturbed_large)
     train_data.perm()
 
     del train_real_low
     del train_real_large
-    del train_perturbed_low
-    del train_perturbed_large
 
     val_data = val_real_low
     val_data.append(val_real_large)
-    val_data.append(val_perturbed_low)
-    val_data.append(val_perturbed_large)
 
     del val_real_low
     del val_real_large
-    del val_perturbed_low
-    del val_perturbed_large
 
     # model = ClassifiedFinetuner(classifier=read_model(classifier_path)
-    model = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low_path,
-                              large_mum_mut_dir=finetuner_realistic_large_path)
+    model = CombinedFinetuner(low_mum_mut_dir=finetuner_low_path,
+                              large_mum_mut_dir=finetuner_large_path)
     classifier = read_model(classifier_path)
 
     train_data = baseline_guess_to_combined_finetuner_guess(model=model,
