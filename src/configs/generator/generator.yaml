@@ -1,23 +1,25 @@
 config:
     # IDs & paths
-    data_id: "exp_good/generator"
-    model_id: "generator"
-    models_dir: "../trained_models/exp_good/"
+    data_id: "real_data"
+    model_id: "cancer_type_oversampler_1"
+    models_dir: "../trained_models/fix_generator_oversample/"
+    cosmic_version: "v3"
+    type: "real"
 
     # Training params
-    iterations: 500
+    iterations: 2001
     num_classes: 72
-    lagrange_param: 0.001
-    batch_size: 100
-    lr_encoder: 0.005
-    lr_decoder: 0.0005
+    lagrange_param: 0.00001
+    batch_size: 200
+    lr_encoder: 0.001
+    lr_decoder: 0.0001
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "generator"
+    wandb_project_id: "fix_generator_oversample"
 
     # Network params
-    num_hidden_layers: 5
+    num_hidden_layers: 3
     latent_dim: 100
 
     # Misc

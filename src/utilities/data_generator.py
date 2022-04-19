@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import reshape
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
@@ -39,84 +40,81 @@ class DataGenerator:
 
     def make_similar_set(self,
                          examples_weight,
-                         large_or_low="low",
-                         is_test=False,
+                         large_low="low",
                          n_augmentations=10):
         """Create a labelled dataset of mutation vectors similar
            to the provided examples.
         """
 
-        # Perform weight augmentation
-        weight_augmenter = WeightAugmenter()
-        augmented_labels = weight_augmenter.get_mixed_augmentations(
-            weight=examples_weight,
-            reweighted_n_augs=int(n_augmentations/2),
-            reweighted_augmentation_var=0.3,
-            random_n_augs=int(n_augmentations/2),
-            random_affected=10,
-            random_max_noise=0.3,
-        )
+        labels = examples_weight
+        labels = labels[np.random.permutation(labels.shape[0]), ...]
+        labels_sets = {'train':labels[:int(labels.shape[0]*0.7), :],
+                       'val':labels[int(labels.shape[0]*0.7):int(labels.shape[0]*0.7+labels.shape[0]*0.05), :],
+                       'test':labels[int((labels.shape[0]*0.7+labels.shape[0]*0.05)):, :]}
+        labels_output_sets = {'train':0,
+                              'val':0,
+                              'test':0}
+        inputs_sets = {'train':0,
+                       'val':0,
+                       'test':0}
 
-        # Sampling:
-        batch_size = augmented_labels.shape[0]
-        mutations = torch.einsum(
-            "ij,bj->bi", (self.signatures, augmented_labels))
 
-        if not is_test:
-            if large_or_low == 'low':
-                partitions_points = int(batch_size/7)+1
-                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 10000]
-                ind_range_muts = [0]*partitions_points + [1]*partitions_points + [2]*partitions_points + [
-                    3] * partitions_points + [4]*partitions_points + [5]*partitions_points + [6]*(partitions_points+1)
-            elif large_or_low == 'large':
-                partitions_points = int(batch_size/5)
-                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
-                ind_range_muts = [0]*partitions_points + [1]*partitions_points + [2]*partitions_points + [
-                    3] * partitions_points + [-1]*(partitions_points+1)     # The -1 means real distribution
-        else:
-            num_muts = [25]*100 + [50]*100 + [100]*100 + [250]*100 + [500]*100 + [1e3]*100 +\
-                [5e3]*100 + [1e4]*100 + [5e4]*100 + [1e5] * \
-                100    # The -1 means real distribution
-            batch_size = len(num_muts)
+        for set,labels in labels_sets.items():
 
-        input_batch = torch.empty((batch_size, 96))
-        label_batch = torch.empty((batch_size, self.total_signatures + 1))
+            # Perform weight augmentation
+            weight_augmenter = WeightAugmenter()
+            augmented_labels = weight_augmenter.get_mixed_augmentations(
+                weight=labels,
+                reweighted_n_augs=int(n_augmentations/2),
+                reweighted_augmentation_var=0.3,
+                random_n_augs=int(n_augmentations/2),
+                random_affected=10,
+                random_max_noise=0.3,
+            )
 
-        for i in tqdm(range(batch_size)):
-            label = augmented_labels[i, ...]
-            signature = mutations[i, ...]
+            if set == "train":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "val":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "test":
+                range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
 
-            # Sample (NOTE: This bit is a mess, we should rethink it)
-            if is_test:
-                num_mut = num_muts[i]
-            else:
-                if ind_range_muts[i] != -1:
-                    num_mut = np.random.randint(
-                        range_muts[ind_range_muts[i]], range_muts[ind_range_muts[i] + 1])
-                else:
-                    num_mut = -1
+            batch_size = (len(range_muts)-1)*augmented_labels.shape[0]
+            input_batch = torch.empty((batch_size, 96))
+            labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
-            if num_mut != -1:
-                sample = self.__sample_from_sig(signature=signature,
-                                                num_mut=int(num_mut),
-                                                normalize=True)
-                # Store
-                input_batch[i, :] = sample
-                label_batch[i, :] = torch.cat(
-                    [label, torch.tensor([float(num_mut)])])
-            else:
-                # Store
-                input_batch[i, :] = signature
-                # For the real distribution we say we have more than 1e5 mutations
-                label_batch[i, :] = torch.cat(
-                    [label, torch.tensor([float(np.random.randint(1e5, 1e6))])])
+            for i in tqdm(range(len(range_muts)-1)):
+                for j in range(augmented_labels.shape[0]):
+                    # Compute resulting signature
+                    signature = torch.einsum("ij,j->i", (self.signatures, augmented_labels[j]))
 
-        if self.shuffle:
-            indices = np.random.permutation(input_batch.shape[0])
-            input_batch = input_batch[indices, ...]
-            label_batch = label_batch[indices, ...]
+                    if set == "test":
+                        num_mut = range_muts[i]
+                    else:
+                        num_mut = np.random.randint(range_muts[i], range_muts[i+1])
 
-        return input_batch, label_batch
+                    if num_mut<1e5:
+                        sample = self.__sample_from_sig(signature=signature,
+                                                    num_mut=int(num_mut),
+                                                    normalize=True)
+                        # Store
+                        input_batch[i*augmented_labels.shape[0]+j, :] = sample
+                        labels_batch[i*augmented_labels.shape[0]+j, :] = torch.cat(
+                            [augmented_labels[j, :], torch.tensor([float(num_mut)])])
+                    else:
+                        # Store
+                        input_batch[i*augmented_labels.shape[0]+j, :] = signature
+                        labels_batch[i*augmented_labels.shape[0]+j, :] = torch.cat(
+                            [augmented_labels[j, :], torch.tensor([float(num_mut)])])
+            inputs_sets[set] = input_batch
+            labels_output_sets[set] = labels_batch
+        return inputs_sets['train'], labels_output_sets['train'],inputs_sets['val'], labels_output_sets['val'],inputs_sets['test'], labels_output_sets['test']
 
     def make_random_set(self,
                         set,
@@ -211,6 +209,7 @@ class DataGenerator:
                            generator_model_path,
                            set,
                            large_low,
+                           std = 1.0, 
                            normalize=True):
         """Create a labelled dataset of mutation vectors
         from the generator output weights.
@@ -220,8 +219,9 @@ class DataGenerator:
         if set == "train":
             if large_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
-                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 + \
-                    [3] * 50000 + [4]*50000 + [5]*50000 + [6]*50000 + [7]*50000 + [-1]*50000
+                ind_range_muts = [0]*50000 + [1]*50000 + [2]*50000 +\
+                    [3]*50000 + [4]*50000 + [5]*50000 + [6]*50000 +\
+                    [7]*50000 + [-1]*50000
             elif large_low == 'large':
                 range_muts = [1e4, 5e4, 1e5, 5e5]
                 # The -1 means real distribution
@@ -240,7 +240,7 @@ class DataGenerator:
                 1000    # The -1 means real distribution
             batch_size = len(num_muts)
 
-        labels = generator.generate(batch_size)
+        labels = generator.generate(batch_size, std = std)
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
@@ -274,7 +274,7 @@ class DataGenerator:
                     [labels[i, :], torch.tensor([float(np.random.randint(1e5, 1e6))])])
         return input_batch, labels_batch
 
-    def make_real_set(self):
+    def make_real_set(self, large_low, repetitions=2, normalize=True):
         """Create a labelled dataset of mutation vectors
         from the real weights.
         """
@@ -284,21 +284,199 @@ class DataGenerator:
         real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
         labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
 
-        batch_size = labels.shape[0]
+        labels = labels[np.random.permutation(labels.shape[0]), ...]
+        labels_sets = {'train':labels[:int(labels.shape[0]*0.7), :],
+                       'val':labels[int(labels.shape[0]*0.7):int(labels.shape[0]*0.7+labels.shape[0]*0.05), :],
+                       'test':labels[int((labels.shape[0]*0.7+labels.shape[0]*0.05)):, :]}
+        labels_output_sets = {'train':0,
+                              'val':0,
+                              'test':0}
+        inputs_sets = {'train':0,
+                       'val':0,
+                       'test':0}
+        for set,labels in labels_sets.items():
+            if set == "train":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "val":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "test":
+                range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+
+            for i in range(repetitions-1):
+                labels = torch.cat([labels,labels], dim=0)
+
+            batch_size = (len(range_muts)-1)*labels.shape[0]
+            input_batch = torch.empty((batch_size, 96))
+            labels_batch = torch.empty((batch_size, self.total_signatures + 1))
+
+            for i in tqdm(range(len(range_muts)-1)):
+                for j in range(labels.shape[0]):
+                    # Compute resulting signature
+                    signature = torch.einsum("ij,j->i", (self.signatures, labels[j]))
+
+                    if set == "test":
+                        num_mut = range_muts[i]
+                    else:
+                        num_mut = np.random.randint(range_muts[i], range_muts[i+1])
+
+                    if num_mut<1e5:
+                        sample = self.__sample_from_sig(signature=signature,
+                                                    num_mut=int(num_mut),
+                                                    normalize=normalize)
+                        # Store
+                        input_batch[i*labels.shape[0]+j, :] = sample
+                        labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                            [labels[j, :], torch.tensor([float(num_mut)])])
+                    else:
+                        # Store
+                        input_batch[i*labels.shape[0]+j, :] = signature
+                        labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                            [labels[j, :], torch.tensor([float(num_mut)])])
+            inputs_sets[set] = input_batch
+            labels_output_sets[set] = labels_batch
+        return inputs_sets['train'], labels_output_sets['train'],inputs_sets['val'], labels_output_sets['val'],inputs_sets['test'], labels_output_sets['test']
+
+    def augment_set(self, labels):
+        labels_changed = labels.detach().clone()
+        labels_changed[labels_changed<0.01] = 0
+        labels_changed[labels_changed>=0.01] = 1
+        prop_labels = (torch.sum(labels_changed, dim=0)/labels_changed.shape[0])
+
+        labels = torch.cat([labels[torch.sum(labels[:, prop_labels < 0.01], dim=1)>0].repeat(5,1),labels], dim=0)
+        labels = labels[np.random.permutation(labels.shape[0]), ...]
+        return labels
+
+    def augment_real_set(self):
+        """Augment the real samples by repeating those
+        samples at a small frequency.
+        """
+        real_data = csv_to_tensor("../data/real_data/sigprofiler_normalized_PCAWG.csv",
+                              device="cpu", header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+
+        labels = self.augment_set(labels)
+        return labels
+
+    def make_real_set_augmented(self, large_low, repetitions=2, normalize=True):
+        """Create a labelled dataset of mutation vectors
+        from the real weights augmenting the samples that 
+        contains samples at a small frequency.
+        """
+
+        real_data = csv_to_tensor("../data/real_data/sigprofiler_normalized_PCAWG.csv",
+                              device="cpu", header=0, index_col=0)
+        real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+        labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+
+        labels_sets = {'train':self.augment_set(labels[:int(labels.shape[0]*0.7), :]),
+                       'val':self.augment_set(labels[int(labels.shape[0]*0.7):int(labels.shape[0]*0.7+labels.shape[0]*0.05), :]),
+                       'test':self.augment_set(labels[int((labels.shape[0]*0.7+labels.shape[0]*0.05)):, :])}
+
+        labels_output_sets = {'train':0,
+                              'val':0,
+                              'test':0}
+        inputs_sets = {'train':0,
+                       'val':0,
+                       'test':0}
+
+        for set,labels in labels_sets.items():
+            if set == "train":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "val":
+                if large_low == 'low':
+                    range_muts = [15, 50, 100, 250, 500, 1000]
+                elif large_low == 'large':
+                    range_muts = [1e4, 5e4, 1e5, 5e5]
+            elif set == "test":
+                range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+
+            for i in range(repetitions-1):
+                labels = torch.cat([labels,labels], dim=0)
+
+            batch_size = (len(range_muts)-1)*labels.shape[0]
+            input_batch = torch.empty((batch_size, 96))
+            labels_batch = torch.empty((batch_size, self.total_signatures + 1))
+
+            for i in tqdm(range(len(range_muts)-1)):
+                for j in range(labels.shape[0]):
+                    # Compute resulting signature
+                    signature = torch.einsum("ij,j->i", (self.signatures, labels[j]))
+
+                    if set == "test":
+                        num_mut = range_muts[i]
+                    else:
+                        num_mut = np.random.randint(range_muts[i], range_muts[i+1])
+
+                    if num_mut<1e5:
+                        sample = self.__sample_from_sig(signature=signature,
+                                                    num_mut=int(num_mut),
+                                                    normalize=normalize)
+                        # Store
+                        input_batch[i*labels.shape[0]+j, :] = sample
+                        labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                            [labels[j, :], torch.tensor([float(num_mut)])])
+                    else:
+                        # Store
+                        input_batch[i*labels.shape[0]+j, :] = signature
+                        labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                            [labels[j, :], torch.tensor([float(num_mut)])])
+            inputs_sets[set] = input_batch
+            labels_output_sets[set] = labels_batch
+        return inputs_sets['train'], labels_output_sets['train'],inputs_sets['val'], labels_output_sets['val'],inputs_sets['test'], labels_output_sets['test']
+
+    def make_input(self, labels, set, large_low, normalize=True):
+        """Create a labelled dataset of mutation vectors
+        from a tensor of labels.
+        """
+
+        if set == "train":
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+            elif large_low == 'large':
+                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+        elif set == "val":
+            if large_low == 'low':
+                range_muts = [15, 50, 100, 250, 500, 1000]
+            elif large_low == 'large':
+                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+        elif set == "test":
+            range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+
+        batch_size = (len(range_muts)-1)*labels.shape[0]
         input_batch = torch.empty((batch_size, 96))
         labels_batch = torch.empty((batch_size, self.total_signatures + 1))
 
-        for i in tqdm(range(batch_size)):
-            # Compute resulting signature
-            signature = torch.einsum("ij,j->i", (self.signatures, labels[i]))
+        for i in tqdm(range(len(range_muts)-1)):
+            for j in range(labels.shape[0]):
+                # Compute resulting signature
+                signature = torch.einsum("ij,j->i", (self.signatures, labels[j]))
 
-            num_mut = float(np.random.randint(1e3, 1e4))
-            sample = self.__sample_from_sig(signature=signature,
-                                            num_mut=int(num_mut),
-                                            normalize=True)
-            # Store
-            input_batch[i, :] = sample
-            labels_batch[i, :] = torch.cat(
-                [labels[i, :], torch.tensor([float(num_mut)])])
+                if set == "test":
+                    num_mut = range_muts[i]
+                else:
+                    num_mut = np.random.randint(range_muts[i], range_muts[i+1])
 
+                if num_mut<1e5:
+                    sample = self.__sample_from_sig(signature=signature,
+                                                num_mut=int(num_mut),
+                                                normalize=normalize)
+                    # Store
+                    input_batch[i*labels.shape[0]+j, :] = sample
+                    labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
+                else:
+                    # Store
+                    input_batch[i*labels.shape[0]+j, :] = signature
+                    labels_batch[i*labels.shape[0]+j, :] = torch.cat(
+                        [labels[j, :], torch.tensor([float(num_mut)])])
         return input_batch, labels_batch

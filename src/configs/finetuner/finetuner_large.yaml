@@ -1,0 +1,26 @@
+config:
+    # IDs & paths
+    data_id: "exp_oversample"
+    model_id: "finetuner_large"
+    models_dir: "../trained_models/exp_finetuner"
+    load_data: True
+    
+    # Training params
+    source: "large"
+    network_type: "large"
+    iterations: 150
+    num_classes: 72
+    sigmoid_params: [[1000, 1000], [10000, 2000], [100000, 5000]]
+    batch_size: 230
+    lr: 0.002597
+
+    # WANDB params
+    enable_logging: True
+    wandb_project_id: "exp_finetuner_final"
+
+    # Network params
+    num_hidden_layers: 2
+    num_neurons: 742
+
+    # Misc
+    device: "cuda"

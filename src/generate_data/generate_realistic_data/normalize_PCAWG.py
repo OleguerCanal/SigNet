@@ -2,15 +2,13 @@ import os
 import sys
 import pandas as pd
 import torch
-import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_signatures
 from utilities.normalize_data import create_opportunities
 
 
-data = pd.read_csv("../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv", index_col=1)
-data = data.drop(labels=['Cancer Types', 'Accuracy'], axis=1)
+data = pd.read_csv("../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv", index_col=0)
 cols = data.columns.tolist()
 rows = data.index.tolist()
 
@@ -33,3 +31,14 @@ df.columns = cols
 row_names =rows
 df.index = row_names
 df.to_csv("../../data/real_data/sigprofiler_normalized_PCAWG.csv", header=True, index=True)
+
+
+
+#### Normalize to sum 1 without taking into consideration abundances:
+
+w = torch.div(data,torch.sum(data,dim=1).reshape(-1,1))
+df = pd.DataFrame(w.detach().numpy())
+df.columns = cols
+row_names =rows
+df.index = row_names
+df.to_csv("../../data/real_data/sigprofiler_not_norm_PCAWG.csv", header=True, index=True)

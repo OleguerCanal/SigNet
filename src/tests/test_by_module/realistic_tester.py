@@ -53,7 +53,7 @@ classifier = read_model('../../../trained_models/exp_generator/classifier')
 classifier_output = classifier(mutation_dist=inputs,
                                num_mut=num_mut)
 # # Run errorfinder
-errorfinder = read_model(models_path + "errorfinder_generator_3")
+errorfinder = read_model(models_path + "errorfinder_generator_103")
 upper_guess, lower_guess = errorfinder(weights=finetuner_guess,
                                        num_mutations=num_mut,
                                        classification=classifier_output)

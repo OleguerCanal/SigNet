@@ -5,6 +5,8 @@ import yaml
 
 import json
 import pandas as pd
+import random
+from sklearn import preprocessing
 import torch
 
 from utilities.data_partitions import DataPartitions
@@ -43,12 +45,33 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
         signatures_data.to_csv(output_file, index=False)
     return signatures_data
 
-def csv_to_tensor(file, device="cpu", header=None, index_col=None):
-    input_tensor = torch.tensor(pd.read_csv(
-        file, header=header, index_col=index_col).values, dtype=torch.float)
+def csv_to_pandas(file, device="cpu", header=None, index_col=None, type_df=None):
+    df = pd.read_csv(file, header=header, index_col=index_col)
+    df.index = df.index.map(lambda x: x.split("..")[-1])
+
+    if type_df is not None:
+        cancer_type_df = pd.read_csv(type_df, header=0)[["Cancer Types", "Sample Names"]]
+        df = df.merge(cancer_type_df, left_index=True, right_on="Sample Names").set_index("Sample Names")
+        le = preprocessing.LabelEncoder()
+        le.fit(df["Cancer Types"])
+        df['cancer_type'] = le.transform(df["Cancer Types"])
+        df = df.drop("Cancer Types", axis=1)
+    return df
+
+def csv_to_tensor(file, device="cpu", header=None, index_col=None, type_df=None):
+    df = pd.read_csv(file, header=header, index_col=index_col)
+
+    if type_df is not None:
+        df.index = df.index.map(lambda x: x.split("..")[-1])
+        cancer_type_df = pd.read_csv(type_df, header=0)[["Cancer Types", "Sample Names"]]
+        df = df.merge(cancer_type_df, left_index=True, right_on="Sample Names").set_index("Sample Names")
+        le = preprocessing.LabelEncoder()
+        le.fit(df["Cancer Types"])
+        df['cancer_type'] = le.transform(df["Cancer Types"])
+        df = df.drop("Cancer Types", axis=1)
+
+    input_tensor = torch.tensor(df.values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    # assert(torch.count_nonzero(torch.sum(input_tensor, axis=1))
-    #        == input_tensor.shape[0])
     return input_tensor.float().to(device)
 
 def tensor_to_csv(data_tensor, output_path):
@@ -136,20 +159,64 @@ def read_real_data(device, experiment_id, data_folder="../data"):
 
     return real_input, real_num_mut
 
-def read_data_generator(device, data_folder="../data"):
+def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real', prop_train = 0.9):
+    '''
+    type should be: 'real', 'perturbed' or 'augmented_real'.
+    '''
+    data_folder = data_folder + data_id
+    if type == 'real':
+        if cosmic_version == 'v3':
+            real_data = csv_to_pandas(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
+                                    device=device, header=0, index_col=0,
+                                    type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+            
+            num_ctypes = real_data['cancer_type'][-1]+1
+            real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)       #Shuffle samples inside the same cancer type
+            # print(real_data.size(0)/num_ctypes*prop_train)
+            real_data_train = real_data.groupby('cancer_type').head(int(round(real_data.shape[0]/num_ctypes*prop_train)))  #Take the first prop_train % of samples in each cancer type
+            real_data_rest = pd.concat([real_data, real_data_train]).drop_duplicates(keep=False)                    # The rest is for validation and testing
 
-    real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_normalized_PCAWG.csv",
-                              device=device, header=0, index_col=0)
-    real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
-    real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
-    data = real_data[torch.randperm(real_data.size()[0]),:]
+            real_data_train = torch.tensor(real_data_train.values, dtype=torch.float)
+            real_data_rest = torch.tensor(real_data_rest.values, dtype=torch.float)
 
-    train_input = data[:int(real_data.size()[0]*0.95)]
-    val_input = data[int(real_data.size()[0]*0.95):]
+            train_input, train_cancer_types = real_data_train[:, :-1], real_data_train[:, -1]
+            train_input = train_input/torch.sum(train_input, axis=1).reshape(-1, 1)
+            train_input = torch.cat([train_input, torch.zeros(train_input.size(0), 7).to(train_input)], dim=1)
+            train_data = GeneratorData(inputs=train_input, cancer_types=train_cancer_types)
 
-    train_data = GeneratorData(inputs=train_input)
-    val_data = GeneratorData(inputs=val_input)
+            val_input, val_cancer_types = real_data_rest[:, :-1], real_data_rest[:, -1]
+            val_input = val_input/torch.sum(val_input, axis=1).reshape(-1, 1)
+            val_input = torch.cat([val_input, torch.zeros(val_input.size(0), 7).to(val_input)], dim=1)
+            val_data = GeneratorData(inputs=val_input, cancer_types=val_cancer_types)
 
+        elif cosmic_version == 'v2':
+            real_data = csv_to_tensor(data_folder + "/PCAWG_genome_deconstructSigs_v2.csv",
+                                    device=device, header=0, index_col=0)
+            real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
+
+            perm = torch.randperm(real_data.size(0))
+            data = real_data[perm, :]
+
+            train_input = data[:int(real_data.size(0)*0.95)]
+            val_input = data[int(real_data.size(0)*0.95):]
+
+            train_data = GeneratorData(inputs=train_input)
+            val_data = GeneratorData(inputs=val_input)
+
+        else:
+            raise NotImplementedError
+
+        
+    else:
+        train_input = csv_to_tensor(data_folder + "/train_%s_low_label.csv"%type,
+                                    device=device, header=None, index_col=None)
+        val_input = csv_to_tensor(data_folder + "/val_%s_low_label.csv"%type,
+                                    device=device, header=None, index_col=None)
+        train_data = GeneratorData(inputs=train_input[:,:-1])
+        val_data = GeneratorData(inputs=val_input[:,:-1])
+
+    train_data.to(device)
+    val_data.to(device)
     return train_data, val_data
 
 def read_methods_guesses(device, experiment_id, test_id, methods, data_folder="../data"):
@@ -284,7 +351,7 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-def write_final_outputs(weights, lower_bound, upper_bound, baseline, classification, reconstruction_error, input_file, output_path):
+def write_final_outputs(weights, lower_bound, upper_bound, classification, reconstruction_error, input_file, output_path, name=''):
     create_dir(output_path + "/whatever.txt")
     sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
     
@@ -293,39 +360,53 @@ def write_final_outputs(weights, lower_bound, upper_bound, baseline, classificat
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/weight_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/weight_guesses%s.csv"%name, header=True, index=True)
+
+    # Write results weight guesses cutoff
+    df[df<0.01] = 0
+    df.to_csv(output_path + "/weight_guesses_cutoff%s.csv"%name, header=True, index=True)
 
     # Write results lower bound guesses
     df = pd.DataFrame(lower_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/lower_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/lower_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results upper bound guesses
     df = pd.DataFrame(upper_bound)
     df.columns = sig_names
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/upper_bound_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/upper_bound_guesses%s.csv"%name, header=True, index=True)
 
     # Write results baseline guesses
-    df = pd.DataFrame(baseline)
-    df.columns = sig_names
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/baseline_guesses.csv", header=True, index=True)
+    # df = pd.DataFrame(baseline)
+    # df.columns = sig_names
+    # row_names =input_file.index.tolist()
+    # df.index = row_names
+    # df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
 
     # Write results classification
     df = pd.DataFrame(classification)
     df.columns = ["classification"]
     row_names =input_file.index.tolist()
     df.index = row_names
-    df.to_csv(output_path + "/classification_guesses.csv", header=True, index=True)
+    df.to_csv(output_path + "/classification_guesses%s.csv"%name, header=True, index=True)
 
     # Write results reconstruction error
-    df = pd.DataFrame(reconstruction_error)
-    df.columns = ["reconstruction_error"]
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+    # df = pd.DataFrame(reconstruction_error)
+    # df.columns = ["reconstruction_error"]
+    # row_names =input_file.index.tolist()
+    # df.index = row_names
+    # df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+
+
+def write_David_outputs(weights, lower_bound, upper_bound, output_path):
+    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    
+    # Write results weight guesses
+    df = pd.DataFrame({'weight_guess': weights[0], 'upper_bound': upper_bound[0], 'lower_bound': lower_bound[0],})
+    df.index = sig_names
+    df.to_csv(output_path + "_guess.csv", header=True, index=True)
+

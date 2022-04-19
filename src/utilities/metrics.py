@@ -12,7 +12,7 @@ def accuracy(prediction, label):
     assert(prediction.shape == label.shape)
     assert(prediction.dtype == torch.int64)
     assert(label.dtype == torch.int64)
-    return (torch.sum(prediction == label)/torch.numel(prediction))*100.
+    return (torch.sum(prediction == label).float()/torch.numel(prediction))*100.
 
 def false_realistic(prediction, label):
     assert(prediction.shape == label.shape)
@@ -32,10 +32,12 @@ def false_random(prediction, label):
 def get_MSE(predicted_label, true_label):
     return torch.nn.MSELoss()(predicted_label, true_label)
 
-def get_cosine_similarity(predicted_label, true_label):
+def get_cosine_similarity(predicted_label, true_label, dim=None):
     predicted_label = torch.nn.functional.normalize(
         predicted_label, dim=1, p=2)
     true_label = torch.nn.functional.normalize(true_label, dim=1, p=2)
+    if dim is not None:
+        return torch.abs(torch.einsum("ij,ij->i", (predicted_label, true_label)))
     return torch.mean(torch.abs(torch.einsum("ij,ij->i", (predicted_label, true_label))))
 
 def get_negative_cosine_similarity(predicted_label, true_label):
@@ -233,6 +235,44 @@ def get_reconstruction_error(mutation_dist, guess, signatures):
     errors = torch.sum(torch.nn.MSELoss(reduction='none')(reconstruction, mutation_dist), dim=1)
     return errors
 
+def sets_distances(real, fake):
+    """Distances between points of two sets
+    """
+    def min_dist(point_set, point):
+        """Minimum distance between a set and a point
+        """
+        return torch.sqrt(((point_set - point).pow(2)).mean(dim=1).min())
+    with torch.no_grad():
+        real_distances = torch.tensor([min_dist(fake, p) for p in real])
+        fake_distances = torch.tensor([min_dist(real, p) for p in fake])
+    return real_distances, fake_distances
+
+def prop_distances(real, fake):
+    """Distances between the proportion of signatures in the real and fake samples
+    """
+    real_changed = real.detach().clone()
+    fake_changed = fake.detach().clone()
+
+    real_changed[real_changed<0.01] = 0
+    real_changed[real_changed>=0.01] = 1
+    prop_tumors_real = torch.sum(real_changed, dim=0)/real_changed.shape[0]
+
+    fake_changed[fake_changed<0.01] = 0
+    fake_changed[fake_changed>=0.01] = 1
+    prop_tumors_fake = torch.sum(fake_changed, dim=0)/fake_changed.shape[0]
+        
+    se_prop = ((prop_tumors_fake-prop_tumors_real)**2).detach().numpy()
+    mse_prop = np.mean(se_prop)
+    return se_prop, mse_prop
+
+def get_distances_metrics(distances, quantiles=[0.99]):
+    metrics = {}
+    metrics["mean"] = np.format_float_scientific(torch.mean(distances).item(), precision = 2, exp_digits=1)
+    metrics["median"] = np.format_float_scientific(torch.median(distances).item(), precision = 2, exp_digits=1)
+    metrics["max"] = np.format_float_scientific(torch.max(distances).item(), precision = 2, exp_digits=1)
+    quantiles = torch.quantile(distances, torch.tensor(quantiles), keepdim=True)
+    metrics["quantiles"] = np.round(quantiles.detach().cpu().numpy(), 3)
+    return metrics
 
 METRICS_DICT = {
     "mse" : get_MSE,

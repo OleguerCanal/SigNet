@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utilities.metrics import get_jensen_shannon, get_kl_divergence
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,12 +19,14 @@ from utilities.io import save_model
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from loggers.generator_logger import GeneratorLogger
+from utilities.oversampler import OverSampler, CancerTypeOverSampler
 
 class GeneratorTrainer:
     def __init__(self,
                  iterations,
                  train_data,
                  val_data,
+                 signatures,
                  lagrange_param=1.0,
                  loging_path="../runs",
                  num_classes=72,
@@ -38,12 +41,22 @@ class GeneratorTrainer:
         self.model_path = model_path
         self.train_dataset = train_data
         self.val_dataset = val_data
-        self.logger = GeneratorLogger()
 
-    def __loss(self, input, pred, z_mu, z_var):
-        kl_div = torch.mean((z_var**2 + z_mu**2)/2. - torch.log(z_var) - 1/2)
-        mse = nn.MSELoss()(input, pred)
-        return self.batch_size_factor*(mse + self.adapted_lagrange_param*kl_div)
+        self.logger = GeneratorLogger(
+            train_inputs=train_data.inputs,
+            val_inputs=val_data.inputs,
+            signatures=signatures,
+            device=device)
+
+        os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
+        # os = OverSampler(self.train_dataset.inputs)
+        self.train_dataset.inputs = os.get_oversampled_set()
+
+    def __loss(self, input, pred, z_mu, z_std):
+        kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
+        reconstruction = nn.MSELoss()(input, pred)
+        # reconstruction = get_jensen_shannon(predicted_label=pred, true_label=input)
+        return reconstruction + self.adapted_lagrange_param*kl_div
 
     def objective(self,
                   batch_size,
@@ -76,48 +89,56 @@ class GeneratorTrainer:
         # l_vals = collections.deque(maxlen=50)
         # max_found = -np.inf
         step = 0
+        # total_steps = 1000*len(self.train_dataset)
         total_steps = self.iterations*len(self.train_dataset)
         # self.batch_size_factor = batch_size/len(self.train_dataset)
         self.batch_size_factor = 1.
+        train_DQ99R = None
         for iteration in range(self.iterations):
             for train_input in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()
-                train_pred, train_mean, train_var = model(train_input)
+                train_pred, train_mean, train_std = model(train_input)
                 # self.adapted_lagrange_param = self.lagrange_param
-                self.adapted_lagrange_param = self.lagrange_param * \
-                    float(total_steps - step)/float(total_steps)
+                if step < total_steps*0.8:
+                    self.adapted_lagrange_param = self.lagrange_param * \
+                        float(total_steps - step)/float(total_steps)
+                else:
+                    self.adapted_lagrange_param = self.lagrange_param * \
+                        float(total_steps - total_steps*0.8)/float(total_steps)
                 train_loss = self.__loss(input=train_input,
                                          pred=train_pred,
                                          z_mu=train_mean,
-                                         z_var=train_var)
+                                         z_std=train_std)
 
                 train_loss.backward()
                 optimizer.step()
 
                 model.eval()
                 with torch.no_grad():
-                    val_pred, val_mean, val_var = model(
+                    val_pred, val_mean, val_std = model(
                         self.val_dataset.inputs)
                     val_loss = self.__loss(input=self.val_dataset.inputs,
                                            pred=val_pred,
                                            z_mu=val_mean,
-                                           z_var=val_var)
+                                           z_std=val_std)
                     # l_vals.append(val_loss.item())
                     # max_found = max(max_found, -np.nanmean(l_vals))
 
                 if plot and step % self.log_freq == 0:
-                    val_mse, val_KL = self.logger.log(train_loss=train_loss,
-                                                      train_prediction=train_pred,
-                                                      train_label=train_input,
-                                                      val_loss=val_loss,
-                                                      val_prediction=val_pred,
-                                                      val_label=self.val_dataset.inputs,
-                                                      train_mu=train_mean,
-                                                      train_sigma=train_var,
-                                                      val_mu=val_mean,
-                                                      val_sigma=val_var,
-                                                      step=step)
+                    current_train_DQ99R = self.logger.log(train_loss=train_loss,
+                                                        train_prediction=train_pred,
+                                                        train_label=train_input,
+                                                        val_loss=val_loss,
+                                                        val_prediction=val_pred,
+                                                        val_label=self.val_dataset.inputs,
+                                                        train_mu=train_mean,
+                                                        train_sigma=train_std,
+                                                        val_mu=val_mean,
+                                                        val_sigma=val_std,
+                                                        step=step,
+                                                        model=model)
+                    train_DQ99R = current_train_DQ99R if current_train_DQ99R is not None else train_DQ99R
 
                 if self.model_path is not None and step % 500 == 0:
                     save_model(model=model, directory=self.model_path)
@@ -126,42 +147,65 @@ class GeneratorTrainer:
             save_model(model=model, directory=self.model_path)
         
         # Return last mse and KL obtained in validation
-        return val_mse, val_KL
+        return train_DQ99R
 
+def log_results(config, train_DQ99R, out_csv_path):
+    model_results = pd.DataFrame({"batch_size": [config["batch_size"]],
+                                  "lr_encoder": [config["lr_encoder"]],
+                                  "lr_decoder": [config["lr_decoder"]],
+                                  "num_hidden_layers": [config["num_hidden_layers"]],
+                                  "latent_dim": [config["latent_dim"]],
+                                  "lagrange_param": [config["lagrange_param"]],
+                                  "train_DQ99R": [train_DQ99R]})
+    model_results.to_csv(out_csv_path,
+                         header=False, index=False, mode="a")
 
-def train_generator(config) -> float:
+def train_generator(config, data_folder="../data/") -> float:
     """Train a classification model and get the validation score
 
     Args:
         config (dict): Including all the needed args
         to load data, and train the model 
     """
-    from utilities.io import read_data_generator
+    from utilities.io import read_data_generator, sort_signatures
 
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"
     print("Using device:", dev)
 
     if config["enable_logging"]:
-        wandb.init(project=config["wandb_project_id"],
+        run = wandb.init(project=config["wandb_project_id"],
                    entity='sig-net',
                    config=config,
                    name=config["model_id"])
 
-    train_data, val_data = read_data_generator(device=dev)
+    train_data, val_data = read_data_generator(device=dev,
+                                               data_id=config['data_id'],
+                                               cosmic_version=config['cosmic_version'],
+                                               data_folder=data_folder,
+                                               type=config['type'])
+
+    signatures = sort_signatures(file=data_folder + "data.xlsx",
+                                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
 
     trainer = GeneratorTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
                                val_data=val_data,
+                               signatures=signatures,
                                lagrange_param=config["lagrange_param"],
+                               num_classes=config["num_classes"],
                                device=torch.device(dev),
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 
-    val_mse, val_KL = trainer.objective(batch_size=config["batch_size"],
+    train_DQ99R = trainer.objective(batch_size=config["batch_size"],
                                         lr_encoder=config["lr_encoder"],
                                         lr_decoder=config["lr_decoder"],
                                         num_hidden_layers=config["num_hidden_layers"],
                                         latent_dim=config["latent_dim"],
                                         plot=config["enable_logging"])
 
-    return val_mse, val_KL
+    wandb.log({"train_DQ99R_score": train_DQ99R})
+
+    if config["enable_logging"]:
+        run.finish()
+    return train_DQ99R
