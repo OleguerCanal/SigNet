@@ -42,10 +42,10 @@ def read_synt_data():
     return input_batch, baselines, label_batch[:, :-1], label_batch[:, -1]
 
 def read_finetuner():
-    experiment_id = "exp_real_data"
+    experiment_id = "exp_finetuner"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_real_oversampled_low",
-                                            large_mum_mut_dir=models_path + "finetuner_real_oversampled_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
+                                            large_mum_mut_dir=models_path + "finetuner_large")
     return finetuner
 
 def normalize(a, b):
@@ -77,7 +77,6 @@ if __name__=="__main__":
                                     shuffle=True)
     test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
     train_input, train_label = data_generator.make_input(labels=train_label, set="train", large_low="large", normalize=True)
-
 
     # real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
     # synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
