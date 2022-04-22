@@ -16,15 +16,18 @@ from utilities.data_generator import DataGenerator
 experiment_id = "exp_finetuner"
 
 # Load data
-# input_batch = csv_to_tensor("../../data/%s/test_perturbed_input.csv"%experiment_id, device="cpu")
-# label_batch = csv_to_tensor("../../data/%s/test_perturbed_label.csv"%experiment_id, device="cpu")
-train_data, test_data = read_data_generator(device='cpu', data_id = "real_data", data_folder = "../../data/", cosmic_version = 'v3', type='real')
-test_label = test_data.inputs 
+test_input = csv_to_tensor("../../data/exp_oversample/test_input.csv", device="cpu")
+test_label = csv_to_tensor("../../data/exp_oversample/test_label.csv", device="cpu")
+
+# train_data, test_data = read_data_generator(device='cpu', data_id = "real_data", data_folder = "../../data/", cosmic_version = 'v3', type='real')
+# test_label = test_data.inputs 
 signatures = read_signatures("../../data/data.xlsx")
-data_generator = DataGenerator(signatures=signatures,
-                                   seed=None,
-                                   shuffle=True)
-test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
+# data_generator = DataGenerator(signatures=signatures,
+#                                    seed=None,
+#                                    shuffle=True)
+# test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
+# tensor_to_csv(test_input, "../../data/exp_oversample/test_input.csv")
+# tensor_to_csv(test_label, "../../data/exp_oversample/test_label.csv")
 
 # Load Baseline and get guess
 baseline = Baseline(signatures)

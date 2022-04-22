@@ -1,11 +1,11 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm"
-    model_id: "errorfinder_not_norm"
+    data_id: "exp_oversample"
+    model_id: "errorfinder_vector"
     classifier_id: "classifier"
-    finetuner_realistic_low_id: "finetuner_not_norm_low"
-    finetuner_realistic_large_id: "finetuner_not_norm_large"
-    models_dir: "../trained_models/exp_not_norm"
+    finetuner_low_id: "finetuner_low"
+    finetuner_large_id: "finetuner_large"
+    models_dir: "../trained_models/exp_all"
 
     # Training params
     # source: "realistic_low"
@@ -16,14 +16,21 @@ config:
     sigmoid_params: [1000,200]
     # sigmoid_params: [50000, 10000]
     loss_params: 
-        lagrange_missclassification: 0.03
+        lagrange_missclassification_vector: [0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05]
         lagrange_pnorm: 1e4
         lagrange_smalltozero: 1e-3
         pnorm_order: 5.0
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder_not_norm"
+    wandb_project_id: "errorfinder"
 
     # Network params
     num_hidden_layers_pos: 3

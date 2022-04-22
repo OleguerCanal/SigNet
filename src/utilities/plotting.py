@@ -53,7 +53,7 @@ def plot_prop_signatures(weights_0, weights_augmented):
 
 # CLASSIFIER PLOTS:
 def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path = None):
-    fig, axs = plt.subplots(1, figsize=(8,4))
+    fig, axs = plt.subplots(3, figsize=(8,4))
     fig.suptitle("Detector Performance")
     
     num_muts = np.unique(num_muts_list.detach().numpy())
@@ -67,21 +67,18 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
         values[1,i] = false_realistic(label=label[indexes], prediction=guess[indexes])
         values[2,i] = false_random(label=label[indexes], prediction=guess[indexes])
         
-    axs.plot(np.log10(num_muts), values[0,:], marker='o',linewidth=line_width, markersize=marker_size)
+    axs[0].plot(np.log10(num_muts), values[0,:], marker='o',linewidth=line_width, markersize=marker_size)
+    axs[1].plot(np.log10(num_muts), values[1,:], marker='o',linewidth=line_width, markersize=marker_size)
+    axs[2].plot(np.log10(num_muts), values[2,:], marker='o',linewidth=line_width, markersize=marker_size)
 
-    # axs[1].plot(np.log10(num_muts), values[1,:], marker='o',linewidth=line_width, markersize=marker_size)
-
-    # axs[1].plot(np.log10(num_muts), values[2,:], marker='o',linewidth=line_width, markersize=marker_size)
-
-    # y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)"]
-    y_labels = "Accuracy (%)"
-    # for i, axes in enumerate(axs.flat):
-    #     stylize_axes(axes, '', 'log(N)', y_labels[i])
-    stylize_axes(axs, '', 'log(N)', y_labels)
+    y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)"]
+    for i, axes in enumerate(axs.flat):
+        stylize_axes(axes, '', 'log(N)', y_labels[i])
+    # stylize_axes(axs, '', 'log(N)', y_labels)
 
     fig.tight_layout()
-    # plt.show()
-    fig.savefig(plot_path+'detector.pdf')
+    plt.show()
+    # fig.savefig(plot_path+'detector.pdf')
     
 # FINETUNER PLOTS:
 def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, show=False):
@@ -251,8 +248,8 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
             axes.set_axis_off()
             axes.legend(p7, list_of_methods, loc='center left')#, prop={'size': 28})
     fig.tight_layout()
-    # plt.show()
-    plt.savefig(folder_path + '/benchmark.pdf')
+    plt.show()
+    # plt.savefig(folder_path + '/benchmark.pdf')
     plt.close()
 
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False, signatures=None, mutation_distributions=None):

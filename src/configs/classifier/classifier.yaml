@@ -1,11 +1,11 @@
 config:
     # IDs & paths
-    data_id: "exp_not_norm/classifier"
+    data_id: "exp_oversample/classifier"
     model_id: "classifier"
-    models_dir: "../trained_models/exp_not_norm/"
+    models_dir: "../trained_models/exp_classifier/"
 
     # Training params
-    iterations: 30
+    iterations: 10
     num_classes: 72
     sigmoid_params: [5000,1000]
     batch_size: 100

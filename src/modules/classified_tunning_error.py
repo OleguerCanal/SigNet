@@ -33,13 +33,15 @@ class ClassifiedFinetunerErrorfinder:
 
     def __call__(self,
                  mutation_dist,
+                 baseline_guess,
                  num_mut):
 
         classification = self.classifier(mutation_dist=mutation_dist,
                                          num_mut=num_mut).view(-1)
         
         finetuner_guess = self.finetuner(mutation_dist=mutation_dist,
-                                    num_mut=num_mut)
+                                         baseline_guess = baseline_guess,
+                                         num_mut=num_mut)
 
         upper, lower = self.errorfinder(weights=finetuner_guess,
                                                       num_mutations=num_mut,
