@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
     # Loss args
     parser.add_argument(
-        '--lagrange_missclassification', action='store', nargs=1, type=float, required=False,
-        help='Weight of misclassification in the loss.'
+        '--lagrange_missclassification_vector', action='store', nargs=1, type=list, required=False,
+        help='Weight of misclassification per signature in the loss.'
     )
     parser.add_argument(
         '--lagrange_pnorm', action='store', nargs=1, type=float, required=False,

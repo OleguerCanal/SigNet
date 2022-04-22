@@ -50,7 +50,8 @@ class ErrorTrainer:
                pred_lower,
                pred_upper):
 
-        lagrange_missclassification = float(self.loss_params["lagrange_missclassification"])
+        lagrange_missclassification_vector = self.loss_params["lagrange_missclassification_vector"]
+        lagrange_missclassification_vector = torch.Tensor(lagrange_missclassification_vector)
         lagrange_pnorm = float(self.loss_params["lagrange_pnorm"])
         pnorm_order = int(self.loss_params["pnorm_order"] )
         lagrange_smalltozero = float(self.loss_params["lagrange_smalltozero"])
@@ -68,7 +69,7 @@ class ErrorTrainer:
         # loss = interval_length + lagrange * missclassifications
         loss_by_mutation_signature =\
             interval_length +\
-            lagrange_missclassification*(lower + upper)
+            lagrange_missclassification_vector*(lower + upper)
 
         # p-norm by signature to avoid high errors
         loss_by_mutation = linalg.norm(lagrange_pnorm *\

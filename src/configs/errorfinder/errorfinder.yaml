@@ -1,7 +1,7 @@
 config:
     # IDs & paths
     data_id: "exp_oversample"
-    model_id: "errorfinder"
+    model_id: "errorfinder_vector"
     classifier_id: "classifier"
     finetuner_low_id: "finetuner_low"
     finetuner_large_id: "finetuner_large"
@@ -16,7 +16,14 @@ config:
     sigmoid_params: [1000,200]
     # sigmoid_params: [50000, 10000]
     loss_params: 
-        lagrange_missclassification: 0.03
+        lagrange_missclassification_vector: [0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,
+                                             0.05,0.05]
         lagrange_pnorm: 1e4
         lagrange_smalltozero: 1e-3
         pnorm_order: 5.0
