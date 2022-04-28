@@ -3,15 +3,16 @@ import pandas as pd
 import torch
 
 def normalize_data(input_file, opportunities_name_or_path):
+    genome_abundances = create_opportunities('../../data/real_data/3mer_WG_hg37.txt')
+    genome_abundances_tensor = torch.Tensor(genome_abundances)
+
     if opportunities_name_or_path == 'exome':
         abundances = create_opportunities('../../data/real_data/abundances_trinucleotides.txt')
-    elif opportunities_name_or_path == 'genome':
-        abundances = create_opportunities('../../data/real_data/3mer_WG_hg37.txt')
     else:
         abundances = create_opportunities(opportunities_name_or_path)
 
     abundances_tensor = torch.Tensor(abundances)
-    abundances_tensor = abundances_tensor/torch.sum(abundances_tensor)
+    abundances_tensor = (abundances_tensor/genome_abundances_tensor)/torch.sum(abundances_tensor/genome_abundances_tensor)
     return torch.div(input_file, abundances_tensor)
 
 
