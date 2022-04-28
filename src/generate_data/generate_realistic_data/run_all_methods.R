@@ -24,62 +24,62 @@ if(cosmic_version == "v3"){
     break
 }
 
-dataset <- "test_generator"
-experiment_id <- "exp_generator"
+dataset <- "test"
+experiment_id <- "exp_oversample"
 
 RundecompTumor2SigAttributeOnly(
- input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+ input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
  gt.sigs.file = path_to_sigs,
- paste("../../data/", experiment_id, "/", dataset, "/other_methods/decompTumor2Sig_test", sep=""),
+ paste("../../data/", experiment_id, "/other_methods/decompTumor2Sig_test", sep=""),
  seedNumber = 1,
  test.only = FALSE,
  overwrite = FALSE
 )
  
 RunMutationalPatternsAttributeOnly(
-  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+  input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
   gt.sigs.file = path_to_sigs,
-  paste("../../data/", experiment_id, "/", dataset, "/other_methods/MutationalPatterns_test", sep=""),
+  paste("../../data/", experiment_id, "/other_methods/MutationalPatterns_test", sep=""),
   seedNumber = 1,
   test.only = FALSE,
   overwrite = FALSE
 )
 
 RunmutSignaturesAttributeOnly(
-  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+  input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
   gt.sigs.file = path_to_sigs,
-  paste("../../data/", experiment_id, "/", dataset, "/other_methods/mutSignatures_test", sep=""),
+  paste("../../data/", experiment_id, "/other_methods/mutSignatures_test", sep=""),
   seedNumber = 1,
   test.only = FALSE,
   overwrite = FALSE
 )
 
 RunSignatureEstimationQPAttributeOnly(
-  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+  input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
   gt.sigs.file = path_to_sigs,
-  paste("../../data/", experiment_id, "/", dataset, "/other_methods/SignatureEstimationQP_test", sep=""),
+  paste("../../data/", experiment_id, "/other_methods/SignatureEstimationQP_test", sep=""),
   seedNumber = 1,
   test.only = FALSE,
   overwrite = FALSE
 )
 
 RunYAPSAAttributeOnly(
-  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+  input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
   gt.sigs.file = path_to_sigs,
-  paste("../../data/", experiment_id, "/", dataset, "/other_methods/YAPSA_test", sep=""),
+  paste("../../data/", experiment_id, "/other_methods/YAPSA_test", sep=""),
   seedNumber = 1,
   signature.cutoff = NULL,
   test.only = FALSE,
   overwrite = FALSE
 )
 
-RundeconstructSigsAttributeOnly(
-  input.catalog = paste("../../data/", experiment_id, "/", dataset, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
-  gt.sigs.file = path_to_sigs,
-  paste("../../data/", experiment_id, "/", dataset, "/other_methods/deconstructSigs_test", sep=""),
-  seedNumber = 1,
-  test.only = FALSE,
-  overwrite = FALSE
-)
+# RundeconstructSigsAttributeOnly(
+#   input.catalog = paste("../../data/", experiment_id, "/other_methods/", dataset, "_ground.truth.syn.catalog.csv", sep = ""),
+#   gt.sigs.file = path_to_sigs,
+#   paste("../../data/", experiment_id, "/other_methods/deconstructSigs_test", sep=""),
+#   seedNumber = 1,
+#   test.only = FALSE,
+#   overwrite = FALSE
+# )
 
 
