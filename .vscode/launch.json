@@ -113,5 +113,15 @@
             "cwd": "${workspaceFolder}/src/tests/test_by_module/",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "CrossValidation",
+            "type": "python",
+            "request": "launch",
+            "program": "finetuner_crossvalidation.py",
+            "cwd": "${workspaceFolder}/src/trainers/",
+            "args": ["low"],
+            "console": "integratedTerminal"
+        }
     ]
 }

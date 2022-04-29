@@ -8,7 +8,7 @@ config:
     # Training params
     source: "large"
     network_type: "large"
-    iterations: 150
+    iterations: 50
     num_classes: 72
     sigmoid_params: [[1000, 1000], [10000, 2000], [100000, 5000]]
     batch_size: 230
