@@ -18,10 +18,10 @@ from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,
-                 classifier="../../trained_models/exp_not_norm/classifier",
-                 finetuner_realistic_low="../../trained_models/exp_not_norm/finetuner_not_norm_no_baseline_low",
-                 finetuner_realistic_large="../../trained_models/exp_not_norm/finetuner_not_norm_no_baseline_large",
-                 errorfinder="../../trained_models/exp_generator/errorfinder_generator_1",
+                 classifier="../../trained_models/exp_all/classifier",
+                 finetuner_realistic_low="../../trained_models/exp_all/finetuner_low",
+                 finetuner_realistic_large="../../trained_models/exp_all/finetuner_large",
+                 errorfinder="../../trained_models/exp_all/errorfinder_07",
                  opportunities_name_or_path=None,
                  signatures_path="../../data/data.xlsx",
                  mutation_type_order="../../data/mutation_type_order.xlsx"):
@@ -114,9 +114,9 @@ if __name__ == "__main__":
     # output_path = config["output"] 
     # plot_figs = config["figures"]
 
-    input_file_path = "../../data/real_data/PCAWG_data.csv"
+    input_file_path = "../../data/case_study_Hypoxia/PCAWG_data/PCAWG_input.csv"
     opportunities = None
-    output_path = "../../data/real_data/SigNet_not_norm/" 
+    output_path = "../../data/case_study_Hypoxia/new_SigNet/" 
     plot_figs = False
 
     signet = SigNet(opportunities_name_or_path=opportunities, signatures_path="../../data/data.xlsx")

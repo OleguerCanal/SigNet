@@ -27,7 +27,7 @@ path = "../../../trained_models/exp_all/"
 signet = SigNet(classifier=path + "classifier",
                 finetuner_realistic_low=path + "finetuner_low",
                 finetuner_realistic_large=path + "finetuner_large",
-                errorfinder=path + "errorfinder",
+                errorfinder=path + "errorfinder_07",
                 opportunities_name_or_path=None,
                 signatures_path=data_folder + "data.xlsx",
                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
@@ -42,10 +42,10 @@ print("forwarded")
 # plot_weights(finetuner_guess[3000,:], upper_bound[3000,:], lower_bound[3000,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 # plot_weights(finetuner_guess[-100,:], upper_bound[-100,:], lower_bound[-100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 
-# list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
-# list_of_guesses, label = read_methods_guesses('cpu', "exp_generator", "test_generator", list_of_methods, data_folder=data_folder)
-list_of_methods = ['NNLS', 'Finetuner']
-list_of_guesses = [signet.baseline_guess, finetuner_guess]
+list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs"]
+list_of_guesses, label = read_methods_guesses('cpu', "exp_oversample", list_of_methods, data_folder=data_folder)
+list_of_methods += ['NNLS', 'Finetuner']
+list_of_guesses += [signet.baseline_guess, finetuner_guess]
 
 final_plot_all_metrics_vs_mutations(list_of_methods=list_of_methods,
                                     list_of_guesses=list_of_guesses,
