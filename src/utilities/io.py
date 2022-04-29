@@ -299,6 +299,7 @@ def read_model(directory, device="cpu"):
                                 map_location=torch.device(device))
     model.load_state_dict(state_dict)
     model.eval()
+    model.to(device)
     return model
 
 def save_model(model, directory):
@@ -324,7 +325,10 @@ def save_model(model, directory):
 def update_dict(config, args):
     for arg in vars(args):
         if getattr(args, arg) is not None and arg in config:
-            config[arg] = getattr(args, arg)[0]
+            if len(getattr(args, arg)) == 1:
+                config[arg] = getattr(args, arg)[0]
+            else:
+                config[arg] = getattr(args, arg)
     return config
 
 def read_config(path):

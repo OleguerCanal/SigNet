@@ -14,14 +14,16 @@ class CombinedFinetuner:
     def __init__(self,
                  low_mum_mut_dir,
                  large_mum_mut_dir,
-                 cuttoff = 5e2):
+                 cuttoff = 5e2,
+                 device="cpu"):
 
         # Instantiate finetuner 1 and read params
-        self.finetuner_low = read_model(low_mum_mut_dir)
-        self.finetuner_large = read_model(large_mum_mut_dir)
+        self.finetuner_low = read_model(low_mum_mut_dir, device=device)
+        self.finetuner_large = read_model(large_mum_mut_dir, device=device)
         assert(isinstance(self.finetuner_low, FineTunerLowNumMut))  # finetuner_low model should be FineTunerLowNumMut
         assert(isinstance(self.finetuner_large, FineTunerLargeNumMut))  # finetuner_large model should be FineTunerLargeNumMut
         self.cutoff = cuttoff
+        self.device = device
 
     def __join_and_sort(self, low, large, ind_order):
         joined = torch.cat((low, large), dim=0)
@@ -37,7 +39,7 @@ class CombinedFinetuner:
         """
         num_mut = num_mut.view(-1)
         ind = torch.tensor(range(mutation_dist.size()[0]))
-        ind_order = torch.tensor(np.concatenate((ind[num_mut <= self.cutoff], ind[num_mut > self.cutoff]))).reshape(-1, 1).to(torch.float)
+        ind_order = torch.tensor(np.concatenate((ind[num_mut <= self.cutoff], ind[num_mut > self.cutoff]))).reshape(-1, 1).to(torch.float).to(self.device)
         
         input_batch_low = mutation_dist[num_mut <= self.cutoff, ]
         input_batch_large = mutation_dist[num_mut > self.cutoff, ]

@@ -149,28 +149,28 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0):
         mean_interval_width [float]: Mean width of the intervals
     """
     EPS = 1e-6
+    result = {}
     k_hu = (label <= pred_upper).type(torch.float)  # 1 if label < upper; else 0
     k_hl = (pred_lower <= label).type(torch.float)  # 1 if lower < label; else 0
     k_h = torch.einsum("be,be->be", k_hl, k_hu)  # 1 if label in (lower, upper) else 0
-    in_prop = torch.mean(k_h, dim)  # Hard Prediction Interval Coverage Probability
-    interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
-    mean_interval_width = torch.mean(interval_width, dim)
+    result["in_prop"] = torch.mean(k_h, dim)  # Hard Prediction Interval Coverage Probability
+    result["in_prop_present"] = torch.masked_select(k_h, label > 0.5).mean()  # This flattens all values into a 1-d tensor
+    result["in_prop_absent"] = torch.masked_select(k_h, label <= 0.5).mean()
 
+    interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
+    result["mean_interval_width"] = torch.mean(interval_width, dim)
     interval_width_present = torch.masked_select(interval_width, label > EPS)
     interval_width_absent = torch.masked_select(interval_width, label <= EPS)
-    mean_interval_width_present = torch.mean(interval_width_present, 0)
-    mean_interval_width_absent = torch.mean(interval_width_absent, 0)
-    return in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent
+    result["mean_interval_width_present"] = interval_width_present.mean()
+    result["mean_interval_width_absent"] = interval_width_absent.mean()
+    return result
 
 def get_pi_metrics(label, pred_lower, pred_upper, collapse=True, dim=0):
-    in_prop, mean_interval_width, mean_interval_width_present, mean_interval_width_absent = get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=dim)
+    metrics_by_signature = get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=dim)
     if collapse:
-        in_prop = torch.mean(in_prop)
-        mean_interval_width = torch.mean(mean_interval_width)
-        mean_interval_width_present = torch.mean(mean_interval_width_present)
-        mean_interval_width_absent = torch.mean(mean_interval_width_absent)
-    return {"in_prop": in_prop, "mean_interval_width": mean_interval_width, "mean_interval_width_present": mean_interval_width_present, "mean_interval_width_absent":mean_interval_width_absent}
-
+        for key in metrics_by_signature:
+            metrics_by_signature[key] = metrics_by_signature[key].mean()
+    return metrics_by_signature
 
 def get_soft_qd_loss(label, pred_lower, pred_upper, conf=0.01, lagrange_mult=1e-4, softening_factor=500.0):
     """Used to optimize:

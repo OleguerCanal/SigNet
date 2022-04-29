@@ -25,6 +25,7 @@ from models.error_finder import ErrorFinder
 from loggers.error_finder_logger import ErrorFinderLogger
 from modules.classified_tunning import ClassifiedFinetuner
 from modules.combined_finetuner import CombinedFinetuner
+from utilities.plotting import plot_error_by_sig, plot_width_by_sig
 
 class ErrorTrainer:
     def __init__(self,
@@ -51,7 +52,7 @@ class ErrorTrainer:
                pred_upper):
 
         lagrange_missclassification_vector = self.loss_params["lagrange_missclassification_vector"]
-        lagrange_missclassification_vector = torch.Tensor(lagrange_missclassification_vector)
+        lagrange_missclassification_vector = torch.Tensor(lagrange_missclassification_vector).to(self.device)
         lagrange_pnorm = float(self.loss_params["lagrange_pnorm"])
         pnorm_order = int(self.loss_params["pnorm_order"] )
         lagrange_smalltozero = float(self.loss_params["lagrange_smalltozero"])
@@ -132,8 +133,6 @@ class ErrorTrainer:
         model.to(self.device)
 
         log_freq = 5
-        if plot:
-            wandb.watch(model, log_freq=log_freq, log_graph=True)
 
         optimizer = optim.Adam(model.parameters(),
                                lr=lr)
@@ -192,6 +191,22 @@ class ErrorTrainer:
                 step += batch_size
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
+
+        with torch.no_grad():
+            val_pred_upper, val_pred_lower = model(weights=self.val_dataset.prev_guess,
+                                    num_mutations=self.val_dataset.num_mut,
+                                    classification=self.val_dataset.classification)
+            fig_error = plot_error_by_sig(label=self.val_dataset.labels.cpu(),
+                                    pred_upper=val_pred_upper.cpu(),
+                                    pred_lower=val_pred_lower.cpu(),
+                                    sigs_names=list(pd.read_excel("../data/data.xlsx").columns)[1:])
+            wandb.log({"Validation Error by Sig": wandb.Image(fig_error)})
+
+            fig_width = plot_width_by_sig(pred_upper=val_pred_upper.cpu(),
+                                        pred_lower=val_pred_lower.cpu(),
+                                        sigs_names=list(pd.read_excel("../data/data.xlsx").columns)[1:])
+            wandb.log({"Validation Width by Sig": wandb.Image(fig_width)})
+
         return max_found
 
 
@@ -225,23 +240,18 @@ def train_errorfinder(config, data_folder="../data") -> float:
                                                 source="large",
                                                 data_folder=data_folder,
                                                 device=dev)
+    # Join datasets
     train_data = train_real_low
     train_data.append(train_real_large)
     train_data.perm()
 
-    del train_real_low
-    del train_real_large
-
     val_data = val_real_low
     val_data.append(val_real_large)
 
-    del val_real_low
-    del val_real_large
-
-    # model = ClassifiedFinetuner(classifier=read_model(classifier_path)
     model = CombinedFinetuner(low_mum_mut_dir=finetuner_low_path,
-                              large_mum_mut_dir=finetuner_large_path)
-    classifier = read_model(classifier_path)
+                              large_mum_mut_dir=finetuner_large_path,
+                              device=dev)
+    classifier = read_model(classifier_path, device=dev)
 
     train_data = baseline_guess_to_combined_finetuner_guess(model=model,
                                                             classifier=classifier,
@@ -251,8 +261,8 @@ def train_errorfinder(config, data_folder="../data") -> float:
                                                           data=val_data)
 
     # train_data.to(device=device)  # We keep the train data in cpu to save memory
-    val_data.to(device=device)  # If still a problem we can make the val_data smaller
-    torch.cuda.empty_cache()
+    # val_data.to(device=device)  # If still a problem we can make the val_data smaller
+    # torch.cuda.empty_cache()
 
     trainer = ErrorTrainer(iterations=config["iterations"],  # Passes through all dataset
                            train_data=train_data,
