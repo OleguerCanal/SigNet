@@ -448,7 +448,7 @@ class DataGenerator:
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
         elif set == "val":
             if large_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000]
+                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
         elif set == "test":

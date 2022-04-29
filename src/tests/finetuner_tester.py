@@ -87,3 +87,50 @@ plot_weights_comparison(true_labels=metrics_baseline["MAE_sign"],
 # print(label_batch[0])
 # labels = torch.cat([small_to_unknown(label_batch[:, :-1]), label_batch[:, -1].view(-1, 1 )], dim=1)
 # print(labels[0])s
+
+    #     # Apply model to test set
+    #     models_path = config["models_dir"]
+    #     finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
+    #                                   large_mum_mut_dir=models_path + "finetuner_large")
+    #     finetuner_guess = finetuner(mutation_dist=test_input,
+    #                                 baseline_guess=test_baseline,
+    #                                 num_mut=test_label[:, -1].view(-1, 1))
+
+    #     # Test model
+    #     num_muts = np.unique(test_label[:, -1].detach().numpy())
+    #     list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
+    #                        "precision %", "sens: tp/p %", "spec: tn/n %"]
+    #     values = np.zeros((k, len(num_muts), len(list_of_metrics)))
+    #     for i, num_mut in enumerate(num_muts):
+    #         indexes = test_label[:, -1] == num_mut
+    #         metrics = get_classification_metrics(label_batch=test_label[indexes, :-1],
+    #                                              prediction_batch=finetuner_guess)
+    #         for metric_index, metric in enumerate(list_of_metrics):
+    #             values[k, i, metric_index] = metrics[metric]
+
+    # # Plot final results
+    # marker_size = 3
+    # line_width = 0.5
+
+    # fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8, 6))
+    # axs[0, 0].plot(np.log10(num_muts), np.transpose(values[:, :, 0]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[0, 1].plot(np.log10(num_muts), np.transpose(values[:, :, 1]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[1, 0].plot(np.log10(num_muts), np.transpose(values[:, :, 2]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[1, 1].plot(np.log10(num_muts), np.transpose(values[:, :, 3]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # plt.show()
+
+    # fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8, 6))
+    # axs[0, 0].plot(np.log10(num_muts), np.transpose(values[:, :, 4]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[0, 1].plot(np.log10(num_muts), np.transpose(values[:, :, 5]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[1, 0].plot(np.log10(num_muts), np.transpose(values[:, :, 6]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # axs[1, 1].plot(np.log10(num_muts), np.transpose(values[:, :, 7]),
+    #                marker='o', linewidth=line_width, markersize=marker_size)
+    # plt.show()
+    # plt.close()

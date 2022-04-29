@@ -46,7 +46,7 @@ class DataPartitions(Dataset):
     def to(self, device):
         device = torch.device(device)
         self.inputs = self.inputs.to(device)
-        self.classification = self.classification.to(device)
+        self.classification = self.classification.to(device) if self.classification is not None else self.labels
         self.labels = self.labels.to(device) if self.labels is not None else self.labels
         self.prev_guess = self.prev_guess.to(device) if self.prev_guess is not None else self.prev_guess
         self.num_mut = self.num_mut.to(device) if self.num_mut is not None else self.num_mut

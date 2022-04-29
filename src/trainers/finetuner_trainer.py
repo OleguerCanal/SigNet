@@ -135,14 +135,14 @@ class FinetunerTrainer:
                                     val_classification_metrics=val_classification_metrics,
                                     step=step)
 
-                if self.model_path is not None and step % 100 == 0:
-                    save_model(model=model, directory=self.model_path + '_it' + str(step))
+                # if self.model_path is not None and step % 1000 == 0:
+                #     save_model(model=model, directory=self.model_path + '_it' + str(step))
                 step += 1
         save_model(model=model, directory=self.model_path)
         return max_found
 
 
-def train_finetuner(config, data_folder="../data", name=None) -> float:
+def train_finetuner(config, data_folder="../data", name=None, train_data=None, val_data=None) -> float:
     import os
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
@@ -160,10 +160,12 @@ def train_finetuner(config, data_folder="../data", name=None) -> float:
                          name=config["model_id"] if name is None else name)
 
     load_data = config["load_data"]
-    train_data, val_data = read_data(experiment_id=config["data_id"],
-                                    source=config["source"],
-                                    data_folder=data_folder,
-                                    device=dev)
+    assert (train_data is None and val_data is None) or (train_data is not None and val_data is not None)
+    if train_data is None or val_data is None:
+        train_data, val_data = read_data(experiment_id=config["data_id"],
+                                        source=config["source"],
+                                        data_folder=data_folder,
+                                        device=dev)
     
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
