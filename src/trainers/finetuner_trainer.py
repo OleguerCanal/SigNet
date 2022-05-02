@@ -11,9 +11,9 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loggers.finetuner_logger import FinetunerLogger
-from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import read_data, read_data_final_finetuner, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
-from utilities.data_partitions import DataPartitions
+from utilities.metrics import get_fp_fn_soft, get_classification_metrics, get_kl_divergence
+from utilities.io import save_model
+from utilities.temporal_io import read_data_final_finetuner
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 
 class FinetunerTrainer:
