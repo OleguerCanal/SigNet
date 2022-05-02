@@ -39,8 +39,8 @@ def read_data_final_finetuner(device, data_id, data_folder = "../data/", network
     sf = Baseline(signatures)
     train_baseline = sf.get_weights_batch(train_input, n_workers=2)
     
-    train_data = DataPartitions(inputs=train_input,
-                                prev_guess=train_baseline,
-                                labels=train_label)
+    train_data = DataPartitions(inputs=train_input.float().to(device),
+                                prev_guess=train_baseline.float().to(device),
+                                labels=train_label.float().to(device))
     val_data = train_data
     return train_data, val_data
