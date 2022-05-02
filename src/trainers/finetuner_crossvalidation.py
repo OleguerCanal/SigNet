@@ -30,8 +30,6 @@ def read_data_and_partitions(k):
                               device=dev, header=0, index_col=0,
                               type_df="../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
 
-    num_ctypes = real_data['cancer_type'][-1] + 1
-
     # Shuffle samples inside the same cancer type
     real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)
 
