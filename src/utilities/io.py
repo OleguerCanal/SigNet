@@ -1,21 +1,22 @@
 import os
 import pathlib
-from torch.utils import data
 import yaml
+import sys
 
 import json
 import pandas as pd
-import random
-from sklearn import preprocessing
 import torch
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utilities.data_generator import DataGenerator
 from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
+from models.baseline import Baseline
 from models.generator import Generator
 from models.classifier import Classifier
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 from models.error_finder import ErrorFinder
-from utilities.metrics import get_reconstruction_error
+from utilities.oversampler import CancerTypeOverSampler
 
 def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
     """
@@ -158,6 +159,37 @@ def read_real_data(device, experiment_id, data_folder="../data"):
     real_num_mut = csv_to_tensor(path + "/real_data_num_mut.csv", device)
 
     return real_input, real_num_mut
+
+def read_data_final_finetuner(device, data_id, data_folder = "../data/", network_type ="low"):
+    '''
+    Read all real data, oversample and generate samples with different numbers of mutations
+    to train the final finetuner.
+    '''
+    data_folder = data_folder + data_id
+    real_data = csv_to_pandas(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
+                                    device=device, header=0, index_col=0,
+                                    type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+    oversampler = CancerTypeOverSampler(real_data[:,:-1], real_data[:,-1])
+    oversampled_weights = oversampler.get_even_set()
+
+    # Create inputs associated to the labels:
+    signatures = read_signatures(
+        "../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
+    data_generator = DataGenerator(signatures=signatures,
+                                   seed=None,
+                                   shuffle=True)
+
+    train_input, train_label = data_generator.make_input(oversampled_weights, "train", network_type, normalize=True)
+    
+    # Run Baseline
+    sf = Baseline(signatures)
+    train_baseline = sf.get_weights_batch(train_input, n_workers=2)
+    
+    train_data = DataPartitions(inputs=train_input,
+                                prev_guess=train_baseline,
+                                labels=train_label)
+    val_data = train_data
+    return train_data, val_data
 
 def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real', prop_train = 0.9):
     '''

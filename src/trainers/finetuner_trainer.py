@@ -11,10 +11,8 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loggers.finetuner_logger import FinetunerLogger
-from models.baseline import Baseline
-from utilities.data_generator import DataGenerator
 from utilities.metrics import get_jensen_shannon, get_fp_fn_soft, get_classification_metrics, get_kl_divergence
-from utilities.io import read_data, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
+from utilities.io import read_data, read_data_final_finetuner, read_data_generator, read_signatures, save_model, read_model, tensor_to_csv
 from utilities.data_partitions import DataPartitions
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 
@@ -162,10 +160,15 @@ def train_finetuner(config, data_folder="../data", name=None, train_data=None, v
     load_data = config["load_data"]
     assert (train_data is None and val_data is None) or (train_data is not None and val_data is not None)
     if train_data is None or val_data is None:
-        train_data, val_data = read_data(experiment_id=config["data_id"],
-                                        source=config["source"],
-                                        data_folder=data_folder,
-                                        device=dev)
+        # train_data, val_data = read_data(experiment_id=config["data_id"],
+        #                                 source=config["source"],
+        #                                 data_folder=data_folder,
+        #                                 device=dev)
+
+        train_data, val_data = read_data_final_finetuner(device = dev,
+                                                         data_id = config["data_id"],
+                                                         data_folder = "../data/", 
+                                                         network_type = config["network_type"])
     
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

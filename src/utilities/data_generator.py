@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
+import os
+import sys
+
 import numpy as np
-from numpy import reshape
-import pandas as pd
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
 import torch
 from tqdm import tqdm
 
-from models.baseline import Baseline
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import csv_to_tensor, read_model
 from utilities.weight_augmenter import WeightAugmenter
 
