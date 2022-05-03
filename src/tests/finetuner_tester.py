@@ -16,22 +16,18 @@ from utilities.plotting import plot_all_metrics_vs_mutations, plot_crossval, plo
 from utilities.metrics import get_classification_metrics
 from utilities.data_generator import DataGenerator
 
-experiment_id = "exp_all"
+experiment_id = "crossval"
 
 # Plots crossvalidation
 
-k = 10
-assert len(sys.argv) == 2
-network_type = str(sys.argv[1])
-assert network_type in ['low', 'large']
-finetuner_config_path = "../configs/finetuner/finetuner_" + network_type + ".yaml"
+k_tot = 10
 
 # Create partitions
-lst_weights, lst_ctype = read_data_and_partitions(k)
+lst_weights, lst_ctype = read_data_and_partitions(k_tot)
 
 # Oversample each set to have the same number of samples for each cancer type
 oversampled_weights = []
-for i in range(k):
+for i in range(k_tot):
     oversampler = CancerTypeOverSampler(lst_weights[i], lst_ctype[i])
     oversampled_weights.append(oversampler.get_even_set())
 
@@ -42,25 +38,26 @@ data_generator = DataGenerator(signatures=signatures,
                                 seed=None,
                                 shuffle=True)
 
+models_path = "../../trained_models/" + experiment_id
+
 # Loop through the partitions
-for i in range(k):
+for k in range(k_tot):
     current_test = i
 
     # Create test weight sets
     test_weights = oversampled_weights[current_test]
 
     # Create pairs input-label
-    test_input, test_label = data_generator.make_input(test_weights, "test", network_type, normalize=True)
+    test_input, test_label = data_generator.make_input(test_weights, "test", "", normalize=True)
 
     # Run Baseline
     print("Running Baseline")
     sf = Baseline(signatures)
-    test_baseline = sf.get_weights_batch(test_input, n_workers=10)
+    test_baseline = sf.get_weights_batch(test_input, n_workers=4)
 
     # Apply model to test set
-    models_path = "../../trained_models/" + experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
-                                    large_mum_mut_dir=models_path + "finetuner_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "/finetuner_low_crossval_" + str(i),
+                                    large_mum_mut_dir=models_path + "/finetuner_large_crossval_" + str(i))
     finetuner_guess = finetuner(mutation_dist=test_input,
                                 baseline_guess=test_baseline,
                                 num_mut=test_label[:, -1].view(-1, 1))
@@ -69,11 +66,11 @@ for i in range(k):
     num_muts = np.unique(test_label[:, -1].detach().numpy())
     list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
                         "precision %", "sens: tp/p %", "spec: tn/n %"]
-    values = np.zeros((k, len(num_muts), len(list_of_metrics)))
+    values = np.zeros((k_tot, len(num_muts), len(list_of_metrics)))
     for i, num_mut in enumerate(num_muts):
         indexes = test_label[:, -1] == num_mut
         metrics = get_classification_metrics(label_batch=test_label[indexes, :-1],
-                                                prediction_batch=finetuner_guess)
+                                                prediction_batch=finetuner_guess[indexes,:])
         for metric_index, metric in enumerate(list_of_metrics):
             values[k, i, metric_index] = metrics[metric]
 
@@ -87,7 +84,7 @@ baseline = Baseline(signatures)
 baseline_guess = baseline.get_weights_batch(test_input)
 
 list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs"]
-list_of_guesses, label = read_methods_guesses('cpu', "exp_oversample", list_of_methods, data_folder="../../data/")
+list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../data/")
 list_of_methods += ['NNLS', 'Finetuner']
 list_of_guesses = [baseline_guess, finetuner_guess]
 
