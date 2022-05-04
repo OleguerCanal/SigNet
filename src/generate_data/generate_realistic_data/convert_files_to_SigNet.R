@@ -1,7 +1,7 @@
 # Convert output files from each method to SigNet format:
 
 experiment_id <- "exp_all"
-list_of_methods <- c("decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "YAPSA" ,"MutationalPatterns") #,"deconstructSigs")
+list_of_methods <- c("decompTumor2Sig", "mutSignatures", "SignatureEstimationQP", "YAPSA" ,"MutationalPatterns","deconstructSigs")
 
 for(i in 1:length(list_of_methods)){
   test_guess <- read.csv(paste("../../../data/", experiment_id, "/other_methods/", list_of_methods[i], "_test/inferred.exposures.csv", sep=""), row.names = 1)
