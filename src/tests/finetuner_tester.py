@@ -41,6 +41,10 @@ data_generator = DataGenerator(signatures=signatures,
 models_path = "../../trained_models/" + experiment_id
 
 # Loop through the partitions
+list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
+                    "precision %", "sens: tp/p %", "spec: tn/n %"]
+num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4]
+values = np.zeros((k_tot, len(num_muts), len(list_of_metrics)))
 for k in range(k_tot):
     current_test = i
 
@@ -63,10 +67,7 @@ for k in range(k_tot):
                                 num_mut=test_label[:, -1].view(-1, 1))
 
     # Test model
-    num_muts = np.unique(test_label[:, -1].detach().numpy())
-    list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
-                        "precision %", "sens: tp/p %", "spec: tn/n %"]
-    values = np.zeros((k_tot, len(num_muts), len(list_of_metrics)))
+    
     for i, num_mut in enumerate(num_muts):
         indexes = test_label[:, -1] == num_mut
         metrics = get_classification_metrics(label_batch=test_label[indexes, :-1],
@@ -81,12 +82,12 @@ plot_crossval(values, num_muts)
 
 # Load Baseline and get guess
 baseline = Baseline(signatures)
-baseline_guess = baseline.get_weights_batch(test_input)
+baseline_guess = baseline.get_weights_batch(test_input, n_workers=2)
 
 list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs"]
 list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../data/")
-list_of_methods += ['NNLS', 'Finetuner']
-list_of_guesses = [baseline_guess, finetuner_guess]
+# list_of_methods += ['NNLS', 'Finetuner']
+# list_of_guesses += [baseline_guess, finetuner_guess]
 
 plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values, folder_path='', show=True)
 
