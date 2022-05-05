@@ -1,5 +1,6 @@
 import os
 import sys
+from pyparsing import Word
 
 import torch
 
@@ -33,16 +34,16 @@ def read_real_data():
     return inputs, baselines, labels, nummut
 
 def read_synt_data():
-    input_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
-    label_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_label.csv")
+    input_batch = csv_to_tensor("../../data/exp_all/test_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_all/test_label.csv")
     # baseline_batch = csv_to_tensor("../../data/exp_not_norm/test_generator_input.csv")
     signatures = read_signatures("../../data/data.xlsx")
     baseline = Baseline(signatures)
-    baselines = baseline.get_weights_batch(input_batch)
+    baselines = baseline.get_weights_batch(input_batch, n_workers=2)
     return input_batch, baselines, label_batch[:, :-1], label_batch[:, -1]
 
 def read_finetuner():
-    experiment_id = "exp_finetuner"
+    experiment_id = "exp_all"
     models_path = "../../trained_models/%s/"%experiment_id
     finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
                                             large_mum_mut_dir=models_path + "finetuner_large")
@@ -68,31 +69,27 @@ def small_to_unkown(a, thr = 0.01):
 if __name__=="__main__":
     data_folder = "../../data/"
 
-    train_data, test_data = read_data_generator(device='cpu', data_id = "real_data", data_folder = "../../data/", cosmic_version = 'v3', type='real')
-    test_label = test_data.inputs 
-    train_label = train_data.inputs 
-    signatures = read_signatures("../../data/data.xlsx")
-    data_generator = DataGenerator(signatures=signatures,
-                                    seed=None,
-                                    shuffle=True)
-    test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
-    train_input, train_label = data_generator.make_input(labels=train_label, set="train", large_low="large", normalize=True)
+    # train_data, test_data = read_data_generator(device='cpu', data_id = "real_data", data_folder = "../../data/", cosmic_version = 'v3', type='real')
+    # test_label = test_data.inputs 
+    # train_label = train_data.inputs 
+    # signatures = read_signatures("../../data/data.xlsx")
+    # data_generator = DataGenerator(signatures=signatures,
+    #                                 seed=None,
+    #                                 shuffle=True)
+    # test_input, test_label = data_generator.make_input(labels=test_label, set="test", large_low="large", normalize=True)
+    # train_input, train_label = data_generator.make_input(labels=train_label, set="train", large_low="large", normalize=True)
 
     # real_inputs, real_baseline, real_labels, real_nummut = read_real_data()
-    # synt_inputs, synt_baseline, synt_labels, synt_nummut = read_synt_data()
+    test_input, test_baseline, test_label, test_nummut = read_synt_data()
 
     # real_inputs_norm = normalize(real_inputs, synt_inputs)
     # real_inputs_norm = real_inputs
 
-    baseline = Baseline(signatures)
-    baseline_guess = baseline.get_weights_batch(test_input)
+    # baseline = Baseline(signatures)
+    # baseline_guess = baseline.get_weights_batch(test_input)
     finetuner = read_finetuner()
-    real_guess = finetuner(mutation_dist=test_input, baseline_guess=baseline_guess, num_mut=test_label[:,-1])
+    real_guess = finetuner(mutation_dist=test_input, baseline_guess=test_baseline, num_mut=test_nummut)
 
-    baseline = Baseline(signatures)
-    baseline_guess = baseline.get_weights_batch(train_input)
-    finetuner = read_finetuner()
-    train_real_guess = finetuner(mutation_dist=train_input, baseline_guess=baseline_guess, num_mut=train_label[:,-1])
     # real_guess = finetuner(mutation_dist=real_inputs_norm, baseline_guess=real_baseline, num_mut=real_nummut)
     # synt_guess = finetuner(mutation_dist=synt_inputs, baseline_guess=synt_baseline, num_mut=synt_nummut)
 
@@ -202,22 +199,24 @@ if __name__=="__main__":
             # plt.show()
 
     import matplotlib.pyplot as plt
-    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [0,36], only_present = True)
-    boxplots(real_guess, test_label[:,:-1], num_sigs_range = [36,72], only_present = True)
+    real_guess = real_guess[test_nummut>1e3]
+    test_label = test_label[test_nummut>1e3]
+    boxplots(real_guess, test_label, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(real_guess, test_label, num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    boxplots(real_guess, test_label, num_sigs_range = [0,36], only_present = True)
+    boxplots(real_guess, test_label, num_sigs_range = [36,72], only_present = True)
     plt.show()
 
-    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
-    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = True)
-    boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = True)
-    plt.show()
+    # boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    # boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = False, legend_names = ['SigNet real', 'SigProfiler Labels'])
+    # boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [0,36], only_present = True)
+    # boxplots(train_real_guess, train_label[:,:-1], num_sigs_range = [36,72], only_present = True)
+    # plt.show()
     
     signatures = sort_signatures(file=data_folder + "data.xlsx",
                                  mutation_type_order=data_folder + "mutation_type_order.xlsx")
     plot_correlation_matrix(real_guess, signatures)
-    plot_correlation_matrix(test_label[:,:-1], signatures)
+    plot_correlation_matrix(test_label, signatures)
 
 
     # boxplots(synt_guess, synt_labels, num_sigs_range = [0,36], only_present = False, legend_names = ['SigNet Synthetic', 'Synthetic Labels'])

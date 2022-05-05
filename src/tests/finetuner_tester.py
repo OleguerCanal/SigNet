@@ -43,7 +43,7 @@ models_path = "../../trained_models/" + experiment_id
 # Loop through the partitions
 list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
                     "precision %", "sens: tp/p %", "spec: tn/n %"]
-num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4]
+num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
 values = np.zeros((k_tot, len(num_muts), len(list_of_metrics)))
 for k in range(k_tot):
     current_test = i
