@@ -58,12 +58,12 @@ class ErrorFinderLogger:
             wandb.log({"train_%s"%key: pi_metrics_train[key].item()})
         
         for key in pi_metrics_val.keys():
-            if key == "in_prop" or key == "mean_interval_width":
-                grouped, ranges = self._group_by_nummut(pi_metrics_val[key], val_nummut)
-                for i, val in enumerate(grouped):
-                    wandb.log({"val_%s_%i"%(key, i): val.item()})
-            else:
-                wandb.log({"val_%s"%key: torch.mean(pi_metrics_val[key]).item()})
+            # if key == "in_prop" or key == "mean_interval_width":
+            #     grouped, ranges = self._group_by_nummut(pi_metrics_val[key], val_nummut)
+            #     for i, val in enumerate(grouped):
+            #         wandb.log({"val_%s_%i"%(key, i): val.item()})
+            # else:
+            wandb.log({"val_%s"%key: torch.mean(pi_metrics_val[key]).item()})
 
         # for key in pi_metrics_val.keys():
         #     self.writer.add_scalar("metrics/%s"%key, pi_metrics_train[key].item(), step)

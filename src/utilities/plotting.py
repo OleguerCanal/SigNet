@@ -484,6 +484,36 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
         plt.savefig(plot_path + 'interval_performance.pdf')
 
 
+def plot_error_by_sig(label, pred_upper, pred_lower, sigs_names):
+    lower = label - pred_lower
+    upper = pred_upper - label
+    num_error = torch.sum(lower < 0, dim=0)
+    num_error += torch.sum(upper < 0, dim=0)
+    num_error = num_error / label.shape[0]
+    num_classes = 72
+    
+    fig, ax = plt.subplots()
+    ax.bar(range(num_classes), 100*num_error, align='center', width=1, alpha=0.8, ecolor='black', capsize=10)
+    stylize_axes(ax, '', '', "Percentage of error (%)")
+    xt = range(num_classes)
+    xl = sigs_names
+    ax.set_xticks(xt)
+    ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
+    return fig
+
+def plot_width_by_sig(pred_upper, pred_lower, sigs_names):
+    width = torch.mean(torch.abs(pred_upper - pred_lower), dim=0)
+    num_classes = 72
+    
+    fig, ax = plt.subplots()
+    ax.bar(range(num_classes), width, align='center', width=1, alpha=0.8, ecolor='black', capsize=10)
+    stylize_axes(ax, '', '', "Width of interval")
+    xt = range(num_classes)
+    xl = sigs_names
+    ax.set_xticks(xt)
+    ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
+    return fig
+    
     
 def plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, plot_path=None, show=False):
     fig, axs = plt.subplots(2,2, figsize=(8,6))

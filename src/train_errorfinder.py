@@ -10,6 +10,7 @@ from trainers.error_trainer import train_errorfinder
 from utilities.io import update_dict, read_config, write_result
 
 DEFAULT_CONFIG_FILE = ["configs/errorfinder/errorfinder.yaml"]
+torch.manual_seed(0)
 
 if __name__ == "__main__":
     # Parse command-line arguments
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 
     # Loss args
     parser.add_argument(
-        '--lagrange_missclassification_vector', action='store', nargs=1, type=list, required=False,
+        '--lagrange_missclassification_vector', action='store', nargs="*", type=float, required=False,
         help='Weight of misclassification per signature in the loss.'
     )
     parser.add_argument(
@@ -85,4 +86,4 @@ if __name__ == "__main__":
     
     print("Using config:", config)
     score = train_errorfinder(config=config)
-    write_result(score, "../tmp/errorfinder_score_%s_%s.txt"%(config["source"],config["model_id"]))
+    # write_result(score, "../tmp/errorfinder_score_%s_%s.txt"%(config["source"],config["model_id"]))
