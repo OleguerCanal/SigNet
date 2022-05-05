@@ -63,7 +63,7 @@ class CancerTypeOverSampler:
         max_count = torch.max(self.counts)
         for i in range(self.cancer_types.size(0)):
             count = self.counts[int(self.cancer_types[i].item())]
-            times_to_repeat = int(torch.round(max_count/count))
+            times_to_repeat = int(max_count/count)
             # print(i, int(self.cancer_types[i].item()), count, times_to_repeat)
             to_append = [self.data[i, :].unsqueeze(0)]*times_to_repeat
             oversampled = torch.cat([oversampled] + to_append, dim=0)

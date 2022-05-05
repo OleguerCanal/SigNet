@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
+import os
+import sys
+
 import numpy as np
-from numpy import reshape
-import pandas as pd
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
 import torch
 from tqdm import tqdm
 
-from models.baseline import Baseline
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import csv_to_tensor, read_model
 from utilities.weight_augmenter import WeightAugmenter
 
@@ -452,7 +450,7 @@ class DataGenerator:
             elif large_low == 'large':
                 range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
         elif set == "test":
-            range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+            range_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 1]
 
         batch_size = (len(range_muts)-1)*labels.shape[0]
         input_batch = torch.empty((batch_size, 96))

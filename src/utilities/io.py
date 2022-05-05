@@ -1,21 +1,20 @@
 import os
 import pathlib
-from torch.utils import data
+from sklearn import preprocessing
 import yaml
+import sys
 
 import json
 import pandas as pd
-import random
-from sklearn import preprocessing
 import torch
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from models.classifier import Classifier
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
 from models.error_finder import ErrorFinder
-from utilities.metrics import get_reconstruction_error
 
 def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
     """
@@ -158,6 +157,7 @@ def read_real_data(device, experiment_id, data_folder="../data"):
     real_num_mut = csv_to_tensor(path + "/real_data_num_mut.csv", device)
 
     return real_input, real_num_mut
+
 
 def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real', prop_train = 0.9):
     '''
