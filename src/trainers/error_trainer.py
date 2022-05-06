@@ -35,7 +35,8 @@ class ErrorTrainer:
                  loging_path="../runs",
                  num_classes=72,
                  model_path=None,
-                 device="cuda:0"):
+                 device="cuda:0",
+                 data_folder="../data"):
         self.iterations = iterations  # Iteration refers to passes through all dataset
         self.num_classes = num_classes
         self.train_dataset = train_data
@@ -45,14 +46,14 @@ class ErrorTrainer:
         self.logger = ErrorFinderLogger(
             path=None,
             experiment_id=None)
+        self.data_folder = data_folder
 
     def __loss(self,
                label,
                pred_lower,
                pred_upper):
-
-        lagrange_missclassification_vector = self.loss_params["lagrange_missclassification_vector"]
-        lagrange_missclassification_vector = torch.Tensor(lagrange_missclassification_vector).to(self.device)
+        lagrange_base = float(self.loss_params["lagrange_base"])
+        lagrange_high_error_sigs = float(self.loss_params["lagrange_high_error_sigs"])
         lagrange_pnorm = float(self.loss_params["lagrange_pnorm"])
         pnorm_order = int(self.loss_params["pnorm_order"] )
         lagrange_smalltozero = float(self.loss_params["lagrange_smalltozero"])
@@ -67,10 +68,14 @@ class ErrorTrainer:
 
         interval_length = ((pred_upper - pred_lower)**2)/batch_size
         
-        # loss = interval_length + lagrange * missclassifications
+        # This is super sketchy
+        lagrange_vector = torch.ones(72).to(self.device)*lagrange_base
+        lagrange_vector[2] = lagrange_high_error_sigs
+        lagrange_vector[4] = lagrange_high_error_sigs
+        lagrange_vector[43] = lagrange_high_error_sigs
         loss_by_mutation_signature =\
             interval_length +\
-            lagrange_missclassification_vector*(lower + upper)
+            lagrange_vector*(lower + upper)
 
         # p-norm by signature to avoid high errors
         loss_by_mutation = linalg.norm(lagrange_pnorm *\
@@ -186,8 +191,8 @@ class ErrorTrainer:
                                     val_nummut=self.val_dataset.num_mut,
                                     step=step)
                 del train_label, train_weight_guess, num_mut, classification, train_pred_upper, train_pred_lower, val_pred_upper, val_pred_lower
-                if self.model_path is not None and step % 500 == 0:
-                    save_model(model=model, directory=self.model_path)
+                # if self.model_path is not None and step % 500 == 0:
+                #     save_model(model=model, directory=self.model_path)
                 step += batch_size
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
@@ -199,12 +204,12 @@ class ErrorTrainer:
             fig_error = plot_error_by_sig(label=self.val_dataset.labels.cpu(),
                                     pred_upper=val_pred_upper.cpu(),
                                     pred_lower=val_pred_lower.cpu(),
-                                    sigs_names=list(pd.read_excel("../data/data.xlsx").columns)[1:])
+                                    sigs_names=list(pd.read_excel(self.data_folder + "/data.xlsx").columns)[1:])
             wandb.log({"Validation Error by Sig": wandb.Image(fig_error)})
 
             fig_width = plot_width_by_sig(pred_upper=val_pred_upper.cpu(),
                                         pred_lower=val_pred_lower.cpu(),
-                                        sigs_names=list(pd.read_excel("../data/data.xlsx").columns)[1:])
+                                        sigs_names=list(pd.read_excel(self.data_folder + "/data.xlsx").columns)[1:])
             wandb.log({"Validation Width by Sig": wandb.Image(fig_width)})
 
         return max_found
@@ -269,7 +274,8 @@ def train_errorfinder(config, data_folder="../data") -> float:
                            val_data=val_data,
                            num_classes=config["num_classes"],
                            device=device,
-                           model_path=errorfinder_path)
+                           model_path=errorfinder_path,
+                           data_folder=data_folder)
 
     min_val = trainer.objective(batch_size=config["batch_size"],
                                 lr=config["lr"],

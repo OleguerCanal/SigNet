@@ -29,7 +29,6 @@ output_file = "search_results_" + experiment_id + ".csv"
 if __name__ == "__main__":
     # Read base config
     config = read_config(path="../configs/finetuner/finetuner_%s.yaml"%large_low)
-    iterations = config['iterations']
 
     # Define hyperparameters to train
     search_space = [batch_sizes, learning_rates, num_hidden_layers, num_neurons]
