@@ -53,7 +53,7 @@ class ErrorTrainer:
                pred_lower,
                pred_upper):
         lagrange_base = float(self.loss_params["lagrange_base"])
-        lagrange_important_sigs = float(self.loss_params["lagrange_important_sigs"])
+        lagrange_high_error_sigs = float(self.loss_params["lagrange_high_error_sigs"])
         lagrange_pnorm = float(self.loss_params["lagrange_pnorm"])
         pnorm_order = int(self.loss_params["pnorm_order"] )
         lagrange_smalltozero = float(self.loss_params["lagrange_smalltozero"])
@@ -70,9 +70,9 @@ class ErrorTrainer:
         
         # This is super sketchy
         lagrange_vector = torch.ones(72).to(self.device)*lagrange_base
-        lagrange_vector[2] = lagrange_important_sigs
-        lagrange_vector[4] = lagrange_important_sigs
-        lagrange_vector[43] = lagrange_important_sigs
+        lagrange_vector[2] = lagrange_high_error_sigs
+        lagrange_vector[4] = lagrange_high_error_sigs
+        lagrange_vector[43] = lagrange_high_error_sigs
         loss_by_mutation_signature =\
             interval_length +\
             lagrange_vector*(lower + upper)

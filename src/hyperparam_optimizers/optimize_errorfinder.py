@@ -23,7 +23,7 @@ layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=6)
 
 # Loss params
 lagrange_base = Real(name="lagrange_base", low=0.01, high=1.0)
-lagrange_important_sigs = Real(name="lagrange_important_sigs", low=0.01, high=1.0)
+lagrange_high_error_sigs = Real(name="lagrange_high_error_sigs", low=0.01, high=1.0)
 lagrange_pnorm_param = Real(name="lagrange_pnorm", low=1e3, high=1e5)
 lagrange_smalltozero_param = Real(name="lagrange_smalltozero", low=0.1, high=10)
 pnorm_order_param = Integer(name="pnorm_order", low=3, high=9)
@@ -40,13 +40,13 @@ if __name__ == "__main__":
     search_space = [batch_sizes, learning_rates, neurons_pos,
                     layers_pos, neurons_neg, layers_neg,
                     pnorm_order_param, lagrange_smalltozero_param,
-                    lagrange_pnorm_param, lagrange_base, lagrange_important_sigs]
+                    lagrange_pnorm_param, lagrange_base, lagrange_high_error_sigs]
     fixed_space = {"plot": True}
 
     def objective(**kwargs):
         loss_params = {
             "lagrange_base": kwargs["lagrange_base"],
-            "lagrange_important_sigs": kwargs["lagrange_important_sigs"],
+            "lagrange_high_error_sigs": kwargs["lagrange_high_error_sigs"],
             "lagrange_pnorm": kwargs["lagrange_pnorm"],
             "lagrange_smalltozero": kwargs["lagrange_smalltozero"],
             "pnorm_order": kwargs["pnorm_order"],
