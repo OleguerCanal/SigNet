@@ -2,7 +2,7 @@ import sys
 import os
 
 import copy
-
+import math
 import numpy as np
 import torch
 
@@ -69,6 +69,18 @@ class CancerTypeOverSampler:
             oversampled = torch.cat([oversampled] + to_append, dim=0)
         return oversampled[np.random.permutation(oversampled.size(0)), ...]
 
+    def get_N_oversampled_set(self, N_samples):
+        """Oversample to have N number of samples for each cancer type
+        """
+        oversampled = torch.tensor([])
+        for i in range(self.cancer_types.size(0)):
+            count = self.counts[int(self.cancer_types[i].item())]
+            times_to_repeat = math.ceil(N_samples/int(count))
+            # print(i, int(self.cancer_types[i].item()), count, times_to_repeat)
+            to_append = [self.data[i, :].unsqueeze(0)]*times_to_repeat
+            oversampled = torch.cat([oversampled] + to_append, dim=0)
+        return oversampled[np.random.permutation(oversampled.size(0)), ...]
+
 
 if __name__=="__main__":
     import os
@@ -89,14 +101,14 @@ if __name__=="__main__":
 
     print(real_data)
 
-    real_data = torch.tensor(real_data.values)
+    real_data = torch.tensor(real_data.values, dtype=torch.float)
     real_data, cancer_types = real_data[:, :-1], real_data[:, -1]
 
     real_data = real_data/torch.sum(real_data, axis=1).reshape(-1, 1)
     real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
 
     oversampler = CancerTypeOverSampler(real_data, cancer_types)
-    new_set = oversampler.get_even_set()
+    new_set = oversampler.get_N_oversampled_set(500)
 
     print(real_data.size())
     print(new_set.size())
@@ -110,6 +122,4 @@ if __name__=="__main__":
     signatures = sort_signatures(file=data_folder + "data.xlsx",
                                  mutation_type_order=data_folder + "mutation_type_order.xlsx")
     corrMatrix = plot_correlation_matrix(data=new_set, signatures=signatures)
-    print(corrMatrix)
     corrMatrix = plot_correlation_matrix(data=real_data, signatures=signatures)
-    print(corrMatrix)

@@ -57,12 +57,6 @@ if __name__ == "__main__":
     # Create partitions
     lst_weights, lst_ctype = read_data_and_partitions(k)
 
-    # Oversample each set to have the same number of samples for each cancer type
-    oversampled_weights = []
-    for i in range(k):
-        oversampler = CancerTypeOverSampler(lst_weights[i], lst_ctype[i])
-        oversampled_weights.append(oversampler.get_even_set())
-
     # Create inputs associated to the labels:
     signatures = read_signatures(
         "../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
@@ -70,46 +64,55 @@ if __name__ == "__main__":
                                    seed=None,
                                    shuffle=True)
 
-    # Loop through the partitions
-    for i in range(k):
-        current_test = i
-        current_val = (i+1)%k
-        current_train = [j for j in range(k) if j != current_test and j != current_val]
+    N_oversample_list = [1, 50, 100, 200, 300]
+    
+    for N_oversample in N_oversample_list:
+        # Oversample each set to have the same number of samples for each cancer type
+        oversampled_weights = []
+        for i in range(k):
+            oversampler = CancerTypeOverSampler(lst_weights[i], lst_ctype[i])
+            oversampled_weights.append(oversampler.get_N_oversampled_set(N_oversample))
+        
+        # Loop through the partitions
+        for i in range(k):
+            current_test = i
+            current_val = (i+1)%k
+            current_train = [j for j in range(k) if j != current_test and j != current_val]
 
-        # Create train, val and test weight sets
-        test_weights = oversampled_weights[current_test]
-        val_weights = oversampled_weights[current_val]
-        train_weights = torch.cat([oversampled_weights[j] for j in current_train], axis=0)
+            # Create train, val and test weight sets
+            test_weights = oversampled_weights[current_test]
+            val_weights = oversampled_weights[current_val]
+            train_weights = torch.cat([oversampled_weights[j] for j in current_train], axis=0)
 
-        # Create pairs input-label
-        print("Creating train, val and test data")
-        train_input, train_label = data_generator.make_input(train_weights, "train", network_type, normalize=True)
-        val_input, val_label = data_generator.make_input(val_weights, "val", network_type, normalize=True)
-        test_input, test_label = data_generator.make_input(test_weights, "test", network_type, normalize=True)
+            # Create pairs input-label
+            print("Creating train, val and test data")
+            train_input, train_label = data_generator.make_input(train_weights, "train", network_type, normalize=True)
+            val_input, val_label = data_generator.make_input(val_weights, "val", network_type, normalize=True)
+            test_input, test_label = data_generator.make_input(test_weights, "test", network_type, normalize=True)
 
-        # Run Baseline
-        print("Running Baseline")
-        sf = Baseline(signatures)
-        train_baseline = sf.get_weights_batch(train_input, n_workers=10)
-        val_baseline = sf.get_weights_batch(val_input, n_workers=10)
-        test_baseline = sf.get_weights_batch(test_input, n_workers=10)
+            # Run Baseline
+            print("Running Baseline")
+            sf = Baseline(signatures)
+            train_baseline = sf.get_weights_batch(train_input, n_workers=10)
+            val_baseline = sf.get_weights_batch(val_input, n_workers=10)
+            test_baseline = sf.get_weights_batch(test_input, n_workers=10)
 
-        # Create DataPartitions
-        train_data = DataPartitions(inputs=train_input,
-                                    prev_guess=train_baseline,
-                                    labels=train_label)
-        val_data = DataPartitions(inputs=val_input,
-                                  prev_guess=val_baseline,
-                                  labels=val_label)
+            # Create DataPartitions
+            train_data = DataPartitions(inputs=train_input,
+                                        prev_guess=train_baseline,
+                                        labels=train_label)
+            val_data = DataPartitions(inputs=val_input,
+                                    prev_guess=val_baseline,
+                                    labels=val_label)
 
-        # Read config
-        config = read_config(path=finetuner_config_path)
-        config["wandb_project_id"] = "crossval_finetuner"
-        config["models_dir"] = "../../trained_models/crossval"
-        config["model_id"] = "finetuner_" + network_type + "_crossval_" + str(i)
-        train_data.to(config["device"])
-        val_data.to(config["device"])
+            # Read config
+            config = read_config(path=finetuner_config_path)
+            config["wandb_project_id"] = "crossval_finetuner"
+            config["models_dir"] = "../../trained_models/crossval_oversample"
+            config["model_id"] = "finetuner_" + network_type + "_crossval_" + str(i) + "_" + str(N_oversample)
+            train_data.to(config["device"])
+            val_data.to(config["device"])
 
-        # Train finetuner
-        print("Training Finetuner")
-        score = train_finetuner(config=config, train_data=train_data, val_data=val_data)
+            # Train finetuner
+            print("Training Finetuner")
+            score = train_finetuner(config=config, train_data=train_data, val_data=val_data)
