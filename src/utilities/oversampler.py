@@ -70,7 +70,7 @@ class CancerTypeOverSampler:
         return oversampled[np.random.permutation(oversampled.size(0)), ...]
 
     def get_N_oversampled_set(self, N_samples):
-        """Oversample to have N number of samples for each cancer type
+        """Oversample to have at least N number of samples for each cancer type
         """
         oversampled = torch.tensor([])
         for i in range(self.cancer_types.size(0)):
