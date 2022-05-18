@@ -729,12 +729,17 @@ def plot_bars(data, max=None):
     plt.legend(bars, data.keys())
     plt.show()
 
-def get_correlation_matrix(data, signatures):
-    fig = plt.figure()
-    df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
-    corrMatrix = df.corr()
-    sn.heatmap(corrMatrix, annot=False)
-    return fig, corrMatrix
+def get_correlation_matrix(data, signatures, plot = True):
+    if plot:
+        fig = plt.figure()
+        df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
+        corrMatrix = df.corr()
+        sn.heatmap(corrMatrix, annot=False)
+        return fig, corrMatrix
+    else:
+        df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
+        corrMatrix = df.corr()
+        return corrMatrix, corrMatrix
 
 def plot_correlation_matrix(data, signatures):
     fig, corrMatrix = get_correlation_matrix(data, signatures)

@@ -63,8 +63,8 @@ if __name__ == "__main__":
     data_generator = DataGenerator(signatures=signatures,
                                    seed=None,
                                    shuffle=True)
-
-    N_oversample_list = [1, 50, 100, 200, 300]
+    
+    N_oversample_list = [5, 10, 20, 30]
     
     for N_oversample in N_oversample_list:
         # Oversample each set to have the same number of samples for each cancer type
