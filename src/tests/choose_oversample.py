@@ -35,7 +35,7 @@ def renormalize_corr_mat(corr_mat, weights, cutoff):
         for j in range(corr_mat.shape[1]):
             Ni = torch.sum(weights[:,i]>cutoff)
             Nj = torch.sum(weights[:,j]>cutoff)
-            corr_mat.at[corr_mat.columns[i],corr_mat.columns[j]] = corr_mat.iloc[i,j]*np.sqrt(Ni*Nj).item()
+            corr_mat.at[corr_mat.columns[i],corr_mat.columns[j]] = corr_mat.iloc[i,j]*np.sqrt(Ni*Nj).item()/weights.shape[0]
     return corr_mat
 
 data_folder = "../../data/"
@@ -122,8 +122,8 @@ for N_oversample in N_oversample_list:
         prediction_mask = (test_guess > cutoff).type(torch.int).float()
         fp = torch.sum(label_mask - prediction_mask < -0.1)
         fn = torch.sum(label_mask - prediction_mask > 0.1)
-        FP_oversample_k.append(fp)
-        FN_oversample_k.append(fn)
+        FP_oversample_k.append(fp/test_guess.shape[0])
+        FN_oversample_k.append(fn/test_guess.shape[0])
 
         # test_guess[test_guess<0.01] = 0
         # test_label[test_label<0.01] = 0
