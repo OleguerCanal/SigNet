@@ -10,6 +10,8 @@ class GeneratorData(Dataset):
         return self.inputs.shape[0]
 
     def __getitem__(self, i):
+        if self.cancer_types is not None:
+            return self.inputs[i], self.cancer_types[i]
         return self.inputs[i]
     
     def to(self, device):

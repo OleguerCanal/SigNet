@@ -48,9 +48,10 @@ class GeneratorTrainer:
             signatures=signatures,
             device=device)
 
-        os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
+        #TODO(Oleguer): Implement oversampler with cancer type mask
+        # os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
         # os = OverSampler(self.train_dataset.inputs)
-        self.train_dataset.inputs = os.get_oversampled_set()
+        # self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
         kl_div = (0.5*(z_std.pow(2) + z_mu.pow(2) - 2*torch.log(z_std) - 1).sum(dim=1)).mean(dim=0)
@@ -95,10 +96,10 @@ class GeneratorTrainer:
         self.batch_size_factor = 1.
         train_DQ99R = None
         for iteration in range(self.iterations):
-            for train_input in tqdm(dataloader):
+            for train_input, train_cancer_types in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
                 optimizer.zero_grad()
-                train_pred, train_mean, train_std = model(train_input)
+                train_pred, train_mean, train_std = model(train_input, cancer_ids=train_cancer_types)
                 # self.adapted_lagrange_param = self.lagrange_param
                 if step < total_steps*0.8:
                     self.adapted_lagrange_param = self.lagrange_param * \
@@ -117,7 +118,7 @@ class GeneratorTrainer:
                 model.eval()
                 with torch.no_grad():
                     val_pred, val_mean, val_std = model(
-                        self.val_dataset.inputs)
+                        self.val_dataset.inputs, self.val_dataset.cancer_types)
                     val_loss = self.__loss(input=self.val_dataset.inputs,
                                            pred=val_pred,
                                            z_mu=val_mean,

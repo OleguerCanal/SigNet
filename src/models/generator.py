@@ -7,6 +7,7 @@ class Generator(nn.Module):
                  input_size=72,
                  num_hidden_layers=2,
                  latent_dim=50,
+                 num_cancers=37,  #TODO(Oleguer): Check this number
                  device="cuda") -> None:
         self.init_args = locals()
         self.init_args.pop("self")
@@ -15,6 +16,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
 
         self.latent_dim = latent_dim
+        self.num_cancers = num_cancers
         encoder_layers = []
         for i in range(num_hidden_layers):
             in_features = int(input_size - (input_size-latent_dim)*i/num_hidden_layers)
@@ -51,6 +53,15 @@ class Generator(nn.Module):
         self.device = device
 
 
+    def __get_mask(self, cancer_ids):
+        assert type(cancer_ids) == torch.Tensor
+        lower = (cancer_ids*self.latent_dim/self.num_cancers).unsqueeze(dim=-1)
+        upper = ((cancer_ids + 1)*self.latent_dim/self.num_cancers).unsqueeze(dim=-1)
+        idx = torch.arange(self.latent_dim, device=self.device)
+        mask = idx.ge(lower) & idx.le(upper)
+        return mask.to(torch.int)
+
+
     def encode(self, x):
         for layer in self.encoder_layers:
             x = self.activation(layer(x))
@@ -61,6 +72,7 @@ class Generator(nn.Module):
         # z_var = torch.ones_like(z_mu)*0.0001
         return z_mu, z_var
 
+
     def decode(self, x):
         for layer in self.decoder_layers[:-1]:
             x = self.activation(layer(x))
@@ -68,7 +80,7 @@ class Generator(nn.Module):
         x = x/x.sum(dim=1).reshape(-1,1)
         return x
 
-    def forward(self, x, noise=True):
+    def forward(self, x, cancer_ids=None, noise=True):
         z_mu, z_var = self.encode(x)
         if noise:
             # z = z_mu + z_var*self.Normal.sample(z_mu.shape)
@@ -76,11 +88,17 @@ class Generator(nn.Module):
             z = z_mu + z_var*z
         else:
             z = z_mu
+        if cancer_ids is not None:
+            mask = self.__get_mask(cancer_ids)
+            z = z*mask
         x = self.decode(z)
         return x, z_mu, z_var
 
-    def generate(self, batch_size:int, std = 1.0):
+    def generate(self, batch_size:int, cancer_ids=None, std = 1.0):
         shape = tuple((batch_size, self.latent_dim))
         z = self.Normal.sample(shape)*std
+        if cancer_ids is not None:
+            mask = self.__get_mask(cancer_ids)
+            z = z*mask
         labels = self.decode(z)
         return labels
