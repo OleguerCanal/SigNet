@@ -72,6 +72,7 @@ class ErrorTrainer:
         lagrange_vector = torch.ones(72).to(self.device)*lagrange_base
         lagrange_vector[2] = lagrange_high_error_sigs
         lagrange_vector[4] = lagrange_high_error_sigs
+        lagrange_vector[22] = lagrange_high_error_sigs
         lagrange_vector[43] = lagrange_high_error_sigs
         loss_by_mutation_signature =\
             interval_length +\

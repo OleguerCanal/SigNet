@@ -11,7 +11,7 @@ config:
     # source: "realistic_low"
     iterations: 10
     num_classes: 72
-    batch_size: 97
+    batch_size: 20
     lr: 0.000299
     sigmoid_params: [1000,200]
     loss_params: 
