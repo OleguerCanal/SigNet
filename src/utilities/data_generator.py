@@ -2,6 +2,7 @@ import os
 import sys
 
 import numpy as np
+import random
 import torch
 from tqdm import tqdm
 
@@ -36,6 +37,13 @@ class DataGenerator:
                 sample = sample/float(num_mut)
         return sample
 
+    def set_all_seeds(self, seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        
     def make_similar_set(self,
                          examples_weight,
                          large_low="low",
@@ -434,11 +442,11 @@ class DataGenerator:
             labels_output_sets[set] = labels_batch
         return inputs_sets['train'], labels_output_sets['train'],inputs_sets['val'], labels_output_sets['val'],inputs_sets['test'], labels_output_sets['test']
 
-    def make_input(self, labels, set, large_low, normalize=True):
+    def make_input(self, labels, set, large_low, normalize=True, seed = 0):
         """Create a labelled dataset of mutation vectors
         from a tensor of labels.
         """
-
+        self.set_all_seeds(seed)
         if set == "train":
             if large_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
