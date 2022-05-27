@@ -437,12 +437,12 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
     plt.figure(figsize=(8,6))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    values = np.zeros((4,len(num_muts)))
+    values = np.zeros((6,len(num_muts)))
     for i, num_mut in enumerate(num_muts):
         k = -1
         indexes = label[:, -1] == num_mut
         metrics = get_pi_metrics(label[indexes, :-1], pred_lower[indexes, :], pred_upper[indexes, :])
-        for metric in metrics.keys():
+        for metric in ["in_prop", "mean_interval_width"]:
             k += 1
             values[k,i] = metrics[metric]
     marker_size = 3

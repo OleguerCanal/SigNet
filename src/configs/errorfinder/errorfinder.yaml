@@ -3,33 +3,33 @@ config:
     data_id: "exp_oversample"
     model_id: "errorfinder_final"
     classifier_id: "classifier"
-    finetuner_low_id: "finetuner_low"
-    finetuner_large_id: "finetuner_large"
-    models_dir: "../trained_models/exp_all"
+    finetuner_low_id: "finetuner_low_1_fp_1"
+    finetuner_large_id: "finetuner_large_1_fp_1"
+    models_dir: "../trained_models/exp_fp"
 
     # Training params
     # source: "realistic_low"
     iterations: 10
     num_classes: 72
     batch_size: 97
-    lr: 0.000908
+    lr: 0.000299
     sigmoid_params: [1000,200]
     loss_params: 
-        lagrange_base: 0.09
-        lagrange_high_error_sigs: 0.5
-        lagrange_pnorm: 33434.034
-        lagrange_smalltozero: 0.276
-        pnorm_order: 5.0
+        lagrange_base: 0.249
+        lagrange_high_error_sigs: 0.352
+        lagrange_pnorm: 30407.13
+        lagrange_smalltozero: 8.31
+        pnorm_order: 3.0
 
     # WANDB params
     enable_logging: True
     wandb_project_id: "errorfinder"
 
     # Network params
-    num_hidden_layers_pos: 1
-    num_neurons_pos: 500
-    num_hidden_layers_neg: 2
-    num_neurons_neg: 500
+    num_hidden_layers_pos: 2
+    num_neurons_pos: 217
+    num_hidden_layers_neg: 3
+    num_neurons_neg: 870
 
     # Misc
     device: "cuda"
