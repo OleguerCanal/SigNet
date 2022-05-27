@@ -10,7 +10,7 @@ from trainers.error_trainer import train_errorfinder
 from utilities.io import update_dict, read_config, write_result
 
 DEFAULT_CONFIG_FILE = ["configs/errorfinder/errorfinder.yaml"]
-torch.manual_seed(0)
+torch.manual_seed(123)
 
 if __name__ == "__main__":
     # Parse command-line arguments

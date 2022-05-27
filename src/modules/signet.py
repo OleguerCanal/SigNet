@@ -11,8 +11,7 @@ from utilities.plotting import plot_interval_performance, plot_reconstruction, p
 from utilities.normalize_data import normalize_data
 from utilities.io import create_dir, read_model, read_signatures, update_dict, write_final_outputs
 from models.baseline import Baseline
-from models.error_finder import ErrorFinder
-from modules.combined_errorfinder import CombinedErrorfinder
+from models.errorfinder import ErrorFinder
 from modules.combined_finetuner import CombinedFinetuner
 from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
 

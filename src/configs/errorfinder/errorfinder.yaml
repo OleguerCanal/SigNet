@@ -1,6 +1,6 @@
 config:
     # IDs & paths
-    data_id: "exp_oversample"
+    data_id: "datasets/errorfinder/"
     model_id: "errorfinder_final"
     classifier_id: "classifier"
     finetuner_low_id: "finetuner_low_1_fp_1"
@@ -11,7 +11,7 @@ config:
     # source: "realistic_low"
     iterations: 10
     num_classes: 72
-    batch_size: 20
+    batch_size: 100
     lr: 0.000299
     sigmoid_params: [1000,200]
     loss_params: 

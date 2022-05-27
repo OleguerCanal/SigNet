@@ -27,35 +27,34 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     data_folder = "../../data"
-
     data_generator = DataGenerator(signatures=signatures,
                                     seed=None,
                                     shuffle=True)
 
+    # Read
     real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
     real_weights = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
     realistic_input, realistic_weights = data_generator.make_input(labels=real_weights, set="train", large_low="low")
-
     random_input, random_weights = data_generator.make_random_set(set='train',
                                                     large_low='low',
                                                     num_samples=int(real_weights.shape[0]),
                                                     min_n_signatures=1,
                                                     max_n_signatures=10,
                                                     normalize=True)
-
     realistic_nummut = realistic_weights[:, -1].view(-1, 1)
     random_nummut = random_weights[:, -1].view(-1, 1)
 
-    # Label all realistic data as a 1
+    # Label realistic data as 1, random as 0
     realistic_labels = torch.ones((realistic_input.shape[0], 1)).to(torch.float).view(-1, 1)
     random_labels = torch.zeros((random_input.shape[0], 1)).to(torch.float).view(-1, 1)
 
+    # Concatenate and shuffle datasets
     inputs = torch.cat((realistic_input, random_input))
     labels = torch.cat((realistic_labels, random_labels))
     num_mut = torch.cat((realistic_nummut, random_nummut))
-
     inputs, labels, num_mut = shuffle(inputs, labels, num_mut)
     
+    # Partition datasets
     n = inputs.shape[0]
     train_classification_inputs = inputs[:int(n*0.7), ...]
     train_classification_labels = labels[:int(n*0.7), ...]

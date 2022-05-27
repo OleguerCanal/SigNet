@@ -14,7 +14,7 @@ from utilities.generator_data import GeneratorData
 from models.generator import Generator
 from models.classifier import Classifier
 from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
-from models.error_finder import ErrorFinder
+from models.errorfinder import ErrorFinder
 
 def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
     """

@@ -13,7 +13,7 @@ from utilities.plotting import plot_all_metrics_vs_mutations,\
                                plot_interval_metrics_vs_mutations,\
                                plot_interval_performance
 from modules.combined_finetuner import CombinedFinetuner
-from models.error_finder import ErrorFinder
+from models.errorfinder import ErrorFinder
 
 # Load data
 data_path = "../../../data/exp_generator/"
