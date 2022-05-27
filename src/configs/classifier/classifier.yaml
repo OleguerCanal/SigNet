@@ -1,11 +1,11 @@
 config:
     # IDs & paths
-    data_id: "exp_oversample/classifier"
-    model_id: "classifier"
-    models_dir: "../trained_models/exp_classifier/"
+    data_id: "exp_classifier_final/classifier"
+    model_id: "classifier_final"
+    models_dir: "../trained_models/exp_all/"
 
     # Training params
-    iterations: 10
+    iterations: 20
     num_classes: 72
     sigmoid_params: [5000,1000]
     batch_size: 100
