@@ -108,25 +108,57 @@ experiment_id = "crossval"
 # Without crossval:
 
 
-input_batch = csv_to_tensor("../../data/exp_all/test_input.csv")
-label_batch = csv_to_tensor("../../data/exp_all/test_label.csv")
+model_names = ["_fp_1", "_fp_01", "_fp_001", ""]
 
-signatures = read_signatures("../../data/data.xlsx")
-# Run Baseline
-print("Running Baseline")
-sf = Baseline(signatures)
-test_baseline = sf.get_weights_batch(input_batch, n_workers=4)
+for model_name in model_names:
+    input_batch = csv_to_tensor("../../data/exp_all/test_input.csv")
+    label_batch = csv_to_tensor("../../data/exp_all/test_label.csv")
 
-models_path = "../../trained_models/exp_all"
-finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "/finetuner_low_1",
-                                large_mum_mut_dir=models_path + "/finetuner_large_1")
-finetuner_guess = finetuner(mutation_dist=input_batch,
-                            baseline_guess=test_baseline,
-                            num_mut=label_batch[:, -1].view(-1, 1))
+    signatures = read_signatures("../../data/data.xlsx")
+    # Run Baseline
+    print("Running Baseline")
+    sf = Baseline(signatures)
+    test_baseline = sf.get_weights_batch(input_batch, n_workers=4)
 
-list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
-list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../data/")
-list_of_methods += ['NNLS', 'Finetuner']
-list_of_guesses += [test_baseline, finetuner_guess]
+    models_path = "../../trained_models/exp_fp"
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "/finetuner_low_1" + model_name,
+                                    large_mum_mut_dir=models_path + "/finetuner_large_1" + model_name)
+    finetuner_guess = finetuner(mutation_dist=input_batch,
+                                baseline_guess=test_baseline,
+                                num_mut=label_batch[:, -1].view(-1, 1))
 
-plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label_batch, '', show=True)
+    # list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
+    # list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../data/")
+    # list_of_methods += ['NNLS', 'Finetuner']
+    # list_of_guesses += [test_baseline, finetuner_guess]
+
+    # plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label_batch, '', show=True)
+
+    guesses = finetuner_guess.detach().cpu().numpy()
+    labels = label_batch[:, :-1].detach().cpu().numpy()
+
+    from scipy.stats import kstest
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    score_0 = kstest(guesses[:, 0], labels[:, 0])
+    score_2 = kstest(guesses[:, 2], labels[:, 2])
+    score_26 = kstest(guesses[:, 26], labels[:, 26])
+    score_48 = kstest(guesses[:, 48], labels[:, 48])
+
+
+    # plt.hist(guesses[:, 26], bins=50, alpha=0.5)
+    # plt.hist(labels[:, 26], bins=50, alpha=0.5)
+    # plt.show()
+
+    # print("score_0", score_0)
+    # print("score_2", score_2)
+    # print("score_26", score_26)
+    # print("score_48", score_48)
+
+    scores = []
+    for i in range(guesses.shape[1]):
+        scores.append(kstest(guesses[:, i], labels[:, i])[0])
+    scores = np.sort(np.array(scores))
+
+    print("Model:", model_name, np.mean(scores[int(scores.shape[0]*.75):]))
