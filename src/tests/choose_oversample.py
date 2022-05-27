@@ -24,7 +24,7 @@ from utilities.plotting import get_correlation_matrix, plot_correlation_matrix
 def bootstrap_std(set, bootstrap_size, N_bootstrap, signatures):
     corr_list = []
     for _ in range(N_bootstrap):
-        ind = np.random.choice(range(bootstrap_size),test_label.size(0))
+        ind = np.random.choice(range(set.size(0)),bootstrap_size)
         bootstrap_set = set[ind,:]
         _, corr_mat = get_correlation_matrix(bootstrap_set, signatures, plot = False)
         corr_list.append(corr_mat)
@@ -39,7 +39,7 @@ def renormalize_corr_mat(corr_mat, weights, cutoff):
     return corr_mat
 
 data_folder = "../../data/"
-k_tot = 10
+k_tot = 1
 
 # Real data
 real_data = csv_to_tensor("../../data/real_data/sigprofiler_not_norm_PCAWG.csv",
@@ -58,8 +58,8 @@ data_generator = DataGenerator(signatures=signatures,
 
 models_path = "../../trained_models/crossval_oversample_fix"
 
-N_oversample_list = [1, 5, 10, 20, 30, 33]
-# N_oversample_list = [1]#, 10, 30]
+# N_oversample_list = [1, 5, 10, 20, 30, 33]
+N_oversample_list = [1]#, 10, 30]
 
 mse_corr_oversample = []
 mse_guess_oversample = []
@@ -95,7 +95,8 @@ for N_oversample in N_oversample_list:
         
         # Bootstrap std
         # std_bootstrap = np.nan_to_num(bootstrap_std(test_label[:,:-1], 1000, signatures))
-        # std_bootstrap = np.nan_to_num(bootstrap_std(real_data, test_label.size(0), 1000, signatures))
+        std_bootstrap = np.nan_to_num(bootstrap_std(real_data, test_label.size(0), 1000, signatures))
+        # pd.DataFrame(std_bootstrap).to_csv('std_bootstrap.csv')
 
         _, test_guess_corr = get_correlation_matrix(test_guess, signatures, plot=False)
         # _, test_label_corr = get_correlation_matrix(real_data, signatures, plot=False)
@@ -113,7 +114,7 @@ for N_oversample in N_oversample_list:
         # sn.heatmap(std_bootstrap, annot=False)
         # plt.show()
 
-        std_bootstrap = torch.ones(test_guess_corr.shape)
+        # std_bootstrap = torch.ones(test_guess_corr.shape)
         mse_corr_oversample_k.append(torch.sum((torch.nan_to_num(torch.Tensor(test_guess_corr.values))-torch.nan_to_num(torch.Tensor(test_label_corr.values)))**2/std_bootstrap).item())
         mse_guess_oversample_k.append(get_MSE(test_guess, test_label[:, :-1]))
 

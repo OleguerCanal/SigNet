@@ -45,8 +45,8 @@ def read_synt_data():
 def read_finetuner():
     experiment_id = "exp_all"
     models_path = "../../trained_models/%s/"%experiment_id
-    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low",
-                                            large_mum_mut_dir=models_path + "finetuner_large")
+    finetuner = CombinedFinetuner(low_mum_mut_dir=models_path + "finetuner_low_1",
+                                            large_mum_mut_dir=models_path + "finetuner_large_1")
     return finetuner
 
 def normalize(a, b):

@@ -24,7 +24,7 @@ def read_data_final_finetuner(device, data_id, data_folder = "../data/", network
     real_data = torch.tensor(real_data.values[:,:-1], dtype=torch.float)
     real_data = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
     oversampler = CancerTypeOverSampler(real_data, ctypes)
-    oversampled_weights = oversampler.get_even_set()
+    oversampled_weights = oversampler.get_N_oversampled_set(N_samples=1)
 
     # Create inputs associated to the labels:
     signatures = read_signatures(

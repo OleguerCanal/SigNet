@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trainers.finetuner_trainer import train_finetuner
 from utilities.io import update_dict, read_config, write_result
 
-DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_low.yaml"]
-# DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_large.yaml"]
+# DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_low.yaml"]
+DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_large.yaml"]
 
 if __name__ == "__main__":
     # Parse command-line arguments

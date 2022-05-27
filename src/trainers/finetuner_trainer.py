@@ -46,6 +46,7 @@ class FinetunerTrainer:
         # if self.network_type == 'large':
         # l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         l = get_kl_divergence(predicted_label=prediction, true_label=label)
+        l += FP / prediction.shape[0]
         return l
 
     def objective(self,
@@ -93,7 +94,7 @@ class FinetunerTrainer:
 
                 train_FP, train_FN = get_fp_fn_soft(label_batch=train_label,
                                                     prediction_batch=train_prediction)
-                train_FP, train_FN = None, None
+                # train_FP, train_FN = None, None
                 train_loss = self.__loss(prediction=train_prediction,
                                          label=train_label,
                                          FP=train_FP,
@@ -110,9 +111,9 @@ class FinetunerTrainer:
                         val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
                     else:
                         val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
-                    val_FP, val_FN = None, None
-                    # val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
-                    #                                 prediction_batch=val_prediction)
+                    # val_FP, val_FN = None, None
+                    val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
+                                                    prediction_batch=val_prediction)
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_dataset.labels,
                                            FP=val_FP,
