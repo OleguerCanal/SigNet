@@ -7,7 +7,7 @@ import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from HyperParameterOptimizer import GaussianProcessSearch, ParallelSearcher
+from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
 from trainers.error_trainer import train_errorfinder
 from utilities.io import read_config
 
@@ -48,11 +48,23 @@ if __name__ == "__main__":
     def objective(**kwargs):
         loss_params = {
             "lagrange_base": kwargs["lagrange_base"],
-            "lagrange_high_error_sigs": kwargs["lagrange_high_error_sigs"]
+            "lagrange_high_error_sigs": kwargs["lagrange_high_error_sigs"],
+            "lagrange_pnorm": 33434.0,
+            "lagrange_smalltozero":  0.276,
+            "pnorm_order": 5.0,
         }
 
-        run_config = {"loss_params": loss_params}
+        run_config = {#"batch_size": config["batch_size"],
+        #             "lr": config["lr"],
+        #             "num_neurons_pos": config["num_neurons_pos"],
+        #             "num_hidden_layers_pos": config["num_hidden_layers_pos"],
+        #             "num_neurons_neg": config["num_neurons_neg"],
+        #             "num_hidden_layers_neg": config["num_hidden_layers_neg"],
+                    "loss_params": loss_params,
+                    "models_dir": "../../trained_models/exp_final"
+                    }
         config.update(run_config)
+        print(config)
         val = train_errorfinder(config=config, data_folder="../../data")
         return val
 

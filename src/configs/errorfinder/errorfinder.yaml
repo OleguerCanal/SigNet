@@ -23,7 +23,7 @@ config:
 
     # WANDB params
     enable_logging: True
-    wandb_project_id: "errorfinder_final"
+    wandb_project_id: "errorfinder_bayesian_lambdas"
 
     # Network params
     num_hidden_layers_pos: 1
