@@ -106,14 +106,9 @@ class ErrorTrainer:
         # Get interval length
         interval_length = torch.mean((pred_upper - pred_lower)**2)
 
-        # If less than 95% in, add penalization
-        # https://www.wolframalpha.com/input/?i=y+%3D+sigmoid%28%280.97-x%29*2000%29+from+0.95+to+1
-        penalization = torch.mean((lower + upper < _EPS).to(torch.float32))
-        # print("penalization:", penalization)
-        # assert(torch.isnan(penalization).any() == False)  # pen 1
-        penalization = nn.Sigmoid()((0.95 - penalization)*2000)
-        # assert(torch.isnan(penalization).any() == False)  # pen 2
-        meta_loss = interval_length + penalization
+        precision_by_sig = torch.mean((lower + upper < _EPS).to(torch.float32), dim=0)
+        high_error_sigs = torch.sum(precision_by_sig<0.95)
+        meta_loss = interval_length + high_error_sigs
         return meta_loss
 
     def objective(self,
