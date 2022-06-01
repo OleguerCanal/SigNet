@@ -22,14 +22,14 @@ experiment_id = "errorfinder_lagrange"
 # layers_neg = Integer(name='num_hidden_layers_neg', low=1, high=6)
 
 # Loss params
-lagrange_base = Real(name="lagrange_base", low=0.001, high=1.0)
-lagrange_high_error_sigs = Real(name="lagrange_high_error_sigs", low=0.001, high=1.0)
+lagrange_base = Real(name="lagrange_base", low=0.01, high=1.0)
+lagrange_high_error_sigs = Real(name="lagrange_high_error_sigs", low=0.01, high=1.0)
 # lagrange_pnorm_param = Real(name="lagrange_pnorm", low=1e3, high=1e5)
 # lagrange_smalltozero_param = Real(name="lagrange_smalltozero", low=0.1, high=10)
 # pnorm_order_param = Integer(name="pnorm_order", low=3, high=9)
 
-input_file = None
-output_file = "search_results_" + experiment_id + ".csv"
+input_file = "search_results_" + experiment_id + ".csv"
+output_file = "search_results_" + experiment_id + "_2.csv"
 
 if __name__ == "__main__":
 # Select training device
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     gp_search.init_session()
     best_metaparams, best_val = gp_search.get_maximum(
         n_calls=1000,
-        n_random_starts=20,
+        n_random_starts=2,
         noise=0.01,
         verbose=True,
         plot_results=True)
