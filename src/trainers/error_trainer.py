@@ -227,7 +227,7 @@ def train_errorfinder(config, data_folder="../data") -> float:
     finetuner_large_path = os.path.join(config["models_dir"], config["finetuner_large_id"])
 
     if config["enable_logging"]:
-        wandb.init(project=config["wandb_project_id"],
+        run = wandb.init(project=config["wandb_project_id"],
                 entity='sig-net',
                 config=config,
                 name=config["model_id"])
@@ -281,4 +281,6 @@ def train_errorfinder(config, data_folder="../data") -> float:
                                 num_hidden_layers_neg=config["num_hidden_layers_neg"],
                                 loss_params=config["loss_params"],
                                 plot=config["enable_logging"])
+    if config["enable_logging"]:
+        run.finish()
     return min_val
