@@ -35,9 +35,11 @@ finetuner_guess = finetuner(mutation_dist=input_batch,
                             num_mut=label_batch[:, -1].view(-1, 1))
 
 cutoffs = np.linspace(0,0.1,10)
+cutoffs[0] = 0.001  # This is the minimum cutoff that we put in the finetuner.
 num_muts = [15,50,100,250,500,1000,5e3,1e4]                # This is for the training set
 # num_muts = np.unique(label_batch[:,-1].detach().numpy())              # This is for the test set
 mse_cutoffs = np.zeros((len(cutoffs), len(num_muts)))
+fp_cutoffs = np.zeros((len(cutoffs), len(num_muts)))
 
 for j, cutoff in enumerate(cutoffs):
     for i, num_mut in enumerate(num_muts):
@@ -50,10 +52,16 @@ for j, cutoff in enumerate(cutoffs):
         guess_cutoff = finetuner_guess.clone().detach()
         guess_cutoff[guess_cutoff<cutoff] = 0
         mse_cutoffs[j, i] = get_MSE(guess_cutoff[indexes, :], label_batch[indexes, :-1])
+        fp_cutoffs[j, i] = torch.sum(guess_cutoff[indexes, :][label_batch[indexes, :-1]<1e-4]>0)
 
-print(mse_cutoffs)
 plt.plot(np.log10(num_muts),np.transpose(mse_cutoffs), marker='o',linewidth=0.5)
 plt.xlabel('log(N)')
 plt.ylabel('MSE')
+plt.legend(cutoffs)
+plt.show()
+
+plt.plot(np.log10(num_muts),np.transpose(fp_cutoffs), marker='o',linewidth=0.5)
+plt.xlabel('log(N)')
+plt.ylabel('FP')
 plt.legend(cutoffs)
 plt.show()
