@@ -30,14 +30,14 @@ if __name__ == "__main__":
     data_folder = "../../data"
 
     data_generator = DataGenerator(signatures=signatures,
-                                    seed=None,
+                                    seed=0,
                                     shuffle=True)
 
     real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
     real_weights = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
 
     for s, ll in [("train", "low"), ("train", "large"), ("val", "low"), ("val", "large"), ("test", None)]:
-        inputs, labels = data_generator.make_input(labels=real_weights, set=s, large_low=ll)
+        inputs, labels = data_generator.make_input(labels=real_weights, split=s, large_low=ll)
         baseline = Baseline(signatures=signatures).get_weights_batch(inputs)
         if ll is not None:
             tensor_to_csv(inputs, data_folder + '/' + experiment_id + "/%s_%s_input.csv"%(s, ll))

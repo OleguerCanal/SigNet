@@ -61,7 +61,7 @@ if __name__ == "__main__":
     signatures = read_signatures(
         "../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
-                                   seed=None,
+                                   seed=0,
                                    shuffle=True)
     
     N_oversample_list = [5, 10, 20, 30]

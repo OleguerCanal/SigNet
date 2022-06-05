@@ -28,19 +28,21 @@ if __name__ == "__main__":
 
     data_folder = "../../data"
     data_generator = DataGenerator(signatures=signatures,
-                                    seed=None,
-                                    shuffle=True)
+                                   seed=0,
+                                   shuffle=True)
 
     # Read
     real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
     real_weights = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
-    realistic_input, realistic_weights = data_generator.make_input(labels=real_weights, set="train", large_low="low")
-    random_input, random_weights = data_generator.make_random_set(set='train',
+    real_weights = real_weights.repeat(10, 1)
+    realistic_input, realistic_weights = data_generator.make_input(labels=real_weights,
+                                                                   split="train",
+                                                                   large_low="low")
+    random_input, random_weights = data_generator.make_random_set(split='train',
                                                     large_low='low',
                                                     num_samples=int(real_weights.shape[0]),
                                                     min_n_signatures=1,
-                                                    max_n_signatures=10,
-                                                    normalize=True)
+                                                    max_n_signatures=10)
     realistic_nummut = realistic_weights[:, -1].view(-1, 1)
     random_nummut = random_weights[:, -1].view(-1, 1)
 

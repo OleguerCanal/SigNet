@@ -17,10 +17,14 @@ if __name__ == "__main__":
     # Create inputs associated to the labels
     signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
-                                   seed=None,
+                                   seed=0,
                                    shuffle=True)
-    train_input, train_label = data_generator.make_input(train_label, "train", config["network_type"], normalize=True)
-    val_input, val_label = data_generator.make_input(val_label, "val", config["network_type"], normalize=True)
+    train_input, train_label = data_generator.make_input(labels=train_label,
+                                                         split="train",
+                                                         large_low=config["network_type"])
+    val_input, val_label = data_generator.make_input(labels=val_label,
+                                                     split="val",
+                                                     large_low=config["network_type"])
     
     # Run Baseline
     sf = Baseline(signatures)

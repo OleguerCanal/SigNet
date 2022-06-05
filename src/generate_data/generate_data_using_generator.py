@@ -1,3 +1,5 @@
+import logging
+import os
 import sys
 
 import torch
@@ -13,61 +15,33 @@ if __name__ == "__main__":
     cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
-        generator_model_path = "../trained_models/exp_not_norm/generator"
+        generator_model_path = "../../trained_models/exp_not_norm/generator"
         experiment_id = "exp_not_norm"
-        signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+        signatures = read_signatures("../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
     elif cosmic_version == 'v2':
-        generator_model_path = "../trained_models/exp_generator_v2/generator"
+        generator_model_path = "../../trained_models/exp_generator_v2/generator"
         experiment_id = "exp_generator_v2"
-        signatures = read_signatures("../data/data_v2.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+        signatures = read_signatures("../../data/data_v2.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
     else:
         raise NotImplementedError
 
+    num_samples = 5000
+
     data_generator = DataGenerator(signatures=signatures,
-                                   seed=None,
+                                   seed=0,
                                    shuffle=True)
 
-    # Low nummut
-    train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="low",
-                                                                 set="train", 
-                                                                 std = 1.5)
-    print("done")
-    tensor_to_csv(train_input, "../data/%s/sd1.5/train_generator_low_input.csv"%experiment_id)
-    print("saved first")
-    tensor_to_csv(train_labels, "../data/%s/sd1.5/train_generator_low_label.csv"%experiment_id)
-    print("saved second")
-
-    val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="low",
-                                                                 set="val", 
-                                                                 std = 1.5)
-
-    tensor_to_csv(val_input, "../data/%s/sd1.5/val_generator_low_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/sd1.5/val_generator_low_label.csv"%experiment_id)
-
-    # Large nummut
-    train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="large",
-                                                                 set="train", 
-                                                                 std = 1.5)
-
-    tensor_to_csv(train_input, "../data/%s/sd1.5/train_generator_large_input.csv"%experiment_id)
-    tensor_to_csv(train_labels, "../data/%s/sd1.5/train_generator_large_label.csv"%experiment_id)
-
-    val_input, val_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="large",
-                                                                 set="val", 
-                                                                 std = 1.5)
-
-    tensor_to_csv(val_input, "../data/%s/sd1.5/val_generator_large_input.csv"%experiment_id)
-    tensor_to_csv(val_labels, "../data/%s/sd1.5/val_generator_large_label.csv"%experiment_id)
-
-    ## Test
-    test_input, test_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
-                                                                 large_low="large",
-                                                                 set="test", 
-                                                                 std = 1.5)
-
-    tensor_to_csv(test_input, "../data/%s/sd1.5/test_generator_input.csv"%experiment_id)
-    tensor_to_csv(test_labels, "../data/%s/sd1.5/test_generator_label.csv"%experiment_id)
+    datasets = [("low", "train"), ("low", "val"), ("large", "train"), ("large", "val"), ("large", "test")]
+    for large_low, split in datasets:
+        logging.info("Generating dataset %s, %s"%(large_low, split))
+        n_samples = int(num_samples/100) if split in ["val", "test"] else num_samples
+        train_input, train_labels = data_generator.make_realistic_set(generator_model_path=generator_model_path,
+                                                                      large_low=large_low,
+                                                                      split=split,
+                                                                      num_samples=n_samples,
+                                                                      std=1.5)
+        logging.info("Dataset created")
+        tensor_to_csv(train_input, "../../data/%s/sd1.5/%s_generator_%s_input.csv"%(experiment_id, split, large_low))
+        logging.info("Saved inputs")
+        tensor_to_csv(train_labels, "../../data/%s/sd1.5/%s_generator_%s_label.csv"%(experiment_id, split, large_low))
+        logging.info("Saved labels")

@@ -14,7 +14,6 @@ import torch
 from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.slow_baseline import SlowBaseline
 from utilities.metrics import get_jensen_shannon
 from utilities.io import create_dir, read_signatures
 
@@ -46,7 +45,7 @@ def create_baseline_dataset(input_file, output_file, signatures_path, which_base
     if which_baseline == "nnls":
         sf = Baseline(signatures)
     else:
-        sf = SlowBaseline(signatures, metric=get_jensen_shannon)
+        raise NotImplementedError("Other optimization methods have been deprecated")
 
     input_data = torch.tensor(pd.read_csv(
         input_file, header=None).values, dtype=torch.float)
