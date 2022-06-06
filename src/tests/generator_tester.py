@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
+from models import Baseline
 from utilities.io import read_data, read_data_generator, read_real_data, read_signatures, read_test_data, read_model
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mutations, plot_metric_vs_sigs
 

@@ -7,9 +7,9 @@ import numpy as np
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
-from modules.combined_finetuner import CombinedFinetuner
-from trainers.finetuner_crossvalidation import read_data_and_partitions
+from models import Baseline
+from modules import CombinedFinetuner
+from trainers import read_data_and_partitions
 from utilities.oversampler import CancerTypeOverSampler
 from utilities.io import csv_to_tensor, read_data_generator, read_methods_guesses, read_signatures, read_test_data, read_model, tensor_to_csv
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_crossval, plot_crossval_benchmark, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_weights_comparison

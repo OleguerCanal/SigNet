@@ -6,7 +6,7 @@ import torch
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from trainers.finetuner_trainer import train_finetuner
+from trainers import train_finetuner
 from utilities.io import update_dict, read_config, write_result
 
 # DEFAULT_CONFIG_FILE = ["configs/finetuner/finetuner_low.yaml"]

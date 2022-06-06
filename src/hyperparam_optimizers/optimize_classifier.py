@@ -7,7 +7,7 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_data_classifier
-from trainers.classifier_trainer import ClassifierTrainer
+from trainers import ClassifierTrainer
 from HyperParameterOptimizer.gaussian_process import GaussianProcessSearch
 
 

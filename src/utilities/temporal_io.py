@@ -4,7 +4,7 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
+from models import Baseline
 from utilities.data_generator import DataGenerator
 from utilities.data_partitions import DataPartitions
 from utilities.io import csv_to_pandas, read_signatures

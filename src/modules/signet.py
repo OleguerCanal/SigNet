@@ -10,10 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.plotting import plot_interval_performance, plot_reconstruction, plot_weights
 from utilities.normalize_data import normalize_data
 from utilities.io import create_dir, read_model, read_signatures, update_dict, write_final_outputs
-from models.baseline import Baseline
-from models.errorfinder import ErrorFinder
-from modules.combined_finetuner import CombinedFinetuner
-from modules.classified_tunning_error import ClassifiedFinetunerErrorfinder
+from models import Baseline, ErrorFinder
+from modules import CombinedFinetuner, ClassifiedFinetunerErrorfinder
 
 class SigNet:
     def __init__(self,

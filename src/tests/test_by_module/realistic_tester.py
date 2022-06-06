@@ -6,14 +6,13 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))))
-from models.baseline import Baseline
+from models import Baseline, ErrorFinder
+from modules import CombinedFinetuner
 from utilities.io import csv_to_tensor, read_model, read_signatures
 from utilities.plotting import plot_all_metrics_vs_mutations,\
                                plot_metric_vs_mutations,\
                                plot_interval_metrics_vs_mutations,\
                                plot_interval_performance
-from modules.combined_finetuner import CombinedFinetuner
-from models.errorfinder import ErrorFinder
 
 # Load data
 data_path = "../../../data/exp_generator/"

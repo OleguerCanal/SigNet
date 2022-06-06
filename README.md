@@ -2,10 +2,10 @@
 
 SigNet is a package to study genetic mutational processes.
 Check out our [theoretical background page](documentation/theoretical_background.md) for further information on this topic.
-As of now, it contains 3 products:
+As of now, it contains 3 solutions:
 
 - **[SigNet Refitter](documentation/signet_refitter.md)**: Tool for signature decomposition.
-- **[SigNet Generator](documentation/signet_generator.md)**: Tool for realistic data generation.
+- **[SigNet Generator](documentation/signet_generator.md)**: Tool for realistic mutational data generation.
 - **[SigNet Detector](documentation/signet_detector.md)**: Tool for mutational vector out-of-distribution detection.
 
 
@@ -66,7 +66,7 @@ signet refitter [--input_data INPUTFILE]
 ## Python Package
 Recommended if you want to integrate SigNet as part of your python workflow, intending to re-train models but 
 
-**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider [downloading the source code]()_.
+**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider [downloading the source code](### Downloading Source Code)_.
 
 ### Python Package Installation
 

@@ -9,11 +9,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.oversampler import CancerTypeOverSampler
 from utilities.metrics import get_classification_metrics
 from utilities.io import csv_to_pandas, read_config, read_signatures
-from trainers.finetuner_trainer import train_finetuner
 from utilities.data_partitions import DataPartitions
 from utilities.data_generator import DataGenerator
-from modules.combined_finetuner import CombinedFinetuner
-from models.baseline import Baseline
+from trainers import train_finetuner
+from modules import CombinedFinetuner
+from models import Baseline
 
 def partition_dataset(df, n_partitions):
     df["index"] = list(range(len(df)))

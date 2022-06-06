@@ -8,7 +8,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_model
 from utilities.metrics import get_reconstruction_error
-from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
+from models import FineTunerLowNumMut, FineTunerLargeNumMut
 
 class CombinedFinetuner:
     def __init__(self,

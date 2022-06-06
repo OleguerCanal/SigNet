@@ -7,8 +7,8 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import csv_to_tensor, read_data_generator, read_signatures, sort_signatures, tensor_to_csv
 from utilities.io import read_signatures, read_test_data, read_model, csv_to_tensor
-from modules.combined_finetuner import CombinedFinetuner
-from models.baseline import Baseline
+from modules import CombinedFinetuner
+from models import Baseline
 from utilities.data_generator import DataGenerator
 from utilities.plotting import plot_correlation_matrix
 

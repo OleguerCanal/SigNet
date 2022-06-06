@@ -13,10 +13,10 @@ from tqdm import tqdm
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.classifier import Classifier
+from loggers import ClassifierLogger
+from models import Classifier
 from utilities.data_partitions import DataPartitions
 from utilities.io import save_model
-from loggers.classifier_logger import ClassifierLogger
 
 class ClassifierTrainer:
     def __init__(self,
@@ -49,7 +49,7 @@ class ClassifierTrainer:
                   lr,
                   num_hidden_layers,
                   num_neurons,
-                  plot=False):
+                  run=None):
 
         print(batch_size, lr, num_hidden_layers, num_neurons)
 
@@ -60,9 +60,6 @@ class ClassifierTrainer:
                           num_units=int(num_neurons),
                           sigmoid_params=self.sigmoid_params)
         model.to(self.device)
-
-        # if plot:
-        #     wandb.watch(model, log_freq=self.log_freq, log_graph=True)
 
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
@@ -103,6 +100,9 @@ class ClassifierTrainer:
                 step += 1
         if self.model_path is not None:
             save_model(model=model, directory=self.model_path)
+        
+        if run is not None:
+            run.finish()
         return max_found
 
 
@@ -118,11 +118,12 @@ def train_classifier(config) -> float:
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
     print("Using device:", dev)
 
+    run = None
     if config["enable_logging"]:
-        wandb.init(project=config["wandb_project_id"],
-                entity='sig-net',
-                config=config,
-                name=config["model_id"])
+        run = wandb.init(project=config["wandb_project_id"],
+                        entity='sig-net',
+                        config=config,
+                        name=config["model_id"])
 
     train_data, val_data = read_data_classifier(device=dev,
                                                 experiment_id=config["data_id"])
@@ -138,6 +139,6 @@ def train_classifier(config) -> float:
                                 lr=config["lr"],
                                 num_hidden_layers=config["num_hidden_layers"],
                                 num_neurons=config["num_neurons"],
-                                plot=config["enable_logging"])
+                                run=run)
 
     return min_val

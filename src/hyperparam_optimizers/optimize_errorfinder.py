@@ -8,7 +8,7 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from HyperParameterOptimizer import GaussianProcessSearch, ParallelSearcher
-from trainers.error_trainer import train_errorfinder
+from trainers import train_errorfinder
 from utilities.io import read_config
 
 experiment_id = "errorfinder_bayesian_final"

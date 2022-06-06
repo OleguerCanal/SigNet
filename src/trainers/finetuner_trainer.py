@@ -14,7 +14,7 @@ from loggers.finetuner_logger import FinetunerLogger
 from utilities.metrics import get_fp_fn_soft, get_classification_metrics, get_kl_divergence
 from utilities.io import save_model
 from utilities.temporal_io import read_data_final_finetuner
-from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
+from models import FineTunerLowNumMut, FineTunerLargeNumMut
 
 class FinetunerTrainer:
     def __init__(self,

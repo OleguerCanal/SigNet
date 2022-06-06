@@ -21,9 +21,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_partitions import DataPartitions
 from utilities.io import save_model, read_model
 from utilities.metrics import distance_to_interval, get_pi_metrics
-from models.errorfinder import ErrorFinder
-from loggers.errorfinder_logger import ErrorFinderLogger
-from modules.combined_finetuner import CombinedFinetuner
+from models import ErrorFinder
+from loggers import ErrorFinderLogger
+from modules import CombinedFinetuner
 from utilities.plotting import plot_error_by_sig, plot_width_by_sig
 
 class ErrorTrainer:

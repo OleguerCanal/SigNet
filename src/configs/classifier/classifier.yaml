@@ -1,8 +1,8 @@
 config:
     # IDs & paths
-    data_id: "exp_classifier_final/classifier"
+    data_id: "datasets/detector"
     model_id: "classifier_final"
-    models_dir: "../trained_models/exp_all/"
+    models_dir: "../trained_models/test_exp/"
 
     # Training params
     iterations: 20

@@ -7,7 +7,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_signatures, tensor_to_csv, csv_to_tensor
 from utilities.data_generator import DataGenerator
-from models.baseline import Baseline
+from models import Baseline
 
 def shuffle(inputs, labels, num_mut):
     indexes = torch.randperm(inputs.shape[0])

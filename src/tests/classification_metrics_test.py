@@ -10,8 +10,7 @@ from utilities.plotting import plot_metric_vs_mutations, plot_metric_vs_sigs
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_methods_guesses
 from utilities.metrics import get_classification_metrics
-from models.baseline import Baseline
-from models.finetuner import FineTuner
+from models import Baseline, FineTuner
 
 dev = torch.device("cpu")
 

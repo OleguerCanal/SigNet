@@ -17,9 +17,9 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import save_model
 from utilities.generator_data import GeneratorData
-from models.generator import Generator
-from loggers.generator_logger import GeneratorLogger
 from utilities.oversampler import OverSampler, CancerTypeOverSampler
+from models import Generator
+from loggers.generator_logger import GeneratorLogger
 
 class GeneratorTrainer:
     def __init__(self,

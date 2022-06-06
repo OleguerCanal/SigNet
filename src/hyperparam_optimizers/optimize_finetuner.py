@@ -8,7 +8,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_config, read_data
-from trainers.finetuner_trainer import train_finetuner
+from trainers import train_finetuner
 from HyperParameterOptimizer.src.gaussian_process_search import GaussianProcessSearch
 
 assert len(sys.argv[1]) == 2, "Usage: python optimize_finetuner low"

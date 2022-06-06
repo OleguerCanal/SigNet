@@ -8,7 +8,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.io import read_config
-from trainers.generator_trainer import train_generator, log_results
+from trainers import train_generator, log_results
 from HyperParameterOptimizer.src.gaussian_process_search import GaussianProcessSearch
 
 experiment_id = "bayesian_generator"

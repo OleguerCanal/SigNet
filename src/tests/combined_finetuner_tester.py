@@ -2,8 +2,8 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from modules.combined_finetuner import CombinedFinetuner
-from models.baseline import Baseline
+from modules import CombinedFinetuner
+from models import Baseline
 from utilities.io import read_methods_guesses, read_signatures, read_test_data
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_metric_vs_mutations, plot_metric_vs_sigs
 

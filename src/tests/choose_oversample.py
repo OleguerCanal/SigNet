@@ -10,8 +10,8 @@ import seaborn as sn
 import torch 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
-from modules.combined_finetuner import CombinedFinetuner
+from models import Baseline
+from modules import CombinedFinetuner
 from tests.real_data import read_finetuner
 from trainers.finetuner_crossvalidation import read_data_and_partitions
 from utilities.data_generator import DataGenerator

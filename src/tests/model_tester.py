@@ -10,10 +10,8 @@ import seaborn as sn
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
+from models import Baseline, ErrorFinder, FineTuner
 from utilities.io import read_test_data
-from models.errorfinder import ErrorFinder
-from models.finetuner import FineTuner
 from utilities.metrics import *
 from utilities.plotting import plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_width_vs_mutations, plot_interval_width_vs_mutations_some_sigs, plot_confusion_matrix, plot_weights, plot_weights_comparison, plot_interval_performance
 

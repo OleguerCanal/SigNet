@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import create_baseline_dataset
+from models import create_baseline_dataset
 from utilities.io import read_signatures, sort_signatures
 
 signatures_file = "../../data/data_v2.xlsx"

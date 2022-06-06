@@ -11,10 +11,6 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
-from models.generator import Generator
-from models.classifier import Classifier
-from models.finetuner import FineTunerLowNumMut, FineTunerLargeNumMut
-from models.errorfinder import ErrorFinder
 
 def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
     """
@@ -265,6 +261,8 @@ def read_model(directory, device="cpu"):
     Args:
         directory (String): Folder containing state_dict and init_args.json of the model
     """
+    from models import Generator, Classifier, FineTunerLowNumMut, FineTunerLargeNumMut, ErrorFinder
+
     # Load init_args
     init_args_file = os.path.join(directory, 'init_args.json')
     with open(init_args_file, 'r') as fp:
