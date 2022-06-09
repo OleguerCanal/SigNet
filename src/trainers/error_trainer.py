@@ -106,14 +106,9 @@ class ErrorTrainer:
         # Get interval length
         interval_length = torch.mean((pred_upper - pred_lower)**2)
 
-        # If less than 95% in, add penalization
-        # https://www.wolframalpha.com/input/?i=y+%3D+sigmoid%28%280.97-x%29*2000%29+from+0.95+to+1
-        penalization = torch.mean((lower + upper < _EPS).to(torch.float32))
-        # print("penalization:", penalization)
-        # assert(torch.isnan(penalization).any() == False)  # pen 1
-        penalization = nn.Sigmoid()((0.95 - penalization)*2000)
-        # assert(torch.isnan(penalization).any() == False)  # pen 2
-        meta_loss = interval_length + penalization
+        precision_by_sig = torch.mean((lower + upper < _EPS).to(torch.float32), dim=0)
+        high_error_sigs = torch.sum(precision_by_sig<0.95)
+        meta_loss = interval_length + high_error_sigs
         return meta_loss
 
     def objective(self,
@@ -232,7 +227,7 @@ def train_errorfinder(config, data_folder="../data") -> float:
     finetuner_large_path = os.path.join(config["models_dir"], config["finetuner_large_id"])
 
     if config["enable_logging"]:
-        wandb.init(project=config["wandb_project_id"],
+        run = wandb.init(project=config["wandb_project_id"],
                 entity='sig-net',
                 config=config,
                 name=config["model_id"])
@@ -286,4 +281,6 @@ def train_errorfinder(config, data_folder="../data") -> float:
                                 num_hidden_layers_neg=config["num_hidden_layers_neg"],
                                 loss_params=config["loss_params"],
                                 plot=config["enable_logging"])
+    if config["enable_logging"]:
+        run.finish()
     return min_val
