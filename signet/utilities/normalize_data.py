@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 import torch
 
+from signet import DATA
+
 def normalize_data(input_file, opportunities_name_or_path):
-    genome_abundances = create_opportunities('../../data/real_data/3mer_WG_hg37.txt')
+    genome_abundances = create_opportunities(DATA + '/real_data/3mer_WG_hg37.txt')
     genome_abundances_tensor = torch.Tensor(genome_abundances)
 
     if opportunities_name_or_path == 'exome':
-        abundances = create_opportunities('../../data/real_data/abundances_trinucleotides.txt')
+        abundances = create_opportunities(DATA + '/real_data/abundances_trinucleotides.txt')
     else:
         abundances = create_opportunities(opportunities_name_or_path)
 

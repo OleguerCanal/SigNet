@@ -1,9 +1,6 @@
 import os
 import sys
 
-import numpy as np
-import torch
-
 class ClassifiedFinetunerErrorfinder:
 
     def __init__(self,

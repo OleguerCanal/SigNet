@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from signet import DATA
 from utilities.plotting import plot_correlation_matrix
 from utilities.io import sort_signatures
 
@@ -89,9 +90,9 @@ if __name__=="__main__":
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from utilities.io import csv_to_tensor, csv_to_pandas
 
-    real_data = csv_to_pandas("../../data/real_data/sigprofiler_not_norm_PCAWG.csv",
-                                    device="cpu", header=0, index_col=0,
-                                    type_df="../../data/real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+    real_data = csv_to_pandas(DATA + "real_data/sigprofiler_not_norm_PCAWG.csv",
+                              device="cpu", header=0, index_col=0,
+                              type_df=DATA + "real_data/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
     # print(real_data)
     # real_data_g = real_data.groupby('cancer_type').sample(frac=1)
     # print(real_data_g.groupby('cancer_type').head(3))
@@ -118,7 +119,7 @@ if __name__=="__main__":
     print(sum(real_data[:,0]>0))
     print(sum(new_set[:,0]>0))
 
-    data_folder = '../../data/'
+    data_folder = DATA
     signatures = sort_signatures(file=data_folder + "data.xlsx",
                                  mutation_type_order=data_folder + "mutation_type_order.xlsx")
     corrMatrix = plot_correlation_matrix(data=new_set, signatures=signatures)

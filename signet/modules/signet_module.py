@@ -1,26 +1,25 @@
 import os
-import sys
 
-#import numpy as np
-from argparse import ArgumentParser
-import pandas as pd
 import torch
 
-from signet.utilities.plotting import plot_interval_performance, plot_reconstruction, plot_weights
+print("ok")
+
+from signet import DATA, TRAINED_MODELS
 from signet.utilities.normalize_data import normalize_data
-from signet.utilities.io import create_dir, read_model, read_signatures, update_dict, write_final_outputs
+from signet.utilities.io import read_model, read_signatures
 from signet.models import Baseline, ErrorFinder
 from signet.modules import CombinedFinetuner, ClassifiedFinetunerErrorfinder
 
 class SigNet:
+
     def __init__(self,
-                 classifier="../../trained_models/exp_all/classifier",
-                 finetuner_realistic_low="../../trained_models/exp_all/finetuner_low",
-                 finetuner_realistic_large="../../trained_models/exp_all/finetuner_large",
-                 errorfinder="../../trained_models/exp_all/errorfinder_07",
+                 classifier=os.path.join(TRAINED_MODELS, "classifier"),
+                 finetuner_realistic_low=os.path.join(TRAINED_MODELS, "finetuner_low"),
+                 finetuner_realistic_large=os.path.join(TRAINED_MODELS, "finetuner_large"),
+                 errorfinder=os.path.join(TRAINED_MODELS, "errorfinder_07"),
                  opportunities_name_or_path=None,
-                 signatures_path="../../data/data.xlsx",
-                 mutation_type_order="../../data/mutation_type_order.xlsx"):
+                 signatures_path=os.path.join(DATA, "data.xlsx"),
+                 mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")):
 
         signatures = read_signatures(file=signatures_path,
                                      mutation_type_order=mutation_type_order)
@@ -71,6 +70,11 @@ class SigNet:
 
 
 if __name__ == "__main__":
+    from argparse import ArgumentParser
+    import pandas as pd
+    
+    from signet.utilities.plotting import plot_reconstruction, plot_weights
+    from signet.utilities.io import update_dict, write_final_outputs
   
     config = {"input_data": None,
               "normalization": "exome",

@@ -4,6 +4,7 @@ import sys
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from signet import DATA
 from models import Baseline
 from utilities.data_generator import DataGenerator
 from utilities.data_partitions import DataPartitions
@@ -11,7 +12,7 @@ from utilities.io import csv_to_pandas, read_signatures
 from utilities.oversampler import CancerTypeOverSampler
 
 
-def read_data_final_finetuner(device, data_id, data_folder = "../data/", network_type ="low"):
+def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
     '''
     Read all real data, oversample and generate samples with different numbers of mutations
     to train the final finetuner.
@@ -28,7 +29,8 @@ def read_data_final_finetuner(device, data_id, data_folder = "../data/", network
 
     # Create inputs associated to the labels:
     signatures = read_signatures(
-        "../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+        DATA + "data.xlsx",
+        mutation_type_order=DATA + "mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
                                    seed=None,
                                    shuffle=True)

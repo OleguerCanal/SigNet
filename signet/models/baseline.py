@@ -10,6 +10,7 @@ from scipy.optimize import nnls
 import torch
 from tqdm import tqdm
 
+from signet import DATA
 from signet.utilities.metrics import get_jensen_shannon
 from signet.utilities.io import create_dir, read_signatures
 
@@ -60,12 +61,10 @@ if __name__ == "__main__":
     cosmic_version = str(sys.argv[1])
 
     if cosmic_version == 'v3':
-        data_folder = "../../data/"
-        signatures_file = data_folder + "data.xlsx"
+        signatures_file = DATA + "data.xlsx"
         experiment_id = "exp_not_norm"
     elif cosmic_version == 'v2':
-        data_folder = "../../data/"
-        signatures_file = data_folder + "data_v2.xlsx"
+        signatures_file = DATA + "data_v2.xlsx"
         experiment_id = "exp_generator_v2"
     else:
         raise NotImplementedError

@@ -9,15 +9,18 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from signet import DATA, TRAINED_MODELS
 from utilities.data_partitions import DataPartitions
 from utilities.generator_data import GeneratorData
 
-def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xlsx"):
+def read_signatures(file,
+                    mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")):
     """
     File must contain first column with mutations types X[Y>Z]W and the rest of the columns must be the set of signatures
     """
     # Sort according to cosmic mutation types order
-    signatures_data = sort_signatures(file, mutation_type_order=mutation_type_order)
+    signatures_data = sort_signatures(file,
+                                      mutation_type_order=mutation_type_order)
 
     num_sigs = len(signatures_data.columns) - 1
     signatures = [torch.tensor(signatures_data.iloc[:, i]).type(torch.float32)
@@ -25,7 +28,9 @@ def read_signatures(file, mutation_type_order="../../data/mutation_type_order.xl
     signatures = torch.stack(signatures).t()
     return signatures
 
-def sort_signatures(file, output_file=None, mutation_type_order="../../data/mutation_type_order.xlsx"):
+def sort_signatures(file,
+                    output_file=None,
+                    mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")):
     signatures_data = pd.read_excel(file)
     mutation_order = pd.read_excel(mutation_type_order)
 
@@ -40,7 +45,11 @@ def sort_signatures(file, output_file=None, mutation_type_order="../../data/muta
         signatures_data.to_csv(output_file, index=False)
     return signatures_data
 
-def csv_to_pandas(file, device="cpu", header=None, index_col=None, type_df=None):
+def csv_to_pandas(file,
+                  device="cpu",
+                  header=None,
+                  index_col=None,
+                  type_df=None):
     df = pd.read_csv(file, header=header, index_col=index_col)
     df.index = df.index.map(lambda x: x.split("..")[-1])
 
@@ -53,7 +62,11 @@ def csv_to_pandas(file, device="cpu", header=None, index_col=None, type_df=None)
         df = df.drop("Cancer Types", axis=1)
     return df
 
-def csv_to_tensor(file, device="cpu", header=None, index_col=None, type_df=None):
+def csv_to_tensor(file,
+                  device="cpu",
+                  header=None,
+                  index_col=None,
+                  type_df=None):
     df = pd.read_csv(file, header=header, index_col=index_col)
 
     if type_df is not None:
@@ -75,14 +88,20 @@ def tensor_to_csv(data_tensor, output_path):
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 
-def read_data(device, experiment_id, source, data_folder="../data", include_baseline=True, include_labels=True, n_points = None):
+def read_data(device,
+              experiment_id,
+              source,
+              data_folder=DATA,
+              include_baseline=True,
+              include_labels=True,
+              n_points = None):
     """Read data from disk
 
     Args:
         device (string): Device to train on
         experiment_id (string): Full name of the experiment folder
         source (string): Type of generated data: random or realistic
-        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+        data_folder (str, optional): Relative path of data folder. Defaults to DATA.
     """
     # assert(source in ["random", "realistic", "perturbed"])
     path = os.path.join(data_folder, experiment_id)
@@ -109,14 +128,16 @@ def read_data(device, experiment_id, source, data_folder="../data", include_base
 
     return train_data, val_data
 
-def read_data_classifier(device, experiment_id, data_folder="../data"):
+def read_data_classifier(device,
+                         experiment_id,
+                         data_folder=DATA):
     """Read data from disk
 
     Args:
         device (string): Device to train on
         experiment_id (string): Full name of the experiment folder
         source (string): Type of generated data: random or realistic
-        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+        data_folder (str, optional): Relative path of data folder. Defaults to "DATA".
     """
     path = os.path.join(data_folder, experiment_id)
 
@@ -138,14 +159,14 @@ def read_data_classifier(device, experiment_id, data_folder="../data"):
 
     return train_data, val_data
 
-def read_real_data(device, experiment_id, data_folder="../data"):
+def read_real_data(device, experiment_id, data_folder=DATA):
     """Read data from disk
 
     Args:
         device (string): Device to train on
         experiment_id (string): Full name of the experiment folder
         source (string): Type of generated data: random or realistic
-        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+        data_folder (str, optional): Relative path of data folder. Defaults to DATA.
     """
     path = os.path.join(data_folder, experiment_id)
 
@@ -155,7 +176,12 @@ def read_real_data(device, experiment_id, data_folder="../data"):
     return real_input, real_num_mut
 
 
-def read_data_generator(device, data_id, data_folder = "../data/", cosmic_version = 'v3', type = 'real', prop_train = 0.9):
+def read_data_generator(device,
+                        data_id,
+                        data_folder=DATA,
+                        cosmic_version='v3',
+                        type='real',
+                        prop_train=0.9):
     '''
     type should be: 'real', 'perturbed' or 'augmented_real'.
     '''
@@ -215,7 +241,7 @@ def read_data_generator(device, data_id, data_folder = "../data/", cosmic_versio
     val_data.to(device)
     return train_data, val_data
 
-def read_methods_guesses(device, experiment_id, methods, data_folder="../data"):
+def read_methods_guesses(device, experiment_id, methods, data_folder=DATA):
     """Read one method guess from disk
 
     Args:
@@ -223,7 +249,7 @@ def read_methods_guesses(device, experiment_id, methods, data_folder="../data"):
         experiment_id (string): Full name of the experiment folder
         test_id (string): Full name of the test folder
         method (list): List of string with the methods to be analyzed
-        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+        data_folder (str, optional): Relative path of data folder. Defaults to DATA.
     """
     path = os.path.join(data_folder, experiment_id)
 
@@ -237,14 +263,14 @@ def read_methods_guesses(device, experiment_id, methods, data_folder="../data"):
     return methods_guesses, label
 
 
-def read_test_data(device, experiment_id, test_id, data_folder="../data"):
+def read_test_data(device, experiment_id, test_id, data_folder=DATA):
     """Read one method guess from disk
 
     Args:
         device (string): Device to train on
         experiment_id (string): Full name of the experiment folder
         test_id (string): Full name of the test folder
-        data_folder (str, optional): Relative path of data folder. Defaults to "../data".
+        data_folder (str, optional): Relative path of data folder. Defaults to DATA.
     """
     path = os.path.join(data_folder, experiment_id, test_id)
 
@@ -345,7 +371,10 @@ def write_result(result, filepath):
     fout.write(str(result))
     fout.close()
 
-def write_final_output(output_path, output_values, input_indexes, sigs_path="../../data/data.xlsx"):
+def write_final_output(output_path,
+                       output_values,
+                       input_indexes,
+                       sigs_path=os.path.join(DATA, "data.xlsx")):
     create_dir(output_path)
     sig_names = list(pd.read_excel(sigs_path).columns)[1:]
     df = pd.DataFrame(output_values)
@@ -353,9 +382,16 @@ def write_final_output(output_path, output_values, input_indexes, sigs_path="../
     df.index = input_indexes
     df.to_csv(output_path, header=True, index=True)
 
-def write_final_outputs(weights, lower_bound, upper_bound, classification, reconstruction_error, input_file, output_path, name=''):
+def write_final_outputs(weights,
+                        lower_bound,
+                        upper_bound,
+                        classification,
+                        reconstruction_error,
+                        input_file,
+                        output_path,
+                        name=''):
     create_dir(output_path + "/whatever.txt")
-    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
     
     # Write results weight guesses
     df = pd.DataFrame(weights)
@@ -405,7 +441,7 @@ def write_final_outputs(weights, lower_bound, upper_bound, classification, recon
 
 
 def write_David_outputs(weights, lower_bound, upper_bound, output_path):
-    sig_names = list(pd.read_excel("../../data/data.xlsx").columns)[1:]
+    sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
     
     # Write results weight guesses
     df = pd.DataFrame({'weight_guess': weights[0], 'upper_bound': upper_bound[0], 'lower_bound': lower_bound[0],})
