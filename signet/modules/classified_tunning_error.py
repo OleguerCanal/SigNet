@@ -41,4 +41,9 @@ class ClassifiedFinetunerErrorfinder:
         upper, lower = self.errorfinder(weights=finetuner_guess,
                                                       num_mutations=num_mut,
                                                       classification=classification.reshape(-1, 1))
-        return finetuner_guess, upper, lower, classification
+        
+        result = {"finetuner_guess": finetuner_guess,
+                  "error_upper": upper,
+                  "error_lower": lower,
+                  "classification": classification}
+        return result
