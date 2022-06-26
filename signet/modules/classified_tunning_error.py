@@ -1,5 +1,4 @@
-import os
-import sys
+import logging
 
 class ClassifiedFinetunerErrorfinder:
 
@@ -31,16 +30,22 @@ class ClassifiedFinetunerErrorfinder:
                  baseline_guess,
                  num_mut):
 
+        logging.info("Detecting out-of-train-distribution points...")
         classification = self.classifier(mutation_dist=mutation_dist,
                                          num_mut=num_mut).view(-1)
+        logging.info("Detecting out-of-train-distribution points... DONE")
         
+        logging.info("Finetuning NNLS guesses...")
         finetuner_guess = self.finetuner(mutation_dist=mutation_dist,
                                          baseline_guess = baseline_guess,
                                          num_mut=num_mut)
+        logging.info("Finetuning NNLS guesses... DONE")
 
+        logging.info("Estimating errorbars...")
         upper, lower = self.errorfinder(weights=finetuner_guess,
                                                       num_mutations=num_mut,
                                                       classification=classification.reshape(-1, 1))
+        logging.info("Estimating errorbars... DONE")
         
         result = {"finetuner_guess": finetuner_guess,
                   "error_upper": upper,

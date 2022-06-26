@@ -1,5 +1,4 @@
-import os
-import sys
+import logging
 
 #import numpy as np
 from argparse import ArgumentParser
@@ -10,10 +9,15 @@ from signet import DATA
 from signet.modules.signet_module import SigNet
 from signet.utilities.io import csv_to_tensor, write_final_outputs
 
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    level=logging.INFO,
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
-        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "datasets/real_input.csv",
+        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/real_input.csv",
         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
     )
 
@@ -40,15 +44,15 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load signet
-    signet = SigNet(opportunities_name_or_path=args.normalization)
+    signet = SigNet(opportunities_name_or_path=args.normalization[0])
 
     # Read and prepare data
-    inputs = csv_to_tensor(file=args.input_data,
-                           header=0,
-                           index_col=0)
+    mutation_data = csv_to_tensor(file=args.input_data,
+                                  header=0)
     
     # Run signet
     results = signet(mutation_vec=mutation_data)
+    print("Results obtained!")
 
     # Write final outputs
     write_final_outputs(weights=results["finetuner_guess"],
@@ -57,7 +61,7 @@ if __name__ == "__main__":
                         classification=results["classification"],
                         reconstruction_error=0,
                         input_file=args.input_data,
-                        output_path=args.output,
+                        output_path=args.output[0],
                         name="")
 
     # Plot figures

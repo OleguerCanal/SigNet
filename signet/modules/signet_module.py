@@ -1,4 +1,5 @@
 import os
+import logging
 
 import torch
 
@@ -23,7 +24,6 @@ class SigNet:
                                      mutation_type_order=mutation_type_order)
         self.signatures = signatures # TODO(oleguer): Remove, this is only for debugging
         self.baseline = Baseline(signatures)
-
         finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
                                       large_mum_mut_dir=finetuner_realistic_large)
 
@@ -33,7 +33,9 @@ class SigNet:
         self.finetuner_errorfinder = ClassifiedFinetunerErrorfinder(classifier=classifier,
                                                                     finetuner=finetuner,
                                                                     errorfinder=errorfinder)
-        self.opportunities_name_or_path = opportunities_name_or_path
+        self.opportunities_name_or_path = opportunities_name_or_path\
+            if opportunities_name_or_path != 'None' else None
+        logging.info("SigNet loaded!")
     
     def _convert_to_numpy(self, dictionary):
         for key in dictionary:
@@ -63,8 +65,11 @@ class SigNet:
             normalized_mutation_vec = mutation_vec / sums
   
             # Run NNLS
+            logging.info("Obtaining NNLS guesses...")
             self.baseline_guess = self.baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
                                                                   n_workers=nworkers)
+            logging.info("Obtaining NNLS guesses... DONE")
+
 
             # Finetune guess and aproximate errors
             num_mutations = torch.sum(mutation_vec, dim=1)
