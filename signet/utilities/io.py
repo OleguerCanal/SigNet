@@ -1,8 +1,9 @@
+import logging
 import os
 import pathlib
 from sklearn import preprocessing
-import yaml
 import sys
+import yaml
 
 import json
 import pandas as pd
@@ -371,73 +372,26 @@ def write_result(result, filepath):
     fout.write(str(result))
     fout.close()
 
-def write_final_output(output_path,
-                       output_values,
-                       input_indexes,
-                       sigs_path=os.path.join(DATA, "data.xlsx")):
-    create_dir(output_path)
-    sig_names = list(pd.read_excel(sigs_path).columns)[1:]
-    df = pd.DataFrame(output_values)
-    df.columns = sig_names
-    df.index = input_indexes
-    df.to_csv(output_path, header=True, index=True)
-
 def write_final_outputs(weights,
                         lower_bound,
                         upper_bound,
                         classification,
-                        reconstruction_error,
-                        input_file,
                         output_path,
                         name=''):
-    create_dir(output_path + "/whatever.txt")
+    pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
     sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
     
+    def write(values, path):
+        logging.info("Writting results: %s"%path)
+        df = pd.DataFrame(values)
+        df.columns = sig_names
+        df.to_csv(path, header=True, index=False)
+
     # Write results weight guesses
-    df = pd.DataFrame(weights)
-    df.columns = sig_names
-    row_names = input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/weight_guesses%s.csv"%name, header=True, index=True)
-
-    # Write results weight guesses cutoff
-    df[df<0.01] = 0
-    df.to_csv(output_path + "/weight_guesses_cutoff%s.csv"%name, header=True, index=True)
-
-    # Write results lower bound guesses
-    df = pd.DataFrame(lower_bound)
-    df.columns = sig_names
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/lower_bound_guesses%s.csv"%name, header=True, index=True)
-
-    # Write results upper bound guesses
-    df = pd.DataFrame(upper_bound)
-    df.columns = sig_names
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/upper_bound_guesses%s.csv"%name, header=True, index=True)
-
-    # Write results baseline guesses
-    # df = pd.DataFrame(baseline)
-    # df.columns = sig_names
-    # row_names =input_file.index.tolist()
-    # df.index = row_names
-    # df.to_csv(output_path + "/baseline_guesses%s.csv"%name, header=True, index=True)
-
-    # Write results classification
-    df = pd.DataFrame(classification)
-    df.columns = ["classification"]
-    row_names =input_file.index.tolist()
-    df.index = row_names
-    df.to_csv(output_path + "/classification_guesses%s.csv"%name, header=True, index=True)
-
-    # Write results reconstruction error
-    # df = pd.DataFrame(reconstruction_error)
-    # df.columns = ["reconstruction_error"]
-    # row_names =input_file.index.tolist()
-    # df.index = row_names
-    # df.to_csv(output_path + "/reconstruction_error.csv", header=True, index=True)
+    write(values=weights, path=output_path + "/weight_guesses-%s.csv"%name)
+    write(values=lower_bound, path=output_path + "/lower_bound_guesses-%s.csv"%name)
+    write(values=upper_bound, path=output_path + "/upper_bound_guesses-%s.csv"%name)
+    write(values=classification, path=output_path + "/classification_guesses-%s.csv"%name)
 
 
 def write_David_outputs(weights, lower_bound, upper_bound, output_path):

@@ -17,6 +17,11 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
+        '--experiment_id', action='store', nargs=1, type=str, required=False, default="test_0",
+        help=f"Name of this inference's results"
+    )
+
+    parser.add_argument(
         '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/real_input.csv",
         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
     )
@@ -32,7 +37,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--figures', action='store', nargs=1, type=bool, required=False, default=[True],
+        '--plot_figs', action='store', nargs=1, type=bool, required=False, default=[True],
         help=f'Boolean. Whether to compute plots for the output. Default: "False".'
     )
     
@@ -43,29 +48,25 @@ if __name__ == "__main__":
     # Parse command-line arguments
     args = parse_args()
 
-    # Load signet
-    signet = SigNet(opportunities_name_or_path=args.normalization[0])
-
-    # Read and prepare data
+    # Read data
     mutation_data = csv_to_tensor(file=args.input_data,
                                   header=0)
     
-    # Run signet
+    # Load & Run signet
+    signet = SigNet(opportunities_name_or_path=args.normalization[0])
     results = signet(mutation_vec=mutation_data)
     print("Results obtained!")
 
-    # Write final outputs
+    # Store results
     write_final_outputs(weights=results["finetuner_guess"],
                         lower_bound=results["error_lower"], 
                         upper_bound=results["error_upper"],
                         classification=results["classification"],
-                        reconstruction_error=0,
-                        input_file=args.input_data,
                         output_path=args.output[0],
-                        name="")
+                        name=args.experiment_id)
 
     # Plot figures
-    if plot_figs:
+    if args.plot_figs:
         sig_names = list(pd.read_excel(DATA + "data.xlsx").columns)[1:]
         for i in range(weight_guess.shape[0]):
             plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
