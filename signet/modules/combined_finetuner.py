@@ -18,8 +18,6 @@ class CombinedFinetuner:
         # Instantiate finetuner 1 and read params
         self.finetuner_low = read_model(low_mum_mut_dir, device=device)
         self.finetuner_large = read_model(large_mum_mut_dir, device=device)
-        assert(isinstance(self.finetuner_low, FineTunerLowNumMut))  # finetuner_low model should be FineTunerLowNumMut
-        assert(isinstance(self.finetuner_large, FineTunerLargeNumMut))  # finetuner_large model should be FineTunerLargeNumMut
         self.cutoff = cuttoff
         self.device = device
 

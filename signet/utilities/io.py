@@ -396,7 +396,7 @@ def write_final_outputs(weights,
     # Write results weight guesses
     df = pd.DataFrame(weights)
     df.columns = sig_names
-    row_names =input_file.index.tolist()
+    row_names = input_file.index.tolist()
     df.index = row_names
     df.to_csv(output_path + "/weight_guesses%s.csv"%name, header=True, index=True)
 
