@@ -24,7 +24,6 @@ class ModelTester:
             metrics = {
                 "mse": get_MSE,
                 "cos": get_negative_cosine_similarity,
-                "cross_ent": get_cross_entropy,
                 "KL": get_kl_divergence,
                 "JS": get_jensen_shannon,
                 "W": get_wasserstein_distance,
