@@ -2,7 +2,6 @@ import copy
 
 import numpy as np
 from scipy.stats import wasserstein_distance
-from snorkel import classification
 import torch
 import torch.nn as nn
 
@@ -47,9 +46,6 @@ def get_entropy(predicted_label):
     entropy = torch.mean(torch.distributions.categorical.Categorical(
         probs=predicted_label.cpu().detach()).entropy())
     return entropy
-
-def get_cross_entropy(predicted_label, true_label):
-    return classification.cross_entropy_with_probs(predicted_label, true_label)
 
 def get_cross_entropy2(predicted_label, true_label):
     #predicted_label_local = copy.deepcopy(predicted_label)
