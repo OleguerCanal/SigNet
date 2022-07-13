@@ -6,12 +6,53 @@
     "configurations": [
 
 
+
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal"
+        }
+
+        {
+            "name": "Python: Example",
+            "type": "python",
+            "request": "launch",
+            "program": "example.py",
+            "cwd": "${workspaceFolder}",
+            // "args": ["v3"],
+            "console": "integratedTerminal"
+        }
+
+        {
+            "name": "Python: Generate Classifier Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/src/generate_data",
+            "args": ["v3"],
+            "console": "integratedTerminal"
+        }
+
+        {
+            "name": "Python: Generate Errorfinder Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/src/generate_errorfinder_data.py",
+            "args": ["v3"],
+            "console": "integratedTerminal"
+        }
+
+        {
+            "name": "Python: Generate Data Using Generator",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/src/generate_data_using_generator.py",
+            "args": ["v3"],
             "console": "integratedTerminal"
         }
 

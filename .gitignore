@@ -137,11 +137,13 @@ trained_models/
 cluster/
 parameters.txt
 #*.sh
-!train.sh
+# !train.sh
 signatures-nets.e*
 results/
 plots/*
 runs_old/
+!signet/trained_models
+!signet/data
 
 !.vscode/launch.json
 
@@ -150,7 +152,7 @@ wandb
 nohup.out
 
 tmp/
-src/hyperparam_optimizers/search_results/
-src/generate_realistic_data/*_output*
-src/generate_realistic_data/PCAWG_normalized
-src/hyperparam_optimizers/*.csv
+*/hyperparam_optimizers/search_results/
+*/hyperparam_optimizers/*.csv
+*/generate_realistic_data/*_output*
+*/generate_realistic_data/PCAWG_normalized

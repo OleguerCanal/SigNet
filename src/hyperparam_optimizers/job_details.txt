@@ -1,8 +1,0 @@
-#!/bin/sh
-
-#$ -cwd
-#$ -j y
-#$ -q short-sl7,long-sl7
-#$ -pe smp 8
-#$ -l h_rt=200:00:00
-#$ -l virtual_free=4G
