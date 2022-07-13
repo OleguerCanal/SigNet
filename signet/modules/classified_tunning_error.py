@@ -42,9 +42,9 @@ class ClassifiedFinetunerErrorfinder:
         logging.info("Finetuning NNLS guesses... DONE")
 
         logging.info("Estimating errorbars...")
-        upper, lower = self.errorfinder(weights=finetuner_guess,
-                                                      num_mutations=num_mut,
-                                                      classification=classification.reshape(-1, 1))
+        upper, lower = self.errorfinder(weights=finetuner_guess[:,:-1],
+                                                num_mutations=num_mut,
+                                                classification=classification.reshape(-1, 1))
         logging.info("Estimating errorbars... DONE")
         
         result = {"finetuner_guess": finetuner_guess,

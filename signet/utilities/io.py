@@ -81,7 +81,7 @@ def csv_to_tensor(file,
 
     input_tensor = torch.tensor(df.values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    return input_tensor.float().to(device)
+    return input_tensor.float().to(device), df.index
 
 def tensor_to_csv(data_tensor, output_path):
     create_dir(output_path)
@@ -376,22 +376,31 @@ def write_final_outputs(weights,
                         lower_bound,
                         upper_bound,
                         classification,
+                        sample_names, 
                         output_path,
                         name=''):
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
     sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
-    
-    def write(values, path):
+
+    def write(values, path, sig_names, output_type = 'error'):
         logging.info("Writting results: %s"%path)
-        df = pd.DataFrame(values)
+        try:
+            df = pd.DataFrame(values.detach().numpy())
+        except:
+            df = pd.DataFrame(values)
+        if output_type == 'weight':
+            sig_names = sig_names + ['Unknown']
+        if output_type == 'classification':
+            sig_names = ['Classification']
         df.columns = sig_names
-        df.to_csv(path, header=True, index=False)
+        df.index = sample_names
+        df.to_csv(path, header=True, index=True)
 
     # Write results weight guesses
-    write(values=weights, path=output_path + "/weight_guesses-%s.csv"%name)
-    write(values=lower_bound, path=output_path + "/lower_bound_guesses-%s.csv"%name)
-    write(values=upper_bound, path=output_path + "/upper_bound_guesses-%s.csv"%name)
-    write(values=classification, path=output_path + "/classification_guesses-%s.csv"%name)
+    write(values=weights, path=output_path + "/weight_guesses-%s.csv"%name, sig_names=sig_names, output_type='weight')
+    write(values=lower_bound, path=output_path + "/lower_bound_guesses-%s.csv"%name, sig_names=sig_names)
+    write(values=upper_bound, path=output_path + "/upper_bound_guesses-%s.csv"%name, sig_names=sig_names)
+    write(values=classification, path=output_path + "/classification_guesses-%s.csv"%name, sig_names=sig_names, output_type='classification')
 
 
 def write_David_outputs(weights, lower_bound, upper_bound, output_path):

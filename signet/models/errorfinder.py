@@ -97,4 +97,11 @@ class ErrorFinder(nn.Module):
     def forward(self, weights, num_mutations, classification):
         pred_upper = self.positive_path(weights, num_mutations, classification)
         pred_lower = self.negative_path(weights, num_mutations, classification)
+
+        # If in eval mode, correct interval issues
+        if not self.training:
+            pred_upper[pred_upper<weights] = weights[pred_upper<weights]
+            pred_lower[pred_lower>weights] = weights[pred_lower>weights]
+            pred_lower[pred_lower<0] = torch.abs(0*pred_lower[pred_lower<0])
+
         return pred_upper, pred_lower
