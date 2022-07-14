@@ -100,8 +100,9 @@ class ErrorFinder(nn.Module):
 
         # If in eval mode, correct interval issues
         if not self.training:
-            pred_upper[pred_upper<weights] = weights[pred_upper<weights]
-            pred_lower[pred_lower>weights] = weights[pred_lower>weights]
-            pred_lower[pred_lower<0] = torch.abs(0*pred_lower[pred_lower<0])
+            pred_upper[pred_upper < weights] = weights[pred_upper < weights]
+            pred_lower[pred_lower > weights] = weights[pred_lower > weights]
+            pred_lower[pred_lower < 0] = 0
+            pred_upper[pred_upper > 1] = 1
 
         return pred_upper, pred_lower
