@@ -48,9 +48,12 @@ if __name__ == "__main__":
     # Parse command-line arguments
     args = parse_args()
     
+    # Read data
+    mutations = pd.read_csv(args.input_data, header=0, index_col=0)
+
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
-    results, sample_names = signet(mutation_file=args.input_data)
+    results = signet(mutation_dataset=mutations)
     print("Results obtained!")
 
     # Store results
@@ -58,7 +61,7 @@ if __name__ == "__main__":
                         lower_bound=results["error_lower"], 
                         upper_bound=results["error_upper"],
                         classification=results["classification"],
-                        sample_names=sample_names,
+                        sample_names=results["sample_names"],
                         output_path=args.output[0],
                         name=args.experiment_id)
 

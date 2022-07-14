@@ -40,17 +40,20 @@ class SigNet:
     
     def _convert_to_numpy(self, dictionary):
         for key in dictionary:
-            dictionary[key].detach().numpy()
+            try:
+                dictionary[key] = dictionary[key].detach().numpy()
+            except:
+                continue
         return dictionary
 
     def __call__(self,
-                 mutation_file,
+                 mutation_dataset,
                  numpy=True,
                  nworkers=1):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
-            mutation_vec (np.array(batch_size, 96)): Batch of mutation vectors to decompose
+            mutation_dataset (pd.DataFrame(batch_size, 96)): Batch of mutation vectors to decompose
             numpy (bool): Whether to convert the outputs into numpy arrays (otherwise it'd be torch.Tensor). Default: True
             nworkers (int): Num of threads to run the
 
@@ -59,13 +62,11 @@ class SigNet:
         """
         with torch.no_grad():
             # Sort input data columns
-            df = pd.read_csv(mutation_file, header=0, index_col=0)
             mutation_order = pd.read_excel(os.path.join(DATA, "mutation_type_order.xlsx"))
-            df = df[list(mutation_order['Type'])]
-            sample_names = df.index
+            mutation_dataset = mutation_dataset[list(mutation_order['Type'])]
+            sample_names = mutation_dataset.index
 
-            mutation_vec = torch.tensor(df.values, dtype=torch.float)
-            print(mutation_vec)
+            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float)
 
             # Normalize input data
             if self.opportunities_name_or_path is not None:
@@ -87,7 +88,8 @@ class SigNet:
                                                  baseline_guess=self.baseline_guess,
                                                  num_mut=num_mutations.reshape(-1, 1))
             results["normalized_mutation_vec"] = normalized_mutation_vec
+            results["sample_names"] = sample_names
 
         if numpy:
-            return self._convert_to_numpy(results), sample_names
-        return results, sample_names # I would like the sample_names to be used inside this function to write the files, but needs to be decided
+            return self._convert_to_numpy(results)
+        return results

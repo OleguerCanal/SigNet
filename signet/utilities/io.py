@@ -81,7 +81,7 @@ def csv_to_tensor(file,
 
     input_tensor = torch.tensor(df.values, dtype=torch.float)
     assert(not torch.isnan(input_tensor).any())
-    return input_tensor.float().to(device), df.index
+    return input_tensor.float().to(device)
 
 def tensor_to_csv(data_tensor, output_path):
     create_dir(output_path)
