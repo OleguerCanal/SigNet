@@ -44,7 +44,6 @@ class FineTunerLowNumMut(FineTuner):
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLowNumMut"
-        print(self.init_args)
 
         # Num units of the mutations path
         num_units_branch_mut = 3
@@ -133,7 +132,6 @@ class FineTunerLargeNumMut(FineTuner):
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLargeNumMut"
-        print(self.init_args)
 
         # Num units of the mutations path
         num_units_branch_mut = 10

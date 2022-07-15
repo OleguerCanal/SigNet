@@ -3,12 +3,9 @@ import logging
 #import numpy as np
 from argparse import ArgumentParser
 import pandas as pd
-import torch
 
 from signet import DATA
 from signet.modules.signet_module import SigNet
-from signet.utilities.io import csv_to_tensor, write_final_outputs
-
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,
@@ -56,18 +53,11 @@ if __name__ == "__main__":
     results = signet(mutation_dataset=mutations)
     print("Results obtained!")
 
+    # Extract results
+    w, u, l, c, _ = results.convert_output()
+
     # Store results
-    write_final_outputs(weights=results["finetuner_guess"],
-                        lower_bound=results["error_lower"], 
-                        upper_bound=results["error_upper"],
-                        classification=results["classification"],
-                        sample_names=results["sample_names"],
-                        output_path=args.output[0],
-                        name=args.experiment_id)
+    results.save(path='Output', name=args.experiment_id)
 
     # Plot figures
-    if args.plot_figs:
-        sig_names = list(pd.read_excel(DATA + "/data.xlsx").columns)[1:]
-        for i in range(weight_guess.shape[0]):
-            plot_weights(weight_guess[i,:], upper_bound[i,:], lower_bound[i,:], sig_names, output_path + "/plots/plot_sample_%s.png"%str(i))
-        # plot_reconstruction(normalized_input, signet.baseline_guess, signet.signatures, list(range(weight_guess.shape[0])), output_path + "/plots/baseline_reconstruction")
+    results.plot_results(save=True)
