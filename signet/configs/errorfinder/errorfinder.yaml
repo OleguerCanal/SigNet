@@ -5,7 +5,7 @@ config:
     classifier_id: "classifier"
     finetuner_low_id: "finetuner_low"
     finetuner_large_id: "finetuner_large"
-    models_dir: "../trained_models/exp_final"
+    models_dir: "../trained_models"
 
     # Training params
     # source: "realistic_low"
