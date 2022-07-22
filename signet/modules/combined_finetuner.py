@@ -64,12 +64,13 @@ def baseline_guess_to_combined_finetuner_guess(model, classifier, data):
     with torch.no_grad():
         data.classification = classifier(mutation_dist=data.inputs,
                                          num_mut=data.num_mut)
-        data.inputs = data.inputs[data.classification > 0.5, ]
-        data.num_mut = data.num_mut[data.classification > 0.5, ]
+        data.inputs = data.inputs[data.classification.view(-1) > 0.5, ]
+        data.num_mut = data.num_mut[data.classification > 0.5, ].reshape(-1,1)
         data.prev_guess = model(mutation_dist=data.inputs,
                                 baseline_guess=data.prev_guess,
                                 num_mut=data.num_mut)
-        data.classification = data.classification[data.classification > 0.5, ]
+        data.prev_guess = data.prev_guess[:,:-1]
+        data.classification = data.classification[data.classification > 0.5, ].reshape(-1,1)
     del model
     gc.collect()
     torch.cuda.empty_cache()

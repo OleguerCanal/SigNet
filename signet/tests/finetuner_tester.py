@@ -11,7 +11,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models import Baseline
 from modules import CombinedFinetuner
-from trainers import read_data_and_partitions
+from trainers.finetuner_crossvalidation import read_data_and_partitions
 from utilities.oversampler import CancerTypeOverSampler
 from utilities.io import csv_to_tensor, read_data_generator, read_methods_guesses, read_signatures, read_test_data, read_model, tensor_to_csv
 from utilities.plotting import plot_all_metrics_vs_mutations, plot_crossval, plot_crossval_benchmark, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_weights_comparison
@@ -35,12 +35,12 @@ for i in range(k_tot):
 
 # Create inputs associated to the labels:
 signatures = read_signatures(
-    "../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
+    "../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
 data_generator = DataGenerator(signatures=signatures,
                                 seed=None,
                                 shuffle=True)
 
-models_path = "../../trained_models/" + experiment_id
+models_path = "../trained_models/" + experiment_id
 
 # Loop through the partitions
 list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
