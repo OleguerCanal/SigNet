@@ -6,13 +6,13 @@ import pandas as pd
 import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from modules.signet import SigNet
+from modules.signet_module import SigNet
 from utilities.io import read_methods_guesses, read_signatures, read_test_data, csv_to_tensor, write_final_outputs
 from utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier, plot_reconstruction, plot_weights
 from utilities.metrics import get_reconstruction_error
 
 # Read data
-data_folder = "../../../data/"
+data_folder = "../../data/"
 
 # Load data
 data_path = "../../../data/exp_all/"
@@ -23,10 +23,10 @@ num_mut = labels[:, -1].unsqueeze(1)
 print("data loaded")
 
 # Load model
-path = "../../../trained_models/exp_all/"
+path = "../../trained_models/"
 signet = SigNet(classifier=path + "classifier",
-                finetuner_realistic_low=path + "finetuner_low_1_fp_1",
-                finetuner_realistic_large=path + "finetuner_large_1_fp_1",
+                finetuner_realistic_low=path + "finetuner_low",
+                finetuner_realistic_large=path + "finetuner_large",
                 errorfinder=path + "errorfinder_final",
                 opportunities_name_or_path=None,
                 signatures_path=data_folder + "data.xlsx",

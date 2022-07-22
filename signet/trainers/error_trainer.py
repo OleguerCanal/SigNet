@@ -209,7 +209,7 @@ class ErrorTrainer:
         return max_found
 
 
-def train_errorfinder(config, data_folder="../data") -> float:
+def train_errorfinder(config, data_folder="data") -> float:
     from utilities.io import read_data
     from modules.combined_finetuner import baseline_guess_to_combined_finetuner_guess
 
