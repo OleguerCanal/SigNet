@@ -1,6 +1,7 @@
 import os
 from socket import TIPC_LOW_IMPORTANCE
 import sys
+from matplotlib.colors import cnames
 
 import pandas as pd
 import torch
@@ -24,28 +25,29 @@ print("data loaded")
 
 # Load model
 path = "../../trained_models/"
-signet = SigNet(classifier=path + "classifier",
+signet = SigNet(classifier=path + "detector",
                 finetuner_realistic_low=path + "finetuner_low",
                 finetuner_realistic_large=path + "finetuner_large",
-                errorfinder=path + "errorfinder_final",
+                errorfinder=path + "errorfinder",
                 opportunities_name_or_path=None,
                 signatures_path=data_folder + "data.xlsx",
                 mutation_type_order=data_folder + "mutation_type_order.xlsx")
 
 print("model read")
 
-finetuner_guess, upper_bound, lower_bound, classification, normalized_input = signet(inputs*labels[:, -1].reshape(-1, 1), numpy=False)
+result = signet(inputs*labels[:, -1].reshape(-1, 1), numpy=False)
 
+finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.convert_output(convert_to="tensor")
 print("forwarded")
 
 # plot_weights(finetuner_guess[100,:], upper_bound[100,:], lower_bound[100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 # plot_weights(finetuner_guess[3000,:], upper_bound[3000,:], lower_bound[3000,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 # plot_weights(finetuner_guess[-100,:], upper_bound[-100,:], lower_bound[-100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 
-# list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs"]
-# list_of_guesses, label = read_methods_guesses('cpu', "exp_oversample", list_of_methods, data_folder=data_folder)
-list_of_methods = ['NNLS', 'Finetuner']
-list_of_guesses = [signet.baseline_guess, finetuner_guess]
+list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]
+list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../../data/")
+list_of_methods += ['NNLS', 'Finetuner']
+list_of_guesses += [signet.baseline_guess, finetuner_guess[:,:-1]]
 
 final_plot_all_metrics_vs_mutations(list_of_methods=list_of_methods,
                                     list_of_guesses=list_of_guesses,

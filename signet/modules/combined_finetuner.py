@@ -11,7 +11,7 @@ class CombinedFinetuner:
     def __init__(self,
                  low_mum_mut_dir,
                  large_mum_mut_dir,
-                 cuttoff = 5e2,
+                 cuttoff = 1e3,
                  device="cpu"):
 
         # Instantiate finetuner 1 and read params

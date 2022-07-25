@@ -5,17 +5,20 @@ import torch
 from signet import DATA
 
 def normalize_data(input_file, opportunities_name_or_path):
-    genome_abundances = create_opportunities(DATA + '/real_data/3mer_WG_hg37.txt')
-    genome_abundances_tensor = torch.Tensor(genome_abundances)
-
-    if opportunities_name_or_path == 'exome':
-        abundances = create_opportunities(DATA + '/real_data/abundances_trinucleotides.txt')
+    if opportunities_name_or_path == 'genome':
+        return torch.div(input_file, torch.sum(input_file))
     else:
-        abundances = create_opportunities(opportunities_name_or_path)
+        genome_abundances = create_opportunities(DATA + '/real_data/3mer_WG_hg37.txt')
+        genome_abundances_tensor = torch.Tensor(genome_abundances)
 
-    abundances_tensor = torch.Tensor(abundances)
-    abundances_tensor = (abundances_tensor/genome_abundances_tensor)/torch.sum(abundances_tensor/genome_abundances_tensor)
-    return torch.div(input_file, abundances_tensor)
+        if opportunities_name_or_path == 'exome':
+            abundances = create_opportunities(DATA + '/real_data/abundances_trinucleotides.txt')
+        else:
+            abundances = create_opportunities(opportunities_name_or_path)
+
+        abundances_tensor = torch.Tensor(abundances)
+        abundances_tensor = (abundances_tensor/genome_abundances_tensor)/torch.sum(abundances_tensor/genome_abundances_tensor)
+        return torch.div(input_file, abundances_tensor)
 
 
 
