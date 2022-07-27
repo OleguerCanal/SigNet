@@ -119,6 +119,8 @@ class SigNetResult:
             upper = pd.DataFrame(self.upper.detach().numpy())
             classification = pd.DataFrame(self.classification.detach().numpy())
             normalized_input = pd.DataFrame(self.normalized_input.detach().numpy())
+        if convert_to == "tensor":
+            return self.weights, self.lower, self.upper, self.classification, self.normalized_input
         return weights, lower, upper, classification, normalized_input
 
     def save(self, 
@@ -134,15 +136,15 @@ class SigNetResult:
 
         lower.columns = self.sig_names
         lower.index = self.mutation_dataset.index
-        weights.to_csv(path + "/lower_bound_guesses-%s.csv"%name, header=True, index=True)
+        lower.to_csv(path + "/lower_bound_guesses-%s.csv"%name, header=True, index=True)
         
         upper.columns = self.sig_names
         upper.index = self.mutation_dataset.index
-        weights.to_csv(path + "/upper_bound_guesses-%s.csv"%name, header=True, index=True)
+        upper.to_csv(path + "/upper_bound_guesses-%s.csv"%name, header=True, index=True)
         
         classification.columns = ['Classification']
         classification.index = self.mutation_dataset.index
-        weights.to_csv(path + "/classification_guesses-%s.csv"%name, header=True, index=True)
+        classification.to_csv(path + "/classification_guesses-%s.csv"%name, header=True, index=True)
 
     def plot_results(self, 
                      save = True,

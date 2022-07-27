@@ -50,10 +50,12 @@ if __name__ == "__main__":
 
     if unique_abundances == True:
         # input_file_path = "data/analysis_MC3/MC3_mut_counts.csv"
-        input_file_path = "data/case_study_Moore/mut_counts_by_sample.csv"
+        input_file_path = "data/analysis_PCAWG/PCAWG_input.csv"
+        # input_file_path = "data/case_study_Moore/mut_counts_by_sample.csv"
         # input_file_path = "data/case_study_GTeX/data_by_tissue/all_tissues_input.csv"
         opportunities = "genome"
-        output_path = "data/case_study_Moore/new_SigNet/" 
+        output_path = "data/analysis_PCAWG/new_SigNet/" 
+        experiment_id = "final"
         # output_path = "data/analysis_MC3/new_SigNet/" 
         plot_figs = False
 
@@ -69,7 +71,7 @@ if __name__ == "__main__":
         w, u, l, c, _ = results.convert_output()
 
         # Store results
-        results.save(path=output_path, name=args.experiment_id)
+        results.save(path=output_path, name=experiment_id)
 
         # Plot figures
         results.plot_results(save=plot_figs)
@@ -89,7 +91,6 @@ if __name__ == "__main__":
             opportunities = "data/case_study_GTeX/abundances/abundances_%s.csv"%tissue
             input_file = pd.read_csv("data/case_study_GTeX/data_by_tissue/%s_input.csv"%tissue, header=None, index_col=False, sep=',')
             input_file.index = [tissue]
-            print(input_cols)
             input_file.columns = list(input_cols)[1:]
             signet = SigNet(opportunities_name_or_path=opportunities)
             results = signet(mutation_dataset=input_file)
@@ -110,8 +111,8 @@ if __name__ == "__main__":
             c.index = [tissue]
             all_c = pd.concat((all_c, c))
 
-        all_w.to_csv(output_path + "/weight_guesses-abundances.csv", header=True, index=True)
-        all_u.to_csv(output_path + "/upper_bound_guesses-abundances.csv", header=True, index=True)
-        all_l.to_csv(output_path + "/lower_bound_guesses-abundances.csv", header=True, index=True)
-        all_c.to_csv(output_path + "/classification_guesses-abundances.csv", header=True, index=True)
+        all_w.to_csv(output_path + "weight_guesses-abundances.csv", header=True, index=True)
+        all_u.to_csv(output_path + "upper_bound_guesses-abundances.csv", header=True, index=True)
+        all_l.to_csv(output_path + "lower_bound_guesses-abundances.csv", header=True, index=True)
+        all_c.to_csv(output_path + "classification_guesses-abundances.csv", header=True, index=True)
         
