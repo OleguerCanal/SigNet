@@ -25,7 +25,7 @@ print("data loaded")
 
 # Load model
 path = "../../trained_models/"
-signet = SigNet(classifier=path + "classifier",
+signet = SigNet(classifier=path + "detector",
                 finetuner_realistic_low=path + "finetuner_low",
                 finetuner_realistic_large=path + "finetuner_large",
                 errorfinder=path + "errorfinder",

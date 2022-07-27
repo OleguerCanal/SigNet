@@ -40,7 +40,6 @@ list_of_metrics = ["MAE", "KL", "fpr", "fnr", "accuracy %",
                     "precision %", "sens: tp/p %", "spec: tn/n %"]
 num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
 values = np.zeros((k_tot, len(num_muts), len(list_of_metrics)))
-times = np.zeros((k_tot, len(num_muts)))
 for k in range(k_tot):
     current_test = k
 
@@ -53,8 +52,6 @@ for k in range(k_tot):
     for i, num_mut in enumerate(num_muts):
         indexes = test_label[:, -1] == num_mut
 
-        st = time.time()
-
         # Run Baseline
         print("Running Baseline")
         sf = Baseline(signatures)
@@ -66,8 +63,6 @@ for k in range(k_tot):
         finetuner_guess = finetuner(mutation_dist=test_input[indexes,:],
                                     baseline_guess=test_baseline,
                                     num_mut=test_label[indexes, -1].view(-1, 1))
-        et = time.time()
-        times[k, i] = et-st
         
         # Test model
         metrics = get_classification_metrics(label_batch=test_label[indexes, :-1],
@@ -75,9 +70,6 @@ for k in range(k_tot):
         for metric_index, metric in enumerate(list_of_metrics):
             values[k, i, metric_index] = metrics[metric]
 
-times_df = pd.DataFrame(times)
-times_df.columns = num_muts
-times_df.to_csv('SigNet_times.txt')
 
 # Plot final results
 plot_crossval(values, num_muts)
@@ -93,7 +85,7 @@ list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods,
 list_of_methods += ['NNLS']
 list_of_guesses += [baseline_guess]
 
-plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values, folder_path='', show=True)
+plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values, folder_path='../../plots', show=False)
 
 # plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, test_label, '', show=True)
 
