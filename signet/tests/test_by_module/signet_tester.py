@@ -9,7 +9,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from modules.signet_module import SigNet
 from utilities.io import read_methods_guesses, read_signatures, read_test_data, csv_to_tensor, write_final_outputs
-from utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier, plot_reconstruction, plot_weights
+from utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier, plot_reconstruction, plot_time_vs_mutations, plot_weights
 from utilities.metrics import get_reconstruction_error
 
 # Read data
@@ -25,7 +25,7 @@ print("data loaded")
 
 # Load model
 path = "../../trained_models/"
-signet = SigNet(classifier=path + "detector",
+signet = SigNet(classifier=path + "classifier",
                 finetuner_realistic_low=path + "finetuner_low",
                 finetuner_realistic_large=path + "finetuner_large",
                 errorfinder=path + "errorfinder",
@@ -38,6 +38,7 @@ print("model read")
 result = signet(inputs*labels[:, -1].reshape(-1, 1), numpy=False)
 
 finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.convert_output(convert_to="tensor")
+print(classification)
 print("forwarded")
 
 # plot_weights(finetuner_guess[100,:], upper_bound[100,:], lower_bound[100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
@@ -63,6 +64,10 @@ plot_metric_vs_mutations_classifier(guess=classification_results,
                                     num_muts_list=labels[:, -1], 
                                     plot_path="../../../plots/paper/")
 
+times = pd.read_csv('../../../data/exp_all/other_methods/times/all_times.csv', index_col=0)
+num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+plot_time_vs_mutations(times, num_muts, plot_path="../../../plots/paper/", show=True)
+
 # plot_metric_vs_mutations(list_of_metrics=["reconstruction_error"],
 #                          list_of_methods=list_of_methods,
 #                          list_of_guesses=list_of_guesses,
@@ -81,7 +86,7 @@ plot_metric_vs_mutations_classifier(guess=classification_results,
 # write_final_outputs(finetuner_guess, lower_bound, upper_bound, signet.baseline_guess.detach().numpy(), classification, reconstruction_error.detach().numpy(), input_file, output_path)
 
 # plot_reconstruction(inputs, finetuner_guess, signatures, list(range(0,inputs.shape[0], 1000)), output_path)
-final_plot_interval_metrics_vs_mutations(labels, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=True)
+final_plot_interval_metrics_vs_mutations(labels, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=False)
 # plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
 # plot_interval_metrics_vs_sigs(label, upper_bound, lower_bound, '')
 
