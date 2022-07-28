@@ -39,8 +39,7 @@ class ClassifiedFinetunerErrorfinder:
         baseline_guess_random = baseline_guess[classification <= self.classification_cutoff, ]
         baseline_guess_realistic = baseline_guess[classification > self.classification_cutoff, ]
 
-        # NOTE(Oleguer): I propose to only normalize the baseline_guess_random as it'll be outputed directly. Let me know what you think
-        baseline_guess_random = baseline_guess_random/torch.sum(baseline_guess_random, dim=1)
+        baseline_guess_random = baseline_guess_random/torch.sum(baseline_guess_random, dim=1).reshape(-1,1)
         
         return input_batch_realistic, input_batch_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order
 
@@ -50,7 +49,7 @@ class ClassifiedFinetunerErrorfinder:
         joined = joined[joined[:, -1].sort()[1]]
         return joined[:, :-1]
 
-    def _apply_cutoff(self, comb, cutoff):    #Think about the issue when baseline is not normalized
+    def _apply_cutoff(self, comb, cutoff):
         mask = (comb > cutoff).type(torch.int).float()
         comb = comb*mask
         comb = torch.cat((comb, torch.ones_like(torch.sum(

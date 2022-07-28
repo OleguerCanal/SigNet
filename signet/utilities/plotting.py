@@ -476,7 +476,8 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
     xl = sigs_names
     # ax.set_xticks([xt[i] for i in range(num_classes) if i%2==0])
     ax.set_xticks(xt)
-    ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
+    ax.set_xticklabels(xl, rotation=80)
+    # ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
     # ax.xaxis.set_major_locator(plt.MultipleLocator(2))
     # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
 
