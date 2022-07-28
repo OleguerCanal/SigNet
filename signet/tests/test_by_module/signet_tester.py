@@ -6,16 +6,21 @@ import torch
 
 from signet import DATA
 from signet.modules.signet_module import SigNet
-from signet.utilities.io import read_methods_guesses, csv_to_tensor
+from signet.utilities.io import read_methods_guesses
 from signet.utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_metric_vs_mutations_classifier, plot_time_vs_mutations
 
 # Load data
 data_path = "../../../data/exp_all/"
-inputs = csv_to_tensor(data_path + "test_input.csv", device='cpu')
-labels = csv_to_tensor(data_path + "test_label.csv", device='cpu')
-num_mut = labels[:, -1].unsqueeze(1)
-
+inputs = pd.read_csv(data_path + "test_input.csv", header=None, index_col=None)
+labels = pd.read_csv(data_path + "test_label.csv", header=None, index_col=None)
+num_mut = labels[72]
 print("data loaded")
+
+signatures = pd.read_excel('../../../data/data.xlsx')
+
+input_df = inputs.mul(num_mut,0)
+input_df.index = ['sample_' + str(i) for i in list(range(len(input_df.index)))]
+input_df.columns = signatures['Type']
 
 # Load model
 path = "../../trained_models/"
@@ -29,22 +34,22 @@ signet = SigNet(classifier=path + "detector",
 
 print("model read")
 
-result = signet(inputs*labels[:, -1].reshape(-1, 1), numpy=False)
-
-finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.convert_output(convert_to="tensor")
-print(classification)
+result = signet(input_df, numpy=False)
 print("forwarded")
+
+finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.get_output(format="tensor")
 
 list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]
 list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../../data/")
 list_of_methods += ['NNLS', 'Finetuner']
 list_of_guesses += [signet.baseline_guess, finetuner_guess[:,:-1]]
 
+labels = torch.tensor(labels.values, dtype=torch.float)
 final_plot_all_metrics_vs_mutations(list_of_methods=list_of_methods,
                                     list_of_guesses=list_of_guesses,
                                     label=labels,
                                     signatures=signet.signatures,
-                                    mutation_distributions=inputs,
+                                    mutation_distributions=torch.tensor(inputs.values, dtype=torch.float),
                                     folder_path="../../../plots/paper/")
 
 classification_cutoff = 0.5

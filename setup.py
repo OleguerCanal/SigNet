@@ -19,4 +19,6 @@ setup(name='signet',
             'PyYAML==6.0',
             'scikit_learn',
             'openpyxl',
+            'tensorboard',
+            'wandb',
       ])

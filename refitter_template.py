@@ -68,7 +68,7 @@ if __name__ == "__main__":
         print("Results obtained!")
 
         # Extract results
-        w, u, l, c, _ = results.convert_output()
+        w, u, l, c, _ = results.get_output()
 
         # Store results
         results.save(path=output_path, name=experiment_id)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             print("Results obtained!")
 
              # Extract results
-            w, u, l, c, _ = results.convert_output(convert_to='pandas')
+            w, u, l, c, _ = results.get_output(format='pandas')
             w.columns = sig_names + ['Unknown']
             w.index = [tissue]
             all_w = pd.concat((all_w, w))

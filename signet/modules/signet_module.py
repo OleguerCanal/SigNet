@@ -60,7 +60,7 @@ class SigNet:
             mutation_dataset = mutation_dataset[list(mutation_order['Type'])]
             sample_names = mutation_dataset.index
 
-            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float)
+            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float, device='cpu')
 
             # Normalize input data
             if self.opportunities_name_or_path is not None:
@@ -142,7 +142,7 @@ class SigNetResult:
         """
         logging.info("Writting results: %s"%path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-        weights, lower, upper, classification, _ = self.convert_output(convert_to="pandas")
+        weights, lower, upper, classification, _ = self.get_output(format="pandas")
 
         weights.columns = self.sig_names + ['Unknown']
         weights.index = self.mutation_dataset.index

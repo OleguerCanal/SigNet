@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print("Results obtained!")
 
     # Extract results
-    w, u, l, c, _ = results.convert_output()
+    w, u, l, c, _ = results.get_output()
 
     # Store results
     results.save(path='Output', name=args.experiment_id)
