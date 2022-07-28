@@ -42,7 +42,7 @@ class ClassifiedFinetunerErrorfinder:
         return input_batch_realistic, input_batch_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order
 
     def __join_and_sort(self, realistic, random, ind_order):
-        joined = torch.cat((realistic, random), dim=0)
+        joined = torch.cat((random, realistic), dim=0)
         joined = torch.cat((joined, ind_order), dim=1)
         joined = joined[joined[:, -1].sort()[1]]
         return joined[:, :-1]
