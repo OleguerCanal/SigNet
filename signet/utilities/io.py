@@ -257,7 +257,7 @@ def read_methods_guesses(device, experiment_id, methods, data_folder=DATA):
     methods_guesses = []
     for method in methods:
         methods_guesses.append(csv_to_tensor(
-            path + "/other_methods/%s_guess.csv" % (method), device))
+            path + "/other_methods/final/%s_guess.csv" % (method), device))
 
     label = csv_to_tensor(path + "/test_label.csv", device)
 
@@ -296,7 +296,7 @@ def read_model(directory, device="cpu"):
         init_args = json.load(fp)
     model_type = init_args["model_type"]
     init_args.pop("model_type")
-    print("Reading model of type:", model_type)
+    # print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
     assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
     if "device" in init_args.keys():

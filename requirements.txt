@@ -1,8 +1,8 @@
 torch==1.7.0
-scipy==1.6.1
+scipy
 numpy==1.19.5
 matplotlib==3.3.4
-pandas==1.2.3
+pandas
 seaborn==0.11.1
 scikit_optimize==0.8.1
 tqdm==4.59.0

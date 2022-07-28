@@ -39,13 +39,23 @@ class ClassifiedFinetunerErrorfinder:
         baseline_guess_random = baseline_guess[classification <= self.classification_cutoff, ]
         baseline_guess_realistic = baseline_guess[classification > self.classification_cutoff, ]
 
+        baseline_guess_random = baseline_guess_random/torch.sum(baseline_guess_random, dim=1).reshape(-1,1)
+        
         return input_batch_realistic, input_batch_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order
 
     def __join_and_sort(self, realistic, random, ind_order):
-        joined = torch.cat((realistic, random), dim=0)
+        joined = torch.cat((random, realistic), dim=0)
         joined = torch.cat((joined, ind_order), dim=1)
         joined = joined[joined[:, -1].sort()[1]]
         return joined[:, :-1]
+
+    def _apply_cutoff(self, comb, cutoff):
+        mask = (comb > cutoff).type(torch.int).float()
+        comb = comb*mask
+        comb = torch.cat((comb, torch.ones_like(torch.sum(
+        comb, axis=1).reshape((-1, 1)))-torch.sum(
+        comb, axis=1).reshape((-1, 1))), axis=1)
+        return comb
 
     def __call__(self,
                  mutation_dist,
@@ -57,12 +67,15 @@ class ClassifiedFinetunerErrorfinder:
                                          num_mut=num_mut).view(-1)
         logging.info("Detecting out-of-train-distribution points... DONE")
         
-        mutation_dist_realistic, mutation_dist_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order = self.__separate_classification(classification, mutation_dist, baseline_guess)
+        mutation_dist_realistic, mutation_dist_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order = self.__separate_classification(classification, mutation_dist, baseline_guess, num_mut)
 
         logging.info("Finetuning NNLS guesses...")
         finetuner_guess_realistic = self.finetuner(mutation_dist=mutation_dist_realistic,
                                          baseline_guess = baseline_guess_realistic,
                                          num_mut=num_mut_realistic)
+
+        baseline_guess_random = self._apply_cutoff(baseline_guess_random, 0.01)
+
         finetuner_guess = self.__join_and_sort(finetuner_guess_realistic, baseline_guess_random, ind_order)
         logging.info("Finetuning NNLS guesses... DONE")
 
@@ -70,8 +83,8 @@ class ClassifiedFinetunerErrorfinder:
         upper, lower = self.errorfinder(weights=finetuner_guess_realistic[:,:-1],
                                                 num_mutations=num_mut_realistic,
                                                 classification=classification_realistic.reshape(-1, 1))
-        upper = self.__join_and_sort(upper, torch.full_like(mutation_dist_random, float('nan')), ind_order)
-        lower = self.__join_and_sort(lower, torch.full_like(mutation_dist_random, float('nan')), ind_order)
+        upper = self.__join_and_sort(upper, torch.full_like(baseline_guess_random[:,:-1], float('nan')), ind_order)
+        lower = self.__join_and_sort(lower, torch.full_like(baseline_guess_random[:,:-1], float('nan')), ind_order)
         logging.info("Estimating errorbars... DONE")
 
         result = {"finetuner_guess": finetuner_guess,

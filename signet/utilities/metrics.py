@@ -153,6 +153,8 @@ def get_pi_metrics_by_sig(label, pred_lower, pred_upper, dim=0):
     result["in_prop_present"] = torch.masked_select(k_h, label > 0.5).mean()  # This flattens all values into a 1-d tensor
     result["in_prop_absent"] = torch.masked_select(k_h, label <= 0.5).mean()
 
+    pred_upper[pred_upper!=pred_upper] = 0
+    pred_lower[pred_lower!=pred_lower] = 0
     interval_width = torch.max(torch.zeros_like(label), pred_upper - pred_lower)
     result["mean_interval_width"] = torch.mean(interval_width, dim)
     interval_width_present = torch.masked_select(interval_width, label > EPS)
