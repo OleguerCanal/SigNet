@@ -60,8 +60,7 @@ class SigNet:
             mutation_dataset = mutation_dataset[list(mutation_order['Type'])]
             sample_names = mutation_dataset.index
 
-            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float)
-            mutation_vec = mutation_vec.float().to('cpu')
+            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float, device='cpu')
 
             # Normalize input data
             if self.opportunities_name_or_path is not None:
