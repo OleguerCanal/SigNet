@@ -6,7 +6,7 @@ from signet import DATA
 
 def normalize_data(input_file, opportunities_name_or_path):
     if opportunities_name_or_path == 'genome':
-        return torch.div(input_file, torch.sum(input_file))
+        return input_file
     else:
         genome_abundances = create_opportunities(DATA + '/real_data/3mer_WG_hg37.txt')
         genome_abundances_tensor = torch.Tensor(genome_abundances)

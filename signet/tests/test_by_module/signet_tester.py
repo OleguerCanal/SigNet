@@ -1,19 +1,13 @@
 import os
-from socket import TIPC_LOW_IMPORTANCE
 import sys
-from matplotlib.colors import cnames
 
 import pandas as pd
 import torch
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from modules.signet_module import SigNet
-from utilities.io import read_methods_guesses, read_signatures, read_test_data, csv_to_tensor, write_final_outputs
-from utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_all_metrics_vs_mutations, plot_interval_metrics_vs_mutations, plot_interval_metrics_vs_sigs, plot_interval_performance, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_metric_vs_mutations_classifier, plot_reconstruction, plot_time_vs_mutations, plot_weights
-from utilities.metrics import get_reconstruction_error
-
-# Read data
-data_folder = "../../data/"
+from signet import DATA
+from signet.modules.signet_module import SigNet
+from signet.utilities.io import read_methods_guesses, csv_to_tensor
+from signet.utilities.plotting import final_plot_all_metrics_vs_mutations, final_plot_interval_metrics_vs_mutations, plot_metric_vs_mutations_classifier, plot_time_vs_mutations
 
 # Load data
 data_path = "../../../data/exp_all/"
@@ -30,8 +24,8 @@ signet = SigNet(classifier=path + "detector",
                 finetuner_realistic_large=path + "finetuner_large",
                 errorfinder=path + "errorfinder",
                 opportunities_name_or_path=None,
-                signatures_path=data_folder + "data.xlsx",
-                mutation_type_order=data_folder + "mutation_type_order.xlsx")
+                signatures_path=DATA + "/data.xlsx",
+                mutation_type_order=DATA + "/mutation_type_order.xlsx")
 
 print("model read")
 
@@ -40,10 +34,6 @@ result = signet(inputs*labels[:, -1].reshape(-1, 1), numpy=False)
 finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.convert_output(convert_to="tensor")
 print(classification)
 print("forwarded")
-
-# plot_weights(finetuner_guess[100,:], upper_bound[100,:], lower_bound[100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
-# plot_weights(finetuner_guess[3000,:], upper_bound[3000,:], lower_bound[3000,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
-# plot_weights(finetuner_guess[-100,:], upper_bound[-100,:], lower_bound[-100,:], list(pd.read_excel("../../../data/data.xlsx").columns)[1:], '')
 
 list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]
 list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../../data/")
@@ -68,30 +58,4 @@ times = pd.read_csv('../../../data/exp_all/other_methods/times/all_times.csv', i
 num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
 plot_time_vs_mutations(times, num_muts, plot_path="../../../plots/paper/", show=True)
 
-# plot_metric_vs_mutations(list_of_metrics=["reconstruction_error"],
-#                          list_of_methods=list_of_methods,
-#                          list_of_guesses=list_of_guesses,
-#                          label=labels,
-#                          show=True,
-#                          signatures=signet.signatures,
-#                          mutation_distributions=inputs)
-
-# signatures = read_signatures("../../../data/data.xlsx", "../../../data/mutation_type_order.xlsx")
-# reconstruction_error = get_reconstruction_error(torch.tensor(normalized_input), torch.tensor(signet.baseline_guess), signatures)
-# # Write final outputs
-# input_file = pd.DataFrame(normalized_input)
-# input_file.set_axis(["sample_%s"%i for i in range(normalized_input.shape[0])], axis='index')
-# print(input_file)
-# output_path = "../../../data/exp_final/test/plots"
-# write_final_outputs(finetuner_guess, lower_bound, upper_bound, signet.baseline_guess.detach().numpy(), classification, reconstruction_error.detach().numpy(), input_file, output_path)
-
-# plot_reconstruction(inputs, finetuner_guess, signatures, list(range(0,inputs.shape[0], 1000)), output_path)
-final_plot_interval_metrics_vs_mutations(labels, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=False)
-# plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel(data_folder + "data.xlsx").columns)[1:], show=True)
-# plot_interval_metrics_vs_sigs(label, upper_bound, lower_bound, '')
-
-# errorfiner_realistic = read_model(model_path + experiment_id + "/errorfinder_realistic")
-# upper_bound, lower_bound = errorfiner_realistic(finetuner_guess, label[:,-1].reshape(-1,1))
-
-# plot_interval_metrics_vs_mutations(label, upper_bound, lower_bound, '')
-# plot_interval_performance(label, upper_bound, lower_bound, list(pd.read_excel("../../data/data.xlsx").columns)[1:], '')
+final_plot_interval_metrics_vs_mutations(labels, upper_bound, lower_bound, list(pd.read_excel(DATA + "/data.xlsx").columns)[1:], plot_path="../../../plots/paper/", show=False)

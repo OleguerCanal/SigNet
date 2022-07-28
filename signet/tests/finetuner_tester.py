@@ -1,21 +1,13 @@
-import os
-import sys
-
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import time
-import torch
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.baseline import Baseline
-from modules.combined_finetuner import CombinedFinetuner
-from trainers.finetuner_crossvalidation import read_data_and_partitions
-from utilities.oversampler import CancerTypeOverSampler
-from utilities.io import csv_to_tensor, read_data_generator, read_methods_guesses, read_signatures, read_test_data, read_model, tensor_to_csv
-from utilities.plotting import plot_all_metrics_vs_mutations, plot_crossval, plot_crossval_benchmark, plot_metric_vs_mutations, plot_metric_vs_sigs, plot_weights_comparison
-from utilities.metrics import get_classification_metrics
-from utilities.data_generator import DataGenerator
+from signet import DATA
+from signet.models import Baseline
+from signet.modules import CombinedFinetuner
+from signet.trainers.finetuner_crossvalidation import read_data_and_partitions
+from signet.utilities.io import csv_to_tensor, read_methods_guesses, read_signatures
+from signet.utilities.plotting import plot_crossval, plot_crossval_benchmark
+from signet.utilities.metrics import get_classification_metrics
+from signet.utilities.data_generator import DataGenerator
 
 experiment_id = "crossval"
 
@@ -28,7 +20,7 @@ lst_weights, lst_ctype = read_data_and_partitions(k_tot)
 
 # Create inputs associated to the labels:
 signatures = read_signatures(
-    "../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+    DATA +"data.xlsx", mutation_type_order=DATA +"mutation_type_order.xlsx")
 data_generator = DataGenerator(signatures=signatures,
                                 seed=None,
                                 shuffle=True)

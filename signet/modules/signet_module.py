@@ -106,26 +106,40 @@ class SigNetResult:
         self.normalized_input = normalized_input
         self.sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
 
-    def convert_output(self, convert_to="numpy"):
-        if convert_to == "numpy":
+    def get_output(self, format="numpy"):
+        """ 
+        Obtain the predicted outputs in one of these formats: ["numpy", "pandas", "tensor"]
+        Args:
+            format: one of: "numpy", "pandas", "tensor"
+        Returns:
+            weights, lower bound, upper bound, classification, normalized_input in the given format.
+        """
+        assert format in ["numpy", "pandas", "tensor"]
+        if format == "numpy":
             weights = self.weights.detach().numpy()
             lower = self.lower.detach().numpy()
             upper = self.upper.detach().numpy()
             classification = self.classification.detach().numpy()
             normalized_input = self.normalized_input.detach().numpy()
-        if convert_to == "pandas":
+        if format == "pandas":
             weights = pd.DataFrame(self.weights.detach().numpy())
             lower = pd.DataFrame(self.lower.detach().numpy())
             upper = pd.DataFrame(self.upper.detach().numpy())
             classification = pd.DataFrame(self.classification.detach().numpy())
             normalized_input = pd.DataFrame(self.normalized_input.detach().numpy())
-        if convert_to == "tensor":
+        if format == "tensor":
             return self.weights, self.lower, self.upper, self.classification, self.normalized_input
         return weights, lower, upper, classification, normalized_input
 
     def save(self, 
              path='Output',
              name='run0'):
+        """ 
+        Save outputs into a file.
+        Args:
+            path (str): path to the directory where the files will be written.
+            name (str): name of the run that will be given to the outputs.
+        """
         logging.info("Writting results: %s"%path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         weights, lower, upper, classification, _ = self.convert_output(convert_to="pandas")
@@ -149,6 +163,12 @@ class SigNetResult:
     def plot_results(self, 
                      save = True,
                      path = 'Output/plots'):
+        """ 
+        Shows and saves (if applicable) the plots of the signature decompositions.
+        Args:
+            path (str): path to the directory where the plots will be saved.
+            save (bool): whether to save the plot into a file or not.
+        """
         logging.info("Plotting results: %s"%path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         samples = list(self.mutation_dataset.index)
