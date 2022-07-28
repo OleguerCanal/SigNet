@@ -39,6 +39,9 @@ class ClassifiedFinetunerErrorfinder:
         baseline_guess_random = baseline_guess[classification <= self.classification_cutoff, ]
         baseline_guess_realistic = baseline_guess[classification > self.classification_cutoff, ]
 
+        # NOTE(Oleguer): I propose to only normalize the baseline_guess_random as it'll be outputed directly. Let me know what you think
+        baseline_guess_random = baseline_guess_random/torch.sum(baseline_guess_random, dim=1)
+        
         return input_batch_realistic, input_batch_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order
 
     def __join_and_sort(self, realistic, random, ind_order):
