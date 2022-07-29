@@ -22,11 +22,12 @@ class FineTuner(nn.Module):
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
-    def _apply_cutoff(self, comb):
-        mask = (comb > self._cutoff).type(torch.int).float()
+    def _apply_cutoff(self, comb, cutoff):
+        mask = (comb > cutoff).type(torch.int).float()
         comb = comb*mask
-        comb = torch.div(comb, torch.sum(
-        comb, axis=1).reshape((-1, 1)) + self._EPS)
+        comb = torch.cat((comb, torch.ones_like(torch.sum(
+        comb, axis=1).reshape((-1, 1)))-torch.sum(
+        comb, axis=1).reshape((-1, 1))), axis=1)
         return comb
 
 class FineTunerLowNumMut(FineTuner):
@@ -43,7 +44,6 @@ class FineTunerLowNumMut(FineTuner):
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLowNumMut"
-        print(self.init_args)
 
         # Num units of the mutations path
         num_units_branch_mut = 3
@@ -114,7 +114,7 @@ class FineTunerLowNumMut(FineTuner):
 
         # If in eval mode, send small values to 0
         if not self.training:
-            comb = self._apply_cutoff(comb)
+            comb = self._apply_cutoff(comb, cutoff=0.01)
         return comb
 
 
@@ -132,7 +132,6 @@ class FineTunerLargeNumMut(FineTuner):
                                                  cutoff=cutoff,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLargeNumMut"
-        print(self.init_args)
 
         # Num units of the mutations path
         num_units_branch_mut = 10
@@ -189,7 +188,7 @@ class FineTunerLargeNumMut(FineTuner):
 
         # If in eval mode, send small values to 0
         if not self.training:
-            comb = self._apply_cutoff(comb)
+            comb = self._apply_cutoff(comb, cutoff=0.01)
         return comb
 
 

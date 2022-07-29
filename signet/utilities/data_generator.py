@@ -78,8 +78,10 @@ class DataGenerator:
             samples = c.sample(sample_shape=sample_shape).type(torch.float32)
             n_bins = signature.shape[0]
             sample = torch.histc(samples, bins=n_bins, min=0, max=n_bins - 1)
-        if self.normalize:
-            sample = sample/float(num_mut)
+            if self.normalize:
+                sample = sample/float(num_mut)
+        else:
+            sample = sample/torch.sum(sample)
         return sample
 
 
@@ -90,6 +92,7 @@ class DataGenerator:
             inputs (mutational vector)
             labels (including an appended column with the number of mutations used)
         """
+        labels = torch.cat([labels]*10, dim = 0)
         nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
 
         input_batch = torch.empty((labels.shape[0], 96))

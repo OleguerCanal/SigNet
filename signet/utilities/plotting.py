@@ -150,10 +150,11 @@ def plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values_fine
     fig.legend(loc=7, labels=list_of_methods+['SigNet Refitter'], prop={'size': 8})
     fig.tight_layout()
     fig.subplots_adjust(right=legend_adjustment)   
-    # create_dir(folder_path)
     if show:
         plt.show()
-    # plt.savefig(folder_path + '/metrics_low.svg')
+    else:
+        create_dir(folder_path)
+        plt.savefig(folder_path + '/metrics_low.pdf')
     plt.close()
     ############################################################################################
     
@@ -174,11 +175,14 @@ def plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values_fine
         # axes.ticklabel_format(axis="y", style="sci")
         
 
-    fig.legend(loc=7, labels=list_of_methods, prop={'size': 8})
+    fig.legend(loc=7, labels=list_of_methods+['SigNet Refitter'], prop={'size': 8})
     fig.tight_layout()
     fig.subplots_adjust(right=legend_adjustment)   
-    plt.show()
-    # plt.savefig(folder_path + '/metrics_high.svg')
+    if show:
+        plt.show()
+    else:
+        create_dir(folder_path)
+        plt.savefig(folder_path + '/metrics_high.pdf')
     plt.close()
 
 def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, show=False):
@@ -472,7 +476,8 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
     xl = sigs_names
     # ax.set_xticks([xt[i] for i in range(num_classes) if i%2==0])
     ax.set_xticks(xt)
-    ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
+    ax.set_xticklabels(xl, rotation=80)
+    # ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
     # ax.xaxis.set_major_locator(plt.MultipleLocator(2))
     # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
 
@@ -649,6 +654,19 @@ def plot_propin_vs_mutations(label, upper, lower, plot = True): # Returns x,y
     return np.log10(num_muts), mean_width
 
 
+# TIME PLOTS:
+def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
+    marker_size = 3
+    line_width = 0.5
+    axs = plt.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    stylize_axes(axs, '', "log(N)", "Time (min)")
+    if show:
+        plt.show()
+    if plot_path is not None:
+        # create_dir(plot_path)
+        axs.savefig(plot_path)
+
+
 # WHOLE SIGNATURES-NET PLOTS:
 def plot_confusion_matrix(label_list, predicted_list, class_names):
     conf_mat = confusion_matrix(label_list.numpy(), predicted_list.numpy())
@@ -666,7 +684,7 @@ def plot_confusion_matrix(label_list, predicted_list, class_names):
     plt.xlabel('Predicted label')
     plt.show()
 
-def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
+def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, save=True, plot_path=None):
     num_classes = len(guessed_labels)
     fig, ax = plt.subplots(figsize=(12,8))
     guessed_error_neg = guessed_labels - pred_lower
@@ -678,8 +696,10 @@ def plot_weights(guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):
     ax.set_title('Signature decomposition')
     ax.set_ylim([0,1])
     plt.tight_layout()
-    plt.show()
-    # fig.savefig(plot_path)
+    if save == True:
+        fig.savefig(plot_path)
+    else:
+        plt.show()
     plt.close()
 
 def plot_weights_comparison(true_labels, guessed_labels, pred_upper, pred_lower, sigs_names, plot_path):

@@ -5,14 +5,13 @@ import numpy as np
 import pandas as pd
 import torch
 
-from signet.models import FineTunerLowNumMut, FineTunerLargeNumMut
 from signet.utilities.io import read_model
 
 class CombinedFinetuner:
     def __init__(self,
                  low_mum_mut_dir,
                  large_mum_mut_dir,
-                 cuttoff = 5e2,
+                 cuttoff = 1e3,
                  device="cpu"):
 
         # Instantiate finetuner 1 and read params
@@ -60,14 +59,18 @@ class CombinedFinetuner:
 
 
 def baseline_guess_to_combined_finetuner_guess(model, classifier, data):
-    # Load finetuner and compute guess_1
+    # Load finetuner and compute guess_1 only when the sample is classified as realistic
     import gc
     with torch.no_grad():
         data.classification = classifier(mutation_dist=data.inputs,
                                          num_mut=data.num_mut)
+        data.inputs = data.inputs[data.classification.view(-1) > 0.5, ]
+        data.num_mut = data.num_mut[data.classification > 0.5, ].reshape(-1,1)
         data.prev_guess = model(mutation_dist=data.inputs,
                                 baseline_guess=data.prev_guess,
                                 num_mut=data.num_mut)
+        data.prev_guess = data.prev_guess[:,:-1]
+        data.classification = data.classification[data.classification > 0.5, ].reshape(-1,1)
     del model
     gc.collect()
     torch.cuda.empty_cache()

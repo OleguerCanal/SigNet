@@ -1,11 +1,11 @@
 config:
     # IDs & paths
-    data_id: "datasets/errorfinder/"
+    data_id: "datasets/errorfinder"
     model_id: "errorfinder_final"
-    classifier_id: "classifier"
+    classifier_id: "detector"
     finetuner_low_id: "finetuner_low"
     finetuner_large_id: "finetuner_large"
-    models_dir: "../trained_models/exp_final"
+    models_dir: "trained_models"
 
     # Training params
     # source: "realistic_low"

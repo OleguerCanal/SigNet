@@ -257,7 +257,7 @@ def read_methods_guesses(device, experiment_id, methods, data_folder=DATA):
     methods_guesses = []
     for method in methods:
         methods_guesses.append(csv_to_tensor(
-            path + "/other_methods/%s_guess.csv" % (method), device))
+            path + "/other_methods/final/%s_guess.csv" % (method), device))
 
     label = csv_to_tensor(path + "/test_label.csv", device)
 
@@ -296,7 +296,7 @@ def read_model(directory, device="cpu"):
         init_args = json.load(fp)
     model_type = init_args["model_type"]
     init_args.pop("model_type")
-    print("Reading model of type:", model_type)
+    # print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
     assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
     if "device" in init_args.keys():
@@ -376,22 +376,31 @@ def write_final_outputs(weights,
                         lower_bound,
                         upper_bound,
                         classification,
+                        sample_names, 
                         output_path,
                         name=''):
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
     sig_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
-    
-    def write(values, path):
+
+    def write(values, path, sig_names, output_type = 'error'):
         logging.info("Writting results: %s"%path)
-        df = pd.DataFrame(values)
+        try:
+            df = pd.DataFrame(values.detach().numpy())
+        except:
+            df = pd.DataFrame(values)
+        if output_type == 'weight':
+            sig_names = sig_names + ['Unknown']
+        if output_type == 'classification':
+            sig_names = ['Classification']
         df.columns = sig_names
-        df.to_csv(path, header=True, index=False)
+        df.index = sample_names
+        df.to_csv(path, header=True, index=True)
 
     # Write results weight guesses
-    write(values=weights, path=output_path + "/weight_guesses-%s.csv"%name)
-    write(values=lower_bound, path=output_path + "/lower_bound_guesses-%s.csv"%name)
-    write(values=upper_bound, path=output_path + "/upper_bound_guesses-%s.csv"%name)
-    write(values=classification, path=output_path + "/classification_guesses-%s.csv"%name)
+    write(values=weights, path=output_path + "/weight_guesses-%s.csv"%name, sig_names=sig_names, output_type='weight')
+    write(values=lower_bound, path=output_path + "/lower_bound_guesses-%s.csv"%name, sig_names=sig_names)
+    write(values=upper_bound, path=output_path + "/upper_bound_guesses-%s.csv"%name, sig_names=sig_names)
+    write(values=classification, path=output_path + "/classification_guesses-%s.csv"%name, sig_names=sig_names, output_type='classification')
 
 
 def write_David_outputs(weights, lower_bound, upper_bound, output_path):
