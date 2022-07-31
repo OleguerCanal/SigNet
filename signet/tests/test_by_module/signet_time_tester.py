@@ -11,7 +11,6 @@ from signet.modules.combined_finetuner import CombinedFinetuner
 from signet.utilities.io import csv_to_tensor, read_model, read_signatures
 
 # Read data
-data_folder = "../../data/"
 
 # Load data
 data_path = "../../../data/exp_all/"
