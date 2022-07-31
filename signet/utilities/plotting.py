@@ -168,7 +168,7 @@ def plot_crossval_benchmark(list_of_methods, list_of_guesses, label, values_fine
     axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,7]), marker='o',linewidth=line_width, markersize=marker_size)
 
     xlabel = 'log(N)'
-    ylabel = ["Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)"]
+    ylabel = ["Accuracy (%)", "Precision (%)", "Recall (%)", "Specificity (%)"]
     # fig.suptitle("Metrics vs Number of Mutations")
     for i, axes in enumerate(axs.flat):
         stylize_axes(axes, '', xlabel, ylabel[i])
