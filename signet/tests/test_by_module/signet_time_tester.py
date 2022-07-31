@@ -82,7 +82,6 @@ for i,input in enumerate(list_of_inputs):
     for k in range(replicates):
         print(k)
         # Load model
-        path = "../../trained_models/"
 
         st = time.time()
         baseline_guess = baseline.get_weights_batch(input_batch=input, 
