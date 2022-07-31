@@ -22,7 +22,7 @@ if crossval == True:
 
     # Create inputs associated to the labels:
     signatures = read_signatures(
-        DATA +"data.xlsx", mutation_type_order=DATA +"mutation_type_order.xlsx")
+        DATA +"/data.xlsx", mutation_type_order=DATA +"/mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
                                     seed=None,
                                     shuffle=True)
@@ -73,7 +73,7 @@ if crossval == True:
     baseline = Baseline(signatures)
     baseline_guess = baseline.get_weights_batch(test_input, n_workers=2)
 
-    list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]#, "deconstructSigs"]
+    list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA", "deconstructSigs", "mutationalCone", "QPsig"]
     list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../data/")
     list_of_methods += ['NNLS']
     list_of_guesses += [baseline_guess]

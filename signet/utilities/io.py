@@ -257,7 +257,7 @@ def read_methods_guesses(device, experiment_id, methods, data_folder=DATA):
     methods_guesses = []
     for method in methods:
         methods_guesses.append(csv_to_tensor(
-            path + "/other_methods/final/%s_guess.csv" % (method), device))
+            path + "/other_methods/all_results/%s_guess.csv" % (method), device))
 
     label = csv_to_tensor(path + "/test_label.csv", device)
 
