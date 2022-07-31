@@ -71,7 +71,7 @@ if __name__ == "__main__":
         w, u, l, c, _ = results.get_output()
 
         # Store results
-        results.save(path=output_path, name=experiment_id)
+        results.save(path=output_path + "/" + experiment_id)
 
         # Plot figures
         results.plot_results(save=plot_figs)
