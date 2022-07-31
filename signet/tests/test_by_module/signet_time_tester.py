@@ -118,7 +118,7 @@ for i,input in enumerate(list_of_inputs):
         times_errorfinder[k, i] = (et-st)/lower.size(dim=0)  
 
         et_total = time.time()
-        times_total[k, i] = et_total-st_total 
+        times_total[k, i] = (et_total-st_total)/input.size(dim=0) 
 
 
 times_df = pd.DataFrame(times_baseline)
