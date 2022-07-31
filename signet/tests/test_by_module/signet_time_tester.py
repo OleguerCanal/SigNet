@@ -11,7 +11,6 @@ from signet.modules.combined_finetuner import CombinedFinetuner
 from signet.utilities.io import csv_to_tensor, read_model, read_signatures
 
 # Read data
-data_folder = "../../data/"
 
 # Load data
 data_path = "../../../data/exp_all/"
@@ -83,7 +82,6 @@ for i,input in enumerate(list_of_inputs):
     for k in range(replicates):
         print(k)
         # Load model
-        path = "../../trained_models/"
 
         st = time.time()
         baseline_guess = baseline.get_weights_batch(input_batch=input, 
