@@ -78,23 +78,22 @@ times_baseline = np.zeros((replicates, len(num_mut)))
 times_classifier = np.zeros((replicates, len(num_mut)))
 times_finetuner = np.zeros((replicates, len(num_mut)))
 times_errorfinder = np.zeros((replicates, len(num_mut)))
+times_total = np.zeros((replicates, len(num_mut)))
 for i,input in enumerate(list_of_inputs):
     for k in range(replicates):
-        print(k)
-        # Load model
-
+        st_total = time.time()
         st = time.time()
         baseline_guess = baseline.get_weights_batch(input_batch=input, 
                                                     n_workers=1)
         et = time.time()
-        times_baseline[k, i] = et-st                                                                
+        times_baseline[k, i] = (et-st)/baseline_guess.size(dim=0)                                                                
         
         st = time.time()
         num_muts_i = num_mut[i].repeat(input.size(dim=0),1)
         classification = classifier(mutation_dist=input,
                                     num_mut=num_muts_i).view(-1)
         et = time.time()
-        times_classifier[k, i] = et-st   
+        times_classifier[k, i] = (et-st)/classification.size(dim=0)     
 
         mutation_dist_realistic, mutation_dist_random, baseline_guess_random, baseline_guess_realistic, num_mut_realistic, classification_realistic, ind_order = separate_classification(classification, input, baseline_guess, num_muts_i)
 
@@ -106,7 +105,7 @@ for i,input in enumerate(list_of_inputs):
         baseline_guess_random = apply_cutoff(baseline_guess_random, 0.01)
         finetuner_guess = join_and_sort(finetuner_guess_realistic, baseline_guess_random, ind_order)
         et = time.time()
-        times_finetuner[k, i] = et-st 
+        times_finetuner[k, i] = (et-st)/finetuner_guess.size(dim=0) 
 
         st = time.time()
         upper, lower = errorfinder(weights=finetuner_guess_realistic[:,:-1],
@@ -116,7 +115,10 @@ for i,input in enumerate(list_of_inputs):
         upper = join_and_sort(upper, torch.full_like(baseline_guess_random[:,:-1], float('nan')), ind_order)
         lower = join_and_sort(lower, torch.full_like(baseline_guess_random[:,:-1], float('nan')), ind_order)
         et = time.time()
-        times_errorfinder[k, i] = et-st 
+        times_errorfinder[k, i] = (et-st)/lower.size(dim=0)  
+
+        et_total = time.time()
+        times_total[k, i] = et_total-st_total 
 
 
 times_df = pd.DataFrame(times_baseline)
@@ -138,3 +140,8 @@ times_df = pd.DataFrame(times_errorfinder)
 times_df.columns = num_mut.tolist()
 times_df.loc['mean'] = times_df.mean()
 times_df.to_csv('errorfinder_times.txt', index=False)
+
+times_df = pd.DataFrame(times_total)
+times_df.columns = num_mut.tolist()
+times_df.loc['mean'] = times_df.mean()
+times_df.to_csv('total_times.txt', index=False)
