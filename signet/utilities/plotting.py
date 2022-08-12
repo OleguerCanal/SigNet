@@ -658,14 +658,32 @@ def plot_propin_vs_mutations(label, upper, lower, plot = True): # Returns x,y
 def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
     marker_size = 3
     line_width = 0.5
-    axs = plt.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
-    stylize_axes(axs, '', "log(N)", "Time (min)")
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+    fig.subplots_adjust(hspace=0.1)
+    ax1.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    ax2.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    ax1.set_ylim(1.8, 80)  # outliers only
+    ax2.set_ylim(0, 0.06)  # most of the data
+
+    stylize_axes(ax1, '', "", "")
+    stylize_axes(ax2, '', "log(N)", "Time (min)")
+    ax1.spines['bottom'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax1.tick_params(bottom=False)  # don't put tick marks at the top plot
+    ax1.tick_params(labelbottom=False)  # don't put tick labels at the top plot
+    ax2.xaxis.tick_bottom()
+
+    d = .5  # proportion of vertical to horizontal extent of the slanted line
+    kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+    ax1.plot([0], [0], transform=ax1.transAxes, **kwargs)
+    ax2.plot([0], [1], transform=ax2.transAxes, **kwargs)
+
     if show:
         plt.show()
     if plot_path is not None:
         # create_dir(plot_path)
-        axs.savefig(plot_path)
-
+        plt.savefig(plot_path)
 
 # WHOLE SIGNATURES-NET PLOTS:
 def plot_confusion_matrix(label_list, predicted_list, class_names):
