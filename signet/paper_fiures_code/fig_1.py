@@ -68,9 +68,12 @@ labels = torch.tensor(labels.values)
 #                                     num_muts_list=num_muts_list, 
 #                                     plot_path="../../../plots/paper/")
 
-# times = pd.read_csv('../../../data/exp_all/other_methods/times/all_times.csv', index_col=0)
-# num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
-# plot_time_vs_mutations(times, num_muts, plot_path="../../../plots/paper/", show=True)
+times = pd.read_csv(DATA + '/results/all_methods_times_norm.csv', index_col=0, header=None)
+num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+plot_time_vs_mutations(times, 
+                       num_muts, 
+                       plot_path="../../plots/paper/times.pdf", 
+                       show=False)
 
 sigsnames = list(pd.read_excel(DATA + "/data.xlsx").columns)[1:]
 
