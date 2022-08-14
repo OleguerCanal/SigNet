@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
 import seaborn as sn
 from sklearn.metrics import confusion_matrix
 import torch
 
-from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics, get_reconstruction_error
-from utilities.io import create_dir
 
-# from utilities.metrics import get_classification_metrics, get_pi_metrics
-
+from signet.utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics, get_reconstruction_error
+from signet.utilities.io import create_dir
 
 
 def stylize_axes(ax, title, xlabel, ylabel):
@@ -437,56 +436,81 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
 
 
 # ERRORLEARNER PLOTS:
-def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
-    plt.figure(figsize=(8,6))
-
-    num_muts = np.unique(label[:,-1].detach().numpy())
-    values = np.zeros((6,len(num_muts)))
-    for i, num_mut in enumerate(num_muts):
-        k = -1
-        indexes = label[:, -1] == num_mut
-        metrics = get_pi_metrics(label[indexes, :-1], pred_lower[indexes, :], pred_upper[indexes, :])
-        for metric in ["in_prop", "mean_interval_width"]:
-            k += 1
-            values[k,i] = metrics[metric]
-    marker_size = 3
-    line_width = 0.5
-    xlabels = ["log(N)"]
-    ylabels = ["Proportion in (%)", "Interval Width"]
-
-    ax = plt.subplot(2,2,1)
-    ax.plot(np.log10(num_muts), values[0], marker='o',linewidth=line_width, markersize=marker_size)
-    stylize_axes(ax, '', xlabels[0], ylabels[0])
-    ax = plt.subplot(2,2,2)
-    ax.plot(np.log10(num_muts), values[1], marker='o',linewidth=line_width, markersize=marker_size)
-    stylize_axes(ax, '', xlabels[0], ylabels[1])
-    
-    label_batch = label[:,:-1]
-    lower = label_batch - pred_lower
-    upper = pred_upper - label_batch
-    num_error = torch.sum(lower<0, dim=0)
-    num_error += torch.sum(upper<0, dim=0)
-    num_error = num_error / label_batch.shape[0]
-    num_classes = 72
-
-    ax = plt.subplot(2,1,2)
-    ax.bar(range(num_classes), 100*num_error, align='center', width=0.2, alpha=0.5, ecolor='black', capsize=10)
-    stylize_axes(ax, '', '', "Percentage of error (%)")
+def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show=False):
+    plt.figure(figsize=(12,4))
+    ax = plt.axes()
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+    num_classes =len(sigs_names)
+    max_val = -1
+    for i, (n_mut, array) in enumerate(values):
+        max_val = max(max_val, np.max(array))
+        ax.scatter(range(num_classes),
+                   array,
+                   color=colors[i],
+                   label="%s"%str(int(n_mut)),
+                   s=7.0*(i+1),
+                   alpha=0.3)
+    stylize_axes(ax, '', '', title)
     xt = range(num_classes)
     xl = sigs_names
-    # ax.set_xticks([xt[i] for i in range(num_classes) if i%2==0])
     ax.set_xticks(xt)
     ax.set_xticklabels(xl, rotation=80)
-    # ax.set_xticklabels([xl[i] if i%2==0 else '' for i in range(num_classes)], rotation=80)
-    # ax.xaxis.set_major_locator(plt.MultipleLocator(2))
-    # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+    ax.set_ylim([0, 1.05*max_val])
 
     plt.tight_layout()
+    plt.legend()
 
     if show:
         plt.show()
     if plot_path is not None:
-        plt.savefig(plot_path + 'interval_performance.pdf')
+        plt.savefig(plot_path)
+
+def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    label_batch = label[:,:-1]
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
+
+    values = []
+    for n_mut in num_muts:
+        indexes = label[:, -1] == n_mut
+        num_error = torch.sum(lower[indexes] < 0, dim=0) + torch.sum(upper[indexes] < 0, dim=0)
+        num_error = num_error / torch.sum(indexes, dim=0)
+        values.append((n_mut, 100*num_error.detach().numpy()))
+
+    plot_values_by_sig(values, sigs_names, num_muts, "Label % outside interval", plot_path=plot_path, show=show)
+
+def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, show=False):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    values = []
+    for n_mut in num_muts:
+        indexes = label[:, -1] == n_mut
+        num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
+        num_error = num_error / torch.sum(indexes, dim=0)
+        values.append((n_mut, num_error.detach().numpy()))
+    
+    plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE", plot_path=plot_path, show=show)
+
+def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    label_batch = label[:,:-1]
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
+    int_len = upper - lower
+    
+    values = []
+    for n_mut in num_muts:
+        indexes = label[:, -1] == n_mut
+        print(torch.abs(int_len[indexes]))
+        num_error = torch.nansum(torch.abs(int_len[indexes]), dim=0)
+        print("num_error", num_error, num_error.shape)
+        num_error = num_error / torch.sum(indexes, dim=0)
+        values.append((n_mut, num_error.detach().numpy()))
+
+    plot_values_by_sig(values, sigs_names, num_muts, "Interval length", plot_path=plot_path, show=show)
 
 
 def plot_error_by_sig(label, pred_upper, pred_lower, sigs_names):
