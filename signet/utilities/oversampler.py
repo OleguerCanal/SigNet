@@ -8,8 +8,8 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from signet import DATA
-from utilities.plotting import plot_correlation_matrix
-from utilities.io import sort_signatures
+from signet.utilities.plotting import plot_correlation_matrix
+from signet.utilities.io import sort_signatures
 
 class OverSampler:
     def __init__(self, data):

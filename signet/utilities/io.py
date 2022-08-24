@@ -11,8 +11,8 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from signet import DATA, TRAINED_MODELS
-from utilities.data_partitions import DataPartitions
-from utilities.generator_data import GeneratorData
+from signet.utilities.data_partitions import DataPartitions
+from signet.utilities.generator_data import GeneratorData
 
 def read_signatures(file,
                     mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")):

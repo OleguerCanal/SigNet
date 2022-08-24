@@ -10,7 +10,7 @@ from signet.utilities.normalize_data import normalize_data
 from signet.utilities.io import read_model, read_signatures
 from signet.models import Baseline
 from signet.modules import CombinedFinetuner, ClassifiedFinetunerErrorfinder
-from utilities.plotting import plot_weights
+from signet.utilities.plotting import plot_weights
 
 class SigNet:
 
