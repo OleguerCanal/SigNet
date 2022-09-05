@@ -39,16 +39,16 @@ def parse_args():
 if __name__ == "__main__":
     # Parse command-line arguments
     args = parse_args()
-    
+
     # Read data
-    mutations = pd.read_csv(args.input_data, header=0, index_col=0)
+    mutations = pd.read_csv(args.input_data[0], header=0, index_col=0)
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
     results = signet(mutation_dataset=mutations)
 
     # Store results
-    results.save(path=args.output_path)
+    results.save(path=args.output_path[0])
 
     # Plot figures
     if args.plot_figs:
