@@ -157,3 +157,4 @@ tmp/
 */generate_realistic_data/*_output*
 */generate_realistic_data/PCAWG_normalized
 executables
+!executables/refitter.spec
