@@ -18,8 +18,6 @@ You can use SigNet in 3 different ways depending on your workflow:
    2. Python Package Usage
 
 2. **[Command Line Interface](##Command-Line-Interface)** (CLI)
-   1. CLI Installation
-   2. CLI Usage
 
 3. **[Source Code](Source-Code)**
    1. Downloading Source Code
@@ -46,11 +44,7 @@ Once installed, check out [refitter_example.py](refitter_example.py) for a usage
 Recommended if only interested in running SigNet modules independently and **not** willing to retrain models or change the source code.<br>
 **NOTE**: _This option is only tested on Debian-based Linux distributions_.
 
-### CLI Installation
-
-Download the [signet exectuable](TODOlink_to_executable) 
-
-### CLI Usage
+First, download the [signet exectuable](TODOlink_to_executable) 
 
 __Refitter:__
 
