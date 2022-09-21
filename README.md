@@ -27,7 +27,7 @@ You can use SigNet in 3 different ways depending on your workflow:
 
 
 ## Python Package
-Recommended if you want to integrate SigNet as part of your python workflow, intending to re-train models on custom data with limited ANN architectural changes.
+Recommended if you want to integrate SigNet as part of your python workflow, or intending to re-train models on custom data with limited ANN architectural changes.
 You can install the python package running:
 
 ```BASH
@@ -44,24 +44,25 @@ Once installed, check out [refitter_example.py](refitter_example.py) for a usage
 ## Command Line Interface
 
 Recommended if only interested in running SigNet modules independently and **not** willing to retrain models or change the source code.<br>
-**NOTE**: _This option is only supported on Debian-based Linux distributions_.
+**NOTE**: _This option is only tested on Debian-based Linux distributions_.
 
 ### CLI Installation
 
-```BASH
-sudo apt update
-sudo apt install signet
-```
+Download the [signet exectuable](TODOlink_to_executable) 
+
 ### CLI Usage
+
+__Refitter:__
 
 The following example shows how to use [SigNet Refitter](documentation/signet_refitter.md).
 
 
 ```BASH
-signet refitter [--input_data INPUTFILE]
-                [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
-                [--output OUTPUT]
-                [--figure False]
+cd <wherever/you/downloaded/the/executable/>
+./signet refitter  [--input_data INPUTFILE]
+                   [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                   [--output OUTPUT]
+                   [--figure False]
 ```
 
 - `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
@@ -76,8 +77,30 @@ signet refitter [--input_data INPUTFILE]
 
 - `--figure` Whether to generate output plots or not. Possible options are `true` or `false`.
 
-`TODO: SigNet Detector & SigNet Generator`
 
+__Detector:_
+
+```BASH
+cd <wherever/you/downloaded/the/executable/>
+./signet detector  [--input_data INPUTFILE]
+                   [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                   [--output OUTPUT]
+```
+
+(Same arguments as before)
+
+__Generator:_
+
+```BASH
+cd <wherever/you/downloaded/the/executable/>
+./signet detector  [--n_datapoints INT]
+                   [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                   [--output OUTPUT]
+```
+
+- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
+
+(Same arguments as before)
 
 ## Source Code
 
