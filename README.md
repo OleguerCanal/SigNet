@@ -78,7 +78,7 @@ cd <wherever/you/downloaded/the/executable/>
 - `--figure` Whether to generate output plots or not. Possible options are `true` or `false`.
 
 
-__Detector:_
+__Detector:__
 
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
@@ -89,7 +89,7 @@ cd <wherever/you/downloaded/the/executable/>
 
 (Same arguments as before)
 
-__Generator:_
+__Generator:__
 
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
