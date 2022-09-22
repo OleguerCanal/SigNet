@@ -85,7 +85,7 @@ def csv_to_tensor(file,
 
 def tensor_to_csv(data_tensor, output_path):
     create_dir(output_path)
-    df = data_tensor.detach().numpy()
+    df = data_tensor.detach().cpu().numpy()
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 

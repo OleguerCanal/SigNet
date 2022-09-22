@@ -6,7 +6,7 @@ class Generator(nn.Module):
     def __init__(self,
                  input_size=72,
                  num_hidden_layers=2,
-                 latent_dim=50,
+                 latent_dim=100,
                  device="cuda") -> None:
         self.init_args = locals()
         self.init_args.pop("self")
@@ -32,7 +32,6 @@ class Generator(nn.Module):
         for i in reversed(range(num_hidden_layers+1)):
             in_features = int(input_size - (input_size-latent_dim)*(i+1)/(num_hidden_layers + 1))
             out_features = int(input_size - (input_size-latent_dim)*i/(num_hidden_layers + 1))
-            print("in_features:", in_features, "out_features:", out_features)
             # layernorm = torch.nn.LayerNorm(in_features)
             layer = nn.Linear(in_features, out_features)            
             # decoder_layers.append(layernorm)
