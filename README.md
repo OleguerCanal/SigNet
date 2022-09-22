@@ -103,11 +103,12 @@ Recommended if you want to play around with the code, re-train custom models or 
 
 ### Downloading Source Code
 
+Clone the repo and install it as an editable pip package like so:
 
 ```BASH
 git clone git@github.com:OleguerCanal/signatures-net.git
 cd signatures-net
-pip install -r requirements.txt
+pip install -e .
 ```
 
 `TODO link to main class documentations`
