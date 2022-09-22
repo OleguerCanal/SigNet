@@ -88,7 +88,6 @@ __Generator:__
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
 ./signet generator  [--n_datapoints INT]
-                    [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
                     [--output OUTPUT]
 ```
 
