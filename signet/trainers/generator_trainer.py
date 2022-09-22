@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utilities.metrics import get_jensen_shannon, get_kl_divergence
+from signet.utilities.metrics import get_jensen_shannon, get_kl_divergence
 import wandb
 
 from signet.utilities.io import save_model
@@ -166,7 +166,7 @@ def train_generator(config, data_folder="../data/") -> float:
         config (dict): Including all the needed args
         to load data, and train the model 
     """
-    from utilities.io import read_data_generator, sort_signatures
+    from signet.utilities.io import read_data_generator, sort_signatures
 
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
     ) else "cpu"

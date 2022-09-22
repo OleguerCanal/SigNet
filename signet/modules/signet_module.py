@@ -10,7 +10,7 @@ from signet.utilities.normalize_data import normalize_data
 from signet.utilities.io import read_model, read_signatures
 from signet.models import Baseline
 from signet.modules import CombinedFinetuner, ClassifiedFinetunerErrorfinder
-from utilities.plotting import plot_weights
+from signet.utilities.plotting import plot_weights
 
 class SigNet:
 
@@ -87,6 +87,8 @@ class SigNet:
                                   upper=signet_res["error_upper"],
                                   classification=signet_res["classification"],
                                   normalized_input=normalized_mutation_vec)
+            
+            logging.info("Success: SigNet result obtained!")
         return result
 
 class SigNetResult:
@@ -132,33 +134,32 @@ class SigNetResult:
         return weights, lower, upper, classification, normalized_input
 
     def save(self, 
-             path='Output',
-             name='run0'):
+             path='Output'):
         """ 
         Save outputs into a file.
         Args:
             path (str): path to the directory where the files will be written.
-            name (str): name of the run that will be given to the outputs.
         """
-        logging.info("Writting results: %s"%path)
+        logging.info("Writting results: %s..."%path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         weights, lower, upper, classification, _ = self.get_output(format="pandas")
 
         weights.columns = self.sig_names + ['Unknown']
         weights.index = self.mutation_dataset.index
-        weights.to_csv(path + "/weight_guesses-%s.csv"%name, header=True, index=True)
+        weights.to_csv(path + "/weight_guesses.csv", header=True, index=True)
 
         lower.columns = self.sig_names
         lower.index = self.mutation_dataset.index
-        lower.to_csv(path + "/lower_bound_guesses-%s.csv"%name, header=True, index=True)
+        lower.to_csv(path + "/lower_bound_guesses.csv", header=True, index=True)
         
         upper.columns = self.sig_names
         upper.index = self.mutation_dataset.index
-        upper.to_csv(path + "/upper_bound_guesses-%s.csv"%name, header=True, index=True)
+        upper.to_csv(path + "/upper_bound_guesses.csv", header=True, index=True)
         
         classification.columns = ['Classification']
         classification.index = self.mutation_dataset.index
-        classification.to_csv(path + "/classification_guesses-%s.csv"%name, header=True, index=True)
+        classification.to_csv(path + "/classification_guesses.csv", header=True, index=True)
+        logging.info("Writting results: %s... DONE"%path)
 
     def plot_results(self, 
                      save = True,
@@ -169,7 +170,7 @@ class SigNetResult:
             path (str): path to the directory where the plots will be saved.
             save (bool): whether to save the plot into a file or not.
         """
-        logging.info("Plotting results: %s"%path)
+        logging.info("Plotting results: %s..."%path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         samples = list(self.mutation_dataset.index)
         for i in range(self.weights.shape[0]):
@@ -179,3 +180,4 @@ class SigNetResult:
                          sigs_names=self.sig_names, 
                          save=save, 
                          plot_path=path + "/plot_%s.png"%samples[i])
+        logging.info("Plotting results: %s... DONE"%path)

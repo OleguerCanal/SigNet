@@ -210,7 +210,7 @@ class ErrorTrainer:
 
 
 def train_errorfinder(config, data_folder="data") -> float:
-    from utilities.io import read_data
+    from signet.utilities.io import read_data
     from modules.combined_finetuner import baseline_guess_to_combined_finetuner_guess
 
     # Select training device

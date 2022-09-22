@@ -109,7 +109,7 @@ def train_classifier(config) -> float:
         config (dict): Including all the needed args
         to load data, and train the model 
     """
-    from utilities.io import read_data_classifier
+    from signet.utilities.io import read_data_classifier
 
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
     print("Using device:", dev)

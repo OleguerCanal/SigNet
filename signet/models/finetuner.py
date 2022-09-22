@@ -195,7 +195,7 @@ class FineTunerLargeNumMut(FineTuner):
 def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
     # Load finetuner and compute guess_1
     import gc
-    from utilities.io import read_model
+    from signet.utilities.io import read_model
 
     finetuner = read_model(directory=trained_finetuner_dir)
     finetuner.to("cpu")

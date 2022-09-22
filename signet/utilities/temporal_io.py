@@ -6,10 +6,10 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from signet import DATA
 from models import Baseline
-from utilities.data_generator import DataGenerator
-from utilities.data_partitions import DataPartitions
-from utilities.io import csv_to_pandas, read_signatures
-from utilities.oversampler import CancerTypeOverSampler
+from signet.utilities.data_generator import DataGenerator
+from signet.utilities.data_partitions import DataPartitions
+from signet.utilities.io import csv_to_pandas, read_signatures
+from signet.utilities.oversampler import CancerTypeOverSampler
 
 
 def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
