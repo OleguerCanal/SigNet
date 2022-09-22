@@ -42,9 +42,11 @@ Once installed, check out [refitter_example.py](refitter_example.py) for a usage
 ## Command Line Interface
 
 Recommended if only interested in running SigNet modules independently and **not** willing to retrain models or change the source code.<br>
-**NOTE**: _This option is only tested on Debian-based Linux distributions_.
+**NOTE**: _This option is only tested on Debian-based Linux distributions_. Steps:
 
-First, download the [signet exectuable](TODOlink_to_executable) 
+1. Download the [signet exectuable](TODOlink_to_executable)
+2. Change directory to wherever you downloaded it: `cd <wherever/you/downloaded/the/executable/>` 
+3. Make it executable by your user: `sudo chmod u+x signet`
 
 __Refitter:__
 
