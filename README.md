@@ -87,9 +87,9 @@ __Generator:__
 
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
-./signet detector  [--n_datapoints INT]
-                   [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
-                   [--output OUTPUT]
+./signet generator  [--n_datapoints INT]
+                    [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                    [--output OUTPUT]
 ```
 
 - `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
