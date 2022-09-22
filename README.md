@@ -91,9 +91,8 @@ cd <wherever/you/downloaded/the/executable/>
                     [--output OUTPUT]
 ```
 
-- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
+- `--n_datapoints`: Number of signature weight combinations to generate.
 
-(Same arguments as before)
 
 ## Source Code
 
