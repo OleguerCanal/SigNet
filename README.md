@@ -41,18 +41,18 @@ import signet
 # Read your mutational data
 mutations = pd.read_csv("your_input", header=0, index_col=0)
 
- # Load & Run signet
- signet = SigNet(opportunities_name_or_path="your_normalization_file")
- results = signet(mutation_dataset=mutations)
+# Load & Run signet
+signet = SigNet(opportunities_name_or_path="your_normalization_file")
+results = signet(mutation_dataset=mutations)
 
- # Extract results
- w, u, l, c, _ = results.get_output()
+# Extract results
+w, u, l, c, _ = results.get_output()
 
- # Store results
- results.save(path='Output', name="this_experiment_filename")
+# Store results
+results.save(path='Output', name="this_experiment_filename")
 
- # Plot figures
- results.plot_results(save=True)
+# Plot figures
+results.plot_results(save=True)
 ```
 
 For a more complete example, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
