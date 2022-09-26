@@ -32,7 +32,30 @@ You can install the python package running:
 pip install signet
 ```
 
-Once installed, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
+Once installed, you can run Signet Refitter like so:
+
+```python
+import pandas as pd
+import signet
+
+# Read your mutational data
+mutations = pd.read_csv("your_input", header=0, index_col=0)
+
+ # Load & Run signet
+ signet = SigNet(opportunities_name_or_path="your_normalization_file")
+ results = signet(mutation_dataset=mutations)
+
+ # Extract results
+ w, u, l, c, _ = results.get_output()
+
+ # Store results
+ results.save(path='Output', name="this_experiment_filename")
+
+ # Plot figures
+ results.plot_results(save=True)
+```
+
+For a more complete example, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
 
 **NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
 
