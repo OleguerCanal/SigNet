@@ -36,7 +36,7 @@ Once installed, check out [refitter_example.py](refitter_example.py) for a usage
 
 **NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
 
-**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider downloading the source code.
+**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider downloading the source code._
 
 
 ## Command Line Interface
@@ -111,6 +111,4 @@ cd SigNet
 pip install -e .
 ```
 
-`TODO link to main class documentations`
-
-`TODO link to page explaining how to train each model`
+Refer [here](documentation/code_structure.md) for the project code organization.
