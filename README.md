@@ -13,13 +13,13 @@ As of now, it contains 3 solutions:
 
 You can use SigNet in 3 different ways depending on your workflow:
 
-1. **[Python Package](##Python-Package)**
+1. **[Python Package](#python-package)**
    1. Python Package Installation
    2. Python Package Usage
 
-2. **[Command Line Interface](##Command-Line-Interface)** (CLI)
+2. **[Command Line Interface](#command-line-interface)** (CLI)
 
-3. **[Source Code](Source-Code)**
+3. **[Source Code](#source-code)**
    1. Downloading Source Code
    2. Code-Basics
 
