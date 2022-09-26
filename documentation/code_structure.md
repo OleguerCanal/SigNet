@@ -2,7 +2,7 @@
 
 - `signet/`: Contains all src scripts needed to run and train the SigNet models
   - `configs/`: Contains the model architecture and training parameters of each neural network used in SigNet.
-  - `data/`: Refer [here](documentation/data_folder.md)
+  - `data/`: Refer [here](data_folder.md)
   - `generate_data/`: Collection of scripts used to create the training sets for each module.
   - `hyperparam_optimizers/`: Collection of scripts to find the best network training hyperparameters for each module.
   - `loggers/`: Loggers used to store into [wandb](https://wandb.ai/site) training for each module.
