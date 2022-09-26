@@ -34,9 +34,9 @@ pip install signet
 
 Once installed, check out [refitter_example.py](refitter_example.py) for a usage example.
 
-**NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid pavkage version mismatches._
+**NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
 
-**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider [downloading the source code](### Downloading Source Code)_.
+**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider downloading the source code.
 
 
 ## Command Line Interface
@@ -106,8 +106,8 @@ Recommended if you want to play around with the code, re-train custom models or 
 Clone the repo and install it as an editable pip package like so:
 
 ```BASH
-git clone git@github.com:OleguerCanal/signatures-net.git
-cd signatures-net
+git clone git@github.com:OleguerCanal/SigNet.git
+cd SigNet
 pip install -e .
 ```
 
