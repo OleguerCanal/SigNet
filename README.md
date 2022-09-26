@@ -32,7 +32,7 @@ You can install the python package running:
 pip install signet
 ```
 
-Once installed, check out [refitter_example.py](refitter_example.py) for a usage example.
+Once installed, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
 
 **NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
 
