@@ -795,20 +795,20 @@ def plot_bars(data, max=None):
     plt.legend(bars, data.keys())
     plt.show()
 
-def get_correlation_matrix(data, signatures, plot = True):
+def get_correlation_matrix(data, sig_names, plot = True):
     if plot:
         fig = plt.figure()
-        df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
+        df = pd.DataFrame(data.cpu().detach().numpy(), columns=sig_names)
         corrMatrix = df.corr()
         sn.heatmap(corrMatrix, annot=False)
         return fig, corrMatrix
     else:
-        df = pd.DataFrame(data.cpu().detach().numpy(), columns=signatures.columns[1:])
+        df = pd.DataFrame(data.cpu().detach().numpy(), columns=sig_names)
         corrMatrix = df.corr()
         return corrMatrix, corrMatrix
 
-def plot_correlation_matrix(data, signatures):
-    fig, corrMatrix = get_correlation_matrix(data, signatures)
+def plot_correlation_matrix(data, sig_names):
+    fig, corrMatrix = get_correlation_matrix(data, sig_names)
     plt.show()
     return corrMatrix
 

@@ -67,7 +67,7 @@ def csv_to_tensor(file,
                   device="cpu",
                   header=None,
                   index_col=None,
-                  type_df=None):
+                  type_df=None,):
     df = pd.read_csv(file, header=header, index_col=index_col)
 
     if type_df is not None:
@@ -190,8 +190,11 @@ def read_data_generator(device,
     if type == 'real':
         if cosmic_version == 'v3':
             real_data = csv_to_pandas(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
-                                    device=device, header=0, index_col=0,
-                                    type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+                                    device=device,
+                                    header=0,
+                                    index_col=0,
+                                    type_df=None)
+                                    # type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
             
             num_ctypes = real_data['cancer_type'][-1]+1
             real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)       #Shuffle samples inside the same cancer type

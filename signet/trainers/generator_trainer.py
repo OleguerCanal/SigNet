@@ -11,9 +11,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from signet.utilities.metrics import get_jensen_shannon, get_kl_divergence
 import wandb
 
+from signet import DATA
+from signet.utilities.metrics import get_jensen_shannon, get_kl_divergence
 from signet.utilities.io import save_model
 from signet.utilities.generator_data import GeneratorData
 from signet.utilities.oversampler import OverSampler, CancerTypeOverSampler
@@ -47,8 +48,8 @@ class GeneratorTrainer:
             signatures=signatures,
             device=device)
 
-        os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
-        # os = OverSampler(self.train_dataset.inputs)
+        # os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
+        os = OverSampler(self.train_dataset.inputs)
         self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
@@ -159,7 +160,7 @@ def log_results(config, train_DQ99R, out_csv_path):
     model_results.to_csv(out_csv_path,
                          header=False, index=False, mode="a")
 
-def train_generator(config, data_folder="../data/") -> float:
+def train_generator(config, data_folder=DATA + "/") -> float:
     """Train a classification model and get the validation score
 
     Args:
@@ -197,11 +198,11 @@ def train_generator(config, data_folder="../data/") -> float:
                                model_path=os.path.join(config["models_dir"], config["model_id"]))
 
     train_DQ99R = trainer.objective(batch_size=config["batch_size"],
-                                        lr_encoder=config["lr_encoder"],
-                                        lr_decoder=config["lr_decoder"],
-                                        num_hidden_layers=config["num_hidden_layers"],
-                                        latent_dim=config["latent_dim"],
-                                        plot=config["enable_logging"])
+                                    lr_encoder=config["lr_encoder"],
+                                    lr_decoder=config["lr_decoder"],
+                                    num_hidden_layers=config["num_hidden_layers"],
+                                    latent_dim=config["latent_dim"],
+                                    plot=config["enable_logging"])
 
     wandb.log({"train_DQ99R_score": train_DQ99R})
 
