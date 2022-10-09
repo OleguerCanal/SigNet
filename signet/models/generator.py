@@ -21,7 +21,7 @@ class Generator(nn.Module):
             out_features = int(input_size - (input_size-latent_dim)*(i+1)/num_hidden_layers)
             print("in_features:", in_features, "out_features:", out_features)
             layer = nn.Linear(in_features, out_features)
-            layernorm = torch.nn.LayerNorm(in_features)
+            # layernorm = torch.nn.LayerNorm(in_features)
             # encoder_layers.append(layernorm)
             encoder_layers.append(layer)
         self.encoder_layers = nn.ModuleList(modules=encoder_layers)
@@ -32,13 +32,13 @@ class Generator(nn.Module):
         for i in reversed(range(num_hidden_layers+1)):
             in_features = int(input_size - (input_size-latent_dim)*(i+1)/(num_hidden_layers + 1))
             out_features = int(input_size - (input_size-latent_dim)*i/(num_hidden_layers + 1))
-            # layernorm = torch.nn.LayerNorm(in_features)
             layer = nn.Linear(in_features, out_features)            
+            # layernorm = torch.nn.LayerNorm(in_features)
             # decoder_layers.append(layernorm)
             decoder_layers.append(layer)
 
         self.decoder_layers = nn.ModuleList(modules=decoder_layers)
-        self.activation = nn.LeakyReLU(0.01)
+        self.activation = nn.LeakyReLU(0.1)
         self.relu = nn.ReLU()
         
 

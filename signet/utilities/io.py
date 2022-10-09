@@ -325,8 +325,6 @@ def read_model(directory, device="cpu"):
         state_dict = torch.load(f=state_dict_file + ".zip",
                                 map_location=torch.device(device))
 
-    for elem in state_dict:
-        print(elem, state_dict[elem].shape)
     model.load_state_dict(state_dict)
     model.eval()
     model.to(device)
