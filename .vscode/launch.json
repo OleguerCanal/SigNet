@@ -61,7 +61,7 @@
             "type": "python",
             "request": "launch",
             "program": "train_generator.py",
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}/signet/",
             "console": "integratedTerminal"
         }
 
