@@ -48,8 +48,8 @@ class GeneratorTrainer:
             signatures=signatures,
             device=device)
 
-        # os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
-        os = OverSampler(self.train_dataset.inputs)
+        os = CancerTypeOverSampler(self.train_dataset.inputs, self.train_dataset.cancer_types)
+        # os = OverSampler(self.train_dataset.inputs)
         self.train_dataset.inputs = os.get_oversampled_set()
 
     def __loss(self, input, pred, z_mu, z_std):
@@ -78,7 +78,7 @@ class GeneratorTrainer:
                           device=self.device.type)
         model.to(self.device)
 
-        wandb.watch(model, log_freq=100)
+        # wandb.watch(model, log_freq=100)
 
         # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
         optimizer = optim.Adam([

@@ -193,8 +193,7 @@ def read_data_generator(device,
                                     device=device,
                                     header=0,
                                     index_col=0,
-                                    type_df=None)
-                                    # type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+                                    type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
             
             num_ctypes = real_data['cancer_type'][-1]+1
             real_data = real_data.groupby('cancer_type').sample(frac=1, random_state=0)       #Shuffle samples inside the same cancer type
@@ -325,6 +324,9 @@ def read_model(directory, device="cpu"):
     except:
         state_dict = torch.load(f=state_dict_file + ".zip",
                                 map_location=torch.device(device))
+
+    for elem in state_dict:
+        print(elem, state_dict[elem].shape)
     model.load_state_dict(state_dict)
     model.eval()
     model.to(device)
