@@ -57,7 +57,7 @@ if __name__ == "__main__":
     w, u, l, c, _ = results.get_output()
 
     # Store results
-    results.save(path='Output', name=args.experiment_id)
+    results.save(path='Output')
 
     # Plot figures
     results.plot_results(save=True)
