@@ -8,7 +8,7 @@ setup(name='signet',
       install_requires=[
             'torch==1.11',
             'scipy',
-            'numpy==1.19.5',
+            'numpy==1.23.3',
             'matplotlib==3.3.4',
             'pandas',
             'seaborn==0.11.1',
