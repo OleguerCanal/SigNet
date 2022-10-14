@@ -60,7 +60,7 @@ if __name__ == "__main__":
     config = read_config(path=getattr(_args, "config_file")[0])
     config = update_dict(config=config, args=_args)
     print("Using config:", config)
-    val_mse, val_KL = train_generator(config=config)
+    train_DQ99R = train_generator(config=config)
     model_results = pd.DataFrame({"batch_size": [config["batch_size"]],
                                   "lr_encoder": [config["lr_encoder"]],
                                   "lr_decoder": [config["lr_decoder"]],

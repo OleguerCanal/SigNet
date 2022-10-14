@@ -6,7 +6,7 @@ setup(name='signet',
       url='https://github.com/OleguerCanal/signatures-net',
       packages=find_packages(),
       install_requires=[
-            'torch==1.7.0',
+            'torch==1.11.0',
             'scipy',
             'numpy==1.19.5',
             'matplotlib==3.3.4',
