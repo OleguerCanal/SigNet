@@ -46,7 +46,7 @@ if __name__ == "__main__":
     args = parse_args()
     
     # Read data
-    mutations = pd.read_csv(args.input_data, header=0, index_col=0)
+    mutations = pd.read_csv(args.input_data[0], header=0, index_col=0)
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
@@ -57,7 +57,8 @@ if __name__ == "__main__":
     w, u, l, c, _ = results.get_output()
 
     # Store results
-    results.save(path='Output', name=args.experiment_id)
+    results.save(path=args.output[0])
 
     # Plot figures
-    results.plot_results(save=True)
+    results.plot_results(save=True, path=args.output[0]+'/plots')
+
