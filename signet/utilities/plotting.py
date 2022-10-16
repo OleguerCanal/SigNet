@@ -807,8 +807,8 @@ def get_correlation_matrix(data, sig_names, plot = True):
         corrMatrix = df.corr()
         return corrMatrix, corrMatrix
 
-def plot_correlation_matrix(data, sig_names):
-    fig, corrMatrix = get_correlation_matrix(data, sig_names)
+def plot_correlation_matrix(data, sig_names, plot=False):
+    fig, corrMatrix = get_correlation_matrix(data, sig_names, plot=plot)
     plt.show()
     return corrMatrix
 
