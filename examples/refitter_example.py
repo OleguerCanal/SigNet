@@ -29,12 +29,17 @@ def parse_args():
     )
     
     parser.add_argument(
+        '--cutoff', action='store', nargs=1, type=float, required=False, default=[None],
+        help=f'Cutoff to be applied to the final weights.'
+    )
+
+    parser.add_argument(
         '--output', action='store', nargs=1, type=str, required=False, default=["Output"],
         help=f'Path to folder where all the output files will be saved. Default: "Output".'
     )
 
     parser.add_argument(
-        '--plot_figs', action='store', nargs=1, type=bool, required=False, default=[False],
+        '--plot_figs', action='store', nargs=1, type=str, required=False, default=[False],
         help=f'Boolean. Whether to compute plots for the output. Default: "False".'
     )
     
@@ -50,7 +55,7 @@ if __name__ == "__main__":
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
-    results = signet(mutation_dataset=mutations)
+    results = signet(mutation_dataset=mutations, cutoff=args.cutoff[0])
     print("Results obtained!")
 
     # Extract results
@@ -60,5 +65,5 @@ if __name__ == "__main__":
     results.save(path=args.output[0])
 
     # Plot figures
-    results.plot_results(save=True, path=args.output[0]+'/plots')
+    results.plot_results(compute=args.plot_figs[0], save=True, path=args.output[0]+'/plots')
 

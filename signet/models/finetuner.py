@@ -36,12 +36,12 @@ class FineTunerLowNumMut(FineTuner):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.001,
+                 cutoff=0.01,
                  sigmoid_params=[5000, 2000]):
         super(FineTunerLowNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,
-                                                 cutoff=cutoff,
+                                                 cutoff=0.01,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLowNumMut"
 
@@ -76,7 +76,8 @@ class FineTunerLowNumMut(FineTuner):
 
     def forward(self,
                 mutation_dist,
-                num_mut):
+                num_mut,
+                cutoff):
         # Input head
         mutation_dist = self.activation(self.layer_mutvec_1(mutation_dist))
         mutation_dist = self.activation(self.layer_mutvec_2(mutation_dist))
@@ -114,7 +115,7 @@ class FineTunerLowNumMut(FineTuner):
 
         # If in eval mode, send small values to 0
         if not self.training:
-            comb = self._apply_cutoff(comb, cutoff=0.01)
+            comb = self._apply_cutoff(comb, cutoff=cutoff)
         return comb
 
 
@@ -124,12 +125,12 @@ class FineTunerLargeNumMut(FineTuner):
                  num_classes=72,
                  num_hidden_layers=2,
                  num_units=400,
-                 cutoff=0.001,
+                 cutoff=0.01,
                  sigmoid_params=[5000, 2000]):
         super(FineTunerLargeNumMut, self).__init__(num_classes=num_classes,
                                                  num_hidden_layers=num_hidden_layers,
                                                  num_units=num_units,
-                                                 cutoff=cutoff,
+                                                 cutoff=0.01,
                                                  sigmoid_params=sigmoid_params)
         self.init_args["model_type"] = "FineTunerLargeNumMut"
 
@@ -160,7 +161,8 @@ class FineTunerLargeNumMut(FineTuner):
     def forward(self,
                 mutation_dist,
                 baseline_guess,
-                num_mut):
+                num_mut,
+                cutoff):
         # Input head
         mutation_dist = self.activation(self.layer1_2(mutation_dist))
         # mutation_dist = self.activation(self.layer2_2(mutation_dist))
@@ -188,7 +190,7 @@ class FineTunerLargeNumMut(FineTuner):
 
         # If in eval mode, send small values to 0
         if not self.training:
-            comb = self._apply_cutoff(comb, cutoff=0.01)
+            comb = self._apply_cutoff(comb, cutoff=cutoff)
         return comb
 
 
@@ -203,7 +205,8 @@ def baseline_guess_to_finetuner_guess(trained_finetuner_dir, data):
     with torch.no_grad():
         data.prev_guess = finetuner(mutation_dist=data.inputs,
                                     baseline_guess=data.prev_guess,
-                                    num_mut=data.num_mut)
+                                    num_mut=data.num_mut,
+                                    cutoff=0.01)
     del finetuner
     gc.collect()
     torch.cuda.empty_cache()

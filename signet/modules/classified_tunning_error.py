@@ -60,7 +60,8 @@ class ClassifiedFinetunerErrorfinder:
     def __call__(self,
                  mutation_dist,
                  baseline_guess,
-                 num_mut):
+                 num_mut,
+                 cutoff):
 
         logging.info("Detecting out-of-train-distribution points...")
         classification = self.classifier(mutation_dist=mutation_dist,
@@ -72,9 +73,10 @@ class ClassifiedFinetunerErrorfinder:
         logging.info("Finetuning NNLS guesses...")
         finetuner_guess_realistic = self.finetuner(mutation_dist=mutation_dist_realistic,
                                          baseline_guess = baseline_guess_realistic,
-                                         num_mut=num_mut_realistic)
+                                         num_mut=num_mut_realistic,
+                                         cutoff_0=cutoff)
 
-        baseline_guess_random = self._apply_cutoff(baseline_guess_random, 0.01)
+        baseline_guess_random = self._apply_cutoff(baseline_guess_random, cutoff)
 
         finetuner_guess = self.__join_and_sort(finetuner_guess_realistic, baseline_guess_random, ind_order)
         logging.info("Finetuning NNLS guesses... DONE")
