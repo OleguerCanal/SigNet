@@ -13,13 +13,13 @@ As of now, it contains 3 solutions:
 
 You can use SigNet in 3 different ways depending on your workflow:
 
-1. **[Python Package](##Python-Package)**
+1. **[Python Package](#python-package)**
    1. Python Package Installation
    2. Python Package Usage
 
-2. **[Command Line Interface](##Command-Line-Interface)** (CLI)
+2. **[Command Line Interface](#command-line-interface)** (CLI)
 
-3. **[Source Code](Source-Code)**
+3. **[Source Code](#source-code)**
    1. Downloading Source Code
    2. Code-Basics
 
@@ -32,19 +32,44 @@ You can install the python package running:
 pip install signet
 ```
 
-Once installed, check out [refitter_example.py](refitter_example.py) for a usage example.
+Once installed, you can run Signet Refitter like so:
 
-**NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid pavkage version mismatches._
+```python
+import pandas as pd
+import signet
 
-**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider [downloading the source code](### Downloading Source Code)_.
+# Read your mutational data
+mutations = pd.read_csv("your_input", header=0, index_col=0)
+
+# Load & Run signet
+signet = SigNet(opportunities_name_or_path="your_normalization_file")
+results = signet(mutation_dataset=mutations)
+
+# Extract results
+w, u, l, c, _ = results.get_output()
+
+# Store results
+results.save(path='Output', name="this_experiment_filename")
+
+# Plot figures
+results.plot_results(save=True)
+```
+
+For a more complete example, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
+
+**NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
+
+**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider downloading the source code._
 
 
 ## Command Line Interface
 
 Recommended if only interested in running SigNet modules independently and **not** willing to retrain models or change the source code.<br>
-**NOTE**: _This option is only tested on Debian-based Linux distributions_.
+**NOTE**: _This option is only tested on Debian-based Linux distributions_. Steps:
 
-First, download the [signet exectuable](TODOlink_to_executable) 
+1. Download the [signet exectuable](TODOlink_to_executable)
+2. Change directory to wherever you downloaded it: `cd <wherever/you/downloaded/the/executable/>` 
+3. Make it executable by your user: `sudo chmod u+x signet`
 
 __Refitter:__
 
@@ -87,14 +112,12 @@ __Generator:__
 
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
-./signet detector  [--n_datapoints INT]
-                   [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
-                   [--output OUTPUT]
+./signet generator  [--n_datapoints INT]
+                    [--output OUTPUT]
 ```
 
-- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
+- `--n_datapoints`: Number of signature weight combinations to generate.
 
-(Same arguments as before)
 
 ## Source Code
 
@@ -103,13 +126,12 @@ Recommended if you want to play around with the code, re-train custom models or 
 
 ### Downloading Source Code
 
+Clone the repo and install it as an editable pip package like so:
 
 ```BASH
-git clone git@github.com:OleguerCanal/signatures-net.git
-cd signatures-net
-pip install -r requirements.txt
+git clone git@github.com:OleguerCanal/SigNet.git
+cd SigNet
+pip install -e .
 ```
 
-`TODO link to main class documentations`
-
-`TODO link to page explaining how to train each model`
+Refer [here](documentation/code_structure.md) for the project code organization.
