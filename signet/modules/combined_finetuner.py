@@ -29,7 +29,8 @@ class CombinedFinetuner:
     def __call__(self,
                  mutation_dist,
                  baseline_guess,
-                 num_mut):
+                 num_mut,
+                 cutoff_0):
         """Get weights of each signature in lexicographic wrt 1-mer
         """
         num_mut = num_mut.view(-1)
@@ -47,10 +48,10 @@ class CombinedFinetuner:
         
         with torch.no_grad():
             guess_low = self.finetuner_low(
-                input_batch_low, num_mut_low)
+                input_batch_low, num_mut_low, cutoff_0)
 
             guess_large = self.finetuner_large(
-                input_batch_large, baseline_guess_large, num_mut_large)
+                input_batch_large, baseline_guess_large, num_mut_large, cutoff_0)
             
             finetuner_guess = self.__join_and_sort(low=guess_low,
                                                    large=guess_large,
@@ -68,7 +69,8 @@ def baseline_guess_to_combined_finetuner_guess(model, classifier, data):
         data.num_mut = data.num_mut[data.classification > 0.5, ].reshape(-1,1)
         data.prev_guess = model(mutation_dist=data.inputs,
                                 baseline_guess=data.prev_guess,
-                                num_mut=data.num_mut)
+                                num_mut=data.num_mut,
+                                cutoff_0=0.01)
         data.prev_guess = data.prev_guess[:,:-1]
         data.classification = data.classification[data.classification > 0.5, ].reshape(-1,1)
     del model

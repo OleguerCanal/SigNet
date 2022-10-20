@@ -6,7 +6,7 @@ class Generator(nn.Module):
     def __init__(self,
                  input_size=72,
                  num_hidden_layers=2,
-                 latent_dim=50,
+                 latent_dim=100,
                  device="cuda") -> None:
         self.init_args = locals()
         self.init_args.pop("self")
@@ -19,10 +19,10 @@ class Generator(nn.Module):
         for i in range(num_hidden_layers):
             in_features = int(input_size - (input_size-latent_dim)*i/num_hidden_layers)
             out_features = int(input_size - (input_size-latent_dim)*(i+1)/num_hidden_layers)
-            # print("in_features:", in_features, "out_features:", out_features)
+            print("in_features:", in_features, "out_features:", out_features)
             layer = nn.Linear(in_features, out_features)
-            layernorm = torch.nn.LayerNorm(in_features)
-            encoder_layers.append(layernorm)
+            # layernorm = torch.nn.LayerNorm(in_features)
+            # encoder_layers.append(layernorm)
             encoder_layers.append(layer)
         self.encoder_layers = nn.ModuleList(modules=encoder_layers)
         self.mean_layer = nn.Linear(latent_dim, latent_dim)
@@ -32,14 +32,13 @@ class Generator(nn.Module):
         for i in reversed(range(num_hidden_layers+1)):
             in_features = int(input_size - (input_size-latent_dim)*(i+1)/(num_hidden_layers + 1))
             out_features = int(input_size - (input_size-latent_dim)*i/(num_hidden_layers + 1))
-            print("in_features:", in_features, "out_features:", out_features)
-            # layernorm = torch.nn.LayerNorm(in_features)
             layer = nn.Linear(in_features, out_features)            
+            # layernorm = torch.nn.LayerNorm(in_features)
             # decoder_layers.append(layernorm)
             decoder_layers.append(layer)
 
         self.decoder_layers = nn.ModuleList(modules=decoder_layers)
-        self.activation = nn.LeakyReLU(0.01)
+        self.activation = nn.LeakyReLU(0.1)
         self.relu = nn.ReLU()
         
 
@@ -79,8 +78,11 @@ class Generator(nn.Module):
         x = self.decode(z)
         return x, z_mu, z_var
 
-    def generate(self, batch_size:int, std = 1.0):
-        shape = tuple((batch_size, self.latent_dim))
-        z = self.Normal.sample(shape)*std
-        labels = self.decode(z)
-        return labels
+    def generate(self, batch_size:int, std = 1.0, cutoff = 0.01):
+         shape = tuple((batch_size, self.latent_dim))
+         z = self.Normal.sample(shape)*std
+         labels = self.decode(z)
+         if cutoff > 0:
+             labels[labels<cutoff] = 0
+             labels = labels/labels.sum(dim=1).reshape(-1,1)
+         return labels

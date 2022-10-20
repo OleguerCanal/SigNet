@@ -67,7 +67,7 @@ def csv_to_tensor(file,
                   device="cpu",
                   header=None,
                   index_col=None,
-                  type_df=None):
+                  type_df=None,):
     df = pd.read_csv(file, header=header, index_col=index_col)
 
     if type_df is not None:
@@ -85,7 +85,7 @@ def csv_to_tensor(file,
 
 def tensor_to_csv(data_tensor, output_path):
     create_dir(output_path)
-    df = data_tensor.detach().numpy()
+    df = data_tensor.detach().cpu().numpy()
     df = pd.DataFrame(df)
     df.to_csv(output_path, header=False, index=False) 
 
@@ -190,7 +190,9 @@ def read_data_generator(device,
     if type == 'real':
         if cosmic_version == 'v3':
             real_data = csv_to_pandas(data_folder + "/sigprofiler_not_norm_PCAWG.csv",
-                                    device=device, header=0, index_col=0,
+                                    device=device,
+                                    header=0,
+                                    index_col=0,
                                     type_df=data_folder + "/PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
             
             num_ctypes = real_data['cancer_type'][-1]+1
@@ -322,6 +324,7 @@ def read_model(directory, device="cpu"):
     except:
         state_dict = torch.load(f=state_dict_file + ".zip",
                                 map_location=torch.device(device))
+
     model.load_state_dict(state_dict)
     model.eval()
     model.to(device)
