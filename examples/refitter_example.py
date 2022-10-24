@@ -19,7 +19,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
+        '--input_data', action='store', nargs=1, type=str, required=False, default=[DATA + "/datasets/example_input.csv"],
         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
     )
 
@@ -29,7 +29,7 @@ def parse_args():
     )
     
     parser.add_argument(
-        '--cutoff', action='store', nargs=1, type=float, required=False, default=[None],
+        '--cutoff', action='store', nargs=1, type=float, required=False, default=[0.01],
         help=f'Cutoff to be applied to the final weights.'
     )
 
