@@ -37,11 +37,18 @@ class DataGenerator:
 
     def _get_nummuts(self, split, large_or_low, size):
         assert split in ["train", "valid", "test"]
-        assert large_or_low in ["large", "low"]
+        assert large_or_low in ["large", "low", "superlow"]
 
         # For train and validation we sample from ranges
         if split == "train" or split == "valid":
-            if large_or_low == 'low':
+            if large_or_low == "superlow": 
+                range_muts = [1, 5, 10, 15, 20, 25]
+                n_ranges = len(range_muts) - 1
+                num_samples = int(size/n_ranges)
+                ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
+                    [3]*num_samples + [4]*(num_samples + size%n_ranges)
+
+            elif large_or_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
                 n_ranges = len(range_muts) - 1
                 num_samples = int(size/n_ranges)

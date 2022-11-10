@@ -6,6 +6,7 @@ import torch
 
 from signet.utilities.io import read_signatures, tensor_to_csv, csv_to_tensor
 from signet.utilities.data_generator import DataGenerator
+from signet import DATA
 
 def shuffle(inputs, labels, num_mut):
     indexes = torch.randperm(inputs.shape[0])
@@ -16,16 +17,17 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "Usage: python generate_classifier_data.py v3"
     cosmic_version = str(sys.argv[1])
 
+    data_folder = DATA
+
     if cosmic_version == 'v3':
-        experiment_id = "exp_classifier_final"
-        signatures = read_signatures("../../data/data.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
+        experiment_id = "exp_classifier_superlow"
+        signatures = read_signatures(data_folder + "/data.xlsx", mutation_type_order=data_folder + "/mutation_type_order.xlsx")
     elif cosmic_version == 'v2':
-        experiment_id = "exp_classifier_final"
-        signatures = read_signatures("../../data/data_v2.xlsx", mutation_type_order="../../data/mutation_type_order.xlsx")
+        experiment_id = "exp_classifier_superlow"
+        signatures = read_signatures(data_folder + "/data_v2.xlsx", mutation_type_order=data_folder + "/mutation_type_order.xlsx")
     else:
         raise NotImplementedError
 
-    data_folder = "../../data"
     data_generator = DataGenerator(signatures=signatures,
                                    seed=0,
                                    shuffle=True)
@@ -33,12 +35,12 @@ if __name__ == "__main__":
     # Read
     real_data = csv_to_tensor(data_folder + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
     real_weights = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
-    real_weights = real_weights.repeat(10, 1)
+    real_weights = real_weights.repeat(2, 1)
     realistic_input, realistic_weights = data_generator.make_input(labels=real_weights,
                                                                    split="train",
-                                                                   large_low="low")
+                                                                   large_low="superlow")
     random_input, random_weights = data_generator.make_random_set(split='train',
-                                                    large_low='low',
+                                                    large_low='superlow',
                                                     num_samples=int(real_weights.shape[0]),
                                                     min_n_signatures=1,
                                                     max_n_signatures=10)
