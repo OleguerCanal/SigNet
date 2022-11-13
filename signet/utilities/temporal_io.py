@@ -8,9 +8,24 @@ from signet import DATA
 from models import Baseline
 from signet.utilities.data_generator import DataGenerator
 from signet.utilities.data_partitions import DataPartitions
-from signet.utilities.io import csv_to_pandas, read_signatures
+from signet.utilities.io import csv_to_pandas, read_signatures, csv_to_tensor
 from signet.utilities.oversampler import CancerTypeOverSampler
 
+
+def read_data_nummutnet(path, device):
+    # TODO read input and labels
+    train_input = csv_to_tensor(file=path + "/train_input.csv", device=device)
+    train_label = csv_to_tensor(file=path + "/train_label.csv", device=device).to(torch.long)
+    val_input = csv_to_tensor(file=path + "/val_input.csv", device=device)
+    val_label = csv_to_tensor(file=path + "/val_label.csv", device=device).to(torch.long)
+
+    train_data = DataPartitions(inputs=train_input,
+                                labels=train_label,
+                                extract_nummut=False)
+    val_data = DataPartitions(inputs=val_input,
+                              labels=val_label,
+                              extract_nummut=False)
+    return train_data, val_data
 
 def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
     '''
