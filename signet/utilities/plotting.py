@@ -800,15 +800,18 @@ def get_correlation_matrix(data, sig_names, plot = True):
         fig = plt.figure()
         df = pd.DataFrame(data.cpu().detach().numpy(), columns=sig_names)
         corrMatrix = df.corr()
-        sn.heatmap(corrMatrix, annot=False)
+        sn.heatmap(corrMatrix, annot=False, vmin=-0.6, vmax=1)
+        fig.tight_layout()
         return fig, corrMatrix
     else:
         df = pd.DataFrame(data.cpu().detach().numpy(), columns=sig_names)
         corrMatrix = df.corr()
         return corrMatrix, corrMatrix
 
-def plot_correlation_matrix(data, sig_names, plot=False):
+def plot_correlation_matrix(data, sig_names, plot=True, name=None):
     fig, corrMatrix = get_correlation_matrix(data, sig_names, plot=plot)
+    if name is not None:
+        np.savetxt(name + ".csv", corrMatrix, delimiter=",")
     plt.show()
     return corrMatrix
 

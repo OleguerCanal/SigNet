@@ -83,6 +83,6 @@ class Generator(nn.Module):
         z = self.Normal.sample(shape)*std
         labels = self.decode(z)
         if cutoff > 0:
-            labels = torch.clip(labels, min=cutoff, max=1.0)
+            labels[labels < cutoff] = 0
             labels = labels/labels.sum(dim=1).reshape(-1,1)
         return labels
