@@ -10,16 +10,17 @@ def shuffle(inputs, labels):
     return inputs.iloc[indexes, :], labels[indexes]
 
 def encoding(muts):
-    muts[(muts>=1) & (muts<1.5)] = 0
-    muts[(muts>=1.5) & (muts<2)] = 1
-    muts[(muts>=2) & (muts<2.5)] = 2
-    muts[(muts>=2.5) & (muts<3)] = 3
-    muts[(muts>=3) & (muts<3.5)] = 4
-    muts[(muts>=3.5) & (muts<4)] = 5
-    muts[(muts>=4) & (muts<4.5)] = 6
-    muts[(muts>=4.5) & (muts<5)] = 7
-    muts[muts>5] = 8
-    return muts
+    muts_new = muts.copy()
+    muts_new[(muts>=1) & (muts<1.5)] = 0
+    muts_new[(muts>=1.5) & (muts<2)] = 1
+    muts_new[(muts>=2) & (muts<2.5)] = 2
+    muts_new[(muts>=2.5) & (muts<3)] = 3
+    muts_new[(muts>=3) & (muts<3.5)] = 4
+    muts_new[(muts>=3.5) & (muts<4)] = 5
+    muts_new[(muts>=4) & (muts<4.5)] = 6
+    muts_new[(muts>=4.5) & (muts<5)] = 7
+    muts_new[muts>5] = 8
+    return muts_new
 
 if __name__ == "__main__":
 
@@ -32,7 +33,14 @@ if __name__ == "__main__":
     total_muts = np.log10(real_data.sum(axis=1))
 
     labels = encoding(total_muts)
-    inputs, total_muts = shuffle(inputs, labels)
+    
+    import matplotlib.pyplot as plt
+    plt.hist(total_muts, bins=10)
+    plt.show()
+    plt.hist(labels, bins=20)
+    plt.show()
+
+    inputs, labels = shuffle(inputs, labels)
     
     # Partition datasets
     n = inputs.shape[0]

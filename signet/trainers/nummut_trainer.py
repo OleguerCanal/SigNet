@@ -6,6 +6,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchmetrics import Accuracy
 from tqdm import tqdm
+from signet.utilities.plotting import plot_confusion_matrix
 import wandb
 
 from signet.models import NumMutNet
@@ -87,10 +88,19 @@ class NumMutTrainer:
                                     val_classification_metrics={"accuracy": accuracy_val},
                                     step=step)
 
-                if self.model_path is not None and step % 1000 == 0:
-                    save_model(model=model, directory=self.model_path + '_it' + str(step))
+                # if self.model_path is not None and step % 1000 == 0:
+                #     save_model(model=model, directory=self.model_path + '_it' + str(step))
                 step += 1
         save_model(model=model, directory=self.model_path)
+
+        with torch.no_grad():
+            val_prediction = model(self.val_dataset.inputs)
+            val_prediction = torch.argmax(val_prediction, dim=1)
+            label_val = self.val_dataset.labels.squeeze()
+            labels = torch.unique(torch.cat((val_prediction, label_val))).tolist()
+            conf_mat = plot_confusion_matrix(label_val, val_prediction, labels)
+            wandb.log({"Confusion Matrix": wandb.Image(conf_mat)})
+
         return max_found
 
 def train_nummutnet(config,
@@ -101,7 +111,7 @@ def train_nummutnet(config,
     
     if config["enable_logging"]:
         run = wandb.init(project=config["wandb_project_id"],
-                         entity='sig-net',
+                         entity='signet_2',
                          config=config,
                          name=config["model_name"])
 
