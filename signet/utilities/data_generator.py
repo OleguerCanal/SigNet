@@ -85,15 +85,20 @@ class DataGenerator:
         return sample
 
 
-    def make_input(self, labels, split, large_low):
+    def make_input(self, labels, split, large_low, augmentation=10, nummuts=None):
         """Create a labelled dataset of mutation vectors
            from a tensor of labels.
            Returns:
             inputs (mutational vector)
             labels (including an appended column with the number of mutations used)
         """
-        labels = torch.cat([labels]*10, dim = 0)
-        nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
+        labels = torch.cat([labels]*augmentation, dim = 0)
+        if nummuts is None:
+            nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
+        else:
+            nummut_means = torch.cat([nummuts]*augmentation, dim=0)
+            nummut_stds = nummut_means/10.0
+            nummuts = torch.clip(torch.distributions.normal.Normal(nummut_means, nummut_stds).sample().type(torch.int64), 10, 1e5)
 
         input_batch = torch.empty((labels.shape[0], 96))
         labels_batch = torch.empty((labels.shape[0], self.total_signatures + 1))

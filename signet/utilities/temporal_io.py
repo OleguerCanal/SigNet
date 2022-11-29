@@ -2,6 +2,7 @@ import os
 import sys
 
 import torch
+import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from signet import DATA
@@ -26,6 +27,35 @@ def read_data_nummutnet(path, device):
                               labels=val_label,
                               extract_nummut=False)
     return train_data, val_data
+
+def read_data_realistic_nummuts(data_id, data_folder=DATA):
+    labels_filepath = os.path.join(data_folder, data_id, "PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+    df = csv_to_pandas(labels_filepath, header=0, index_col=0)
+    vals = df.iloc[:, 2:].values
+    nummuts = np.sum(vals, axis=1)
+
+    # Create inputs associated to the labels:
+    signatures = read_signatures(
+        DATA + "data.xlsx",
+        mutation_type_order=DATA + "mutation_type_order.xlsx")
+    data_generator = DataGenerator(signatures=signatures,
+                                   seed=None,
+                                   shuffle=True)
+    train_input, train_label = data_generator.make_input(labels=oversampled_weights,
+                                                         split="train",
+                                                         large_low=network_type,
+                                                         normalize=True,
+                                                         nummuts=nummuts)
+    # Run Baseline
+    sf = Baseline(signatures)
+    train_baseline = sf.get_weights_batch(train_input, n_workers=2)
+    
+    train_data = DataPartitions(inputs=train_input.float().to(device),
+                                prev_guess=train_baseline.float().to(device),
+                                labels=train_label.float().to(device))
+    val_data = train_data
+    return train_data, val_data
+
 
 def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
     '''
@@ -61,3 +91,5 @@ def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="l
                                 labels=train_label.float().to(device))
     val_data = train_data
     return train_data, val_data
+
+read_data_realistic_nummuts(data_id="real_data")
