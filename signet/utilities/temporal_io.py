@@ -28,33 +28,46 @@ def read_data_nummutnet(path, device):
                               extract_nummut=False)
     return train_data, val_data
 
-def read_data_realistic_nummuts(data_id, data_folder=DATA):
+def generate_realistic_nummut_data(
+                                    n_samples,
+                                    data_id="real_data",
+                                    data_folder=DATA,
+                                    split="train",
+                                    large_or_low="large",
+                                    device="cuda",):
+    # Read real weight combinations
     labels_filepath = os.path.join(data_folder, data_id, "PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
     df = csv_to_pandas(labels_filepath, header=0, index_col=0)
-    vals = df.iloc[:, 2:].values
-    nummuts = np.sum(vals, axis=1)
+    weights = torch.from_numpy(df.iloc[:, 2:].values)
+    # Add zeros for last 7 missing signatures
+    weights = torch.cat([weights, torch.zeros(weights.size(0), 7).to(weights)], dim=1)
+    nummuts = torch.sum(weights, axis=1).to(torch.float32).unsqueeze(1)
 
     # Create inputs associated to the labels:
     signatures = read_signatures(
-        DATA + "data.xlsx",
-        mutation_type_order=DATA + "mutation_type_order.xlsx")
+        os.path.join(DATA, "data.xlsx"),
+        mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx"))
     data_generator = DataGenerator(signatures=signatures,
                                    seed=None,
+                                   normalize=True,
                                    shuffle=True)
-    train_input, train_label = data_generator.make_input(labels=oversampled_weights,
-                                                         split="train",
-                                                         large_low=network_type,
-                                                         normalize=True,
-                                                         nummuts=nummuts)
+    inputs, labels = data_generator.make_input(labels=weights,
+                                                split=split,
+                                                large_low=large_or_low,
+                                                nummuts=nummuts)
+    inputs = inputs[:n_samples]
+    labels = labels[:n_samples]
+
     # Run Baseline
-    sf = Baseline(signatures)
-    train_baseline = sf.get_weights_batch(train_input, n_workers=2)
+    baseline = Baseline(signatures)
+    train_baseline = baseline.get_weights_batch(inputs, n_workers=4)
     
-    train_data = DataPartitions(inputs=train_input.float().to(device),
-                                prev_guess=train_baseline.float().to(device),
-                                labels=train_label.float().to(device))
-    val_data = train_data
-    return train_data, val_data
+    # Split into train and validation
+    data = DataPartitions(inputs=inputs.float(),
+                          prev_guess=train_baseline.float(),
+                          labels=labels.float())
+    data.to(device)
+    return data
 
 
 def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
@@ -91,5 +104,3 @@ def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="l
                                 labels=train_label.float().to(device))
     val_data = train_data
     return train_data, val_data
-
-read_data_realistic_nummuts(data_id="real_data")
