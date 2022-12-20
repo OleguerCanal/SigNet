@@ -85,7 +85,7 @@ class DataGenerator:
         return sample
 
 
-    def make_input(self, labels, split, large_low, augmentation=4, nummuts=None):
+    def make_input(self, labels, split, large_low, augmentation=1, nummuts=None):
         """Create a labelled dataset of mutation vectors
            from a tensor of labels.
            Returns:

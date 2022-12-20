@@ -1,6 +1,6 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 class NumMutNet(nn.Module):
     def __init__(self,
@@ -30,4 +30,18 @@ class NumMutNet(nn.Module):
             x = self.dropout(self.activation(layer(x)))
         x = self.output(x)
         return x
+
+    def get_nummuts(self, x):
+        logits = self.forward(x)
+        classes = torch.argmax(logits, dim=1)
+        classes[classes[0]] = 1.25
+        classes[classes[1]] = 1.75
+        classes[classes[2]] = 2.25
+        classes[classes[3]] = 2.75
+        classes[classes[4]] = 3.25
+        classes[classes[5]] = 3.75
+        classes[classes[6]] = 4.75
+        classes[classes[7]] = 5.
+        muts = torch.pow(10, classes).to(torch.float)
+        return muts
 
