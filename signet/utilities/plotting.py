@@ -840,7 +840,7 @@ def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
 
 # WHOLE SIGNATURES-NET PLOTS:
 def plot_confusion_matrix(label_list, predicted_list, class_names):
-    conf_mat = confusion_matrix(label_list.numpy(), predicted_list.numpy())
+    conf_mat = confusion_matrix(label_list.detach().cpu().numpy(), predicted_list.detach().cpu().numpy())
     fig = plt.figure(figsize=(15, 10))
 
     df_cm = pd.DataFrame(conf_mat, index=class_names,

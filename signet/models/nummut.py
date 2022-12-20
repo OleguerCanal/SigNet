@@ -16,6 +16,7 @@ class NumMutNet(nn.Module):
         super(NumMutNet, self).__init__()
 
         self.input = nn.Linear(input_dim, hidden_dim)
+        self.dropout = nn.Dropout(0.25)
         layers = []
         for i in range(n_layers):
             layers.append(nn.Linear(hidden_dim, hidden_dim))
@@ -24,9 +25,9 @@ class NumMutNet(nn.Module):
         self.activation = nn.LeakyReLU(0.1)
 
     def forward(self, x):
-        x = self.activation(self.input(x))
+        x = self.dropout(self.activation(self.input(x)))
         for layer in self.layers:
-            x = self.activation(layer(x))
+            x = self.dropout(self.activation(layer(x)))
         x = self.output(x)
         return x
 
