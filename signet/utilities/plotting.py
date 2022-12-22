@@ -456,7 +456,6 @@ def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show
     ax.set_xticks(xt)
     ax.set_xticklabels(xl, rotation=80)
     ax.set_ylim([0, 1.05*max_val])
-
     plt.tight_layout()
     plt.legend()
 
@@ -490,7 +489,9 @@ def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, s
         num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
         num_error = num_error / torch.sum(indexes, dim=0)
         values.append((n_mut, num_error.detach().numpy()))
-    
+        print(num_error[4])
+        print(num_error[44])
+        print(num_error[-1])
     plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE", plot_path=plot_path, show=show)
 
 def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):

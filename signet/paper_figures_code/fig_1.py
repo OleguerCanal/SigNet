@@ -68,31 +68,48 @@ labels = torch.tensor(labels.values)
 #                                     num_muts_list=num_muts_list, 
 #                                     plot_path="../../../plots/paper/")
 
-times = pd.read_csv(DATA + '/results/all_methods_times_norm.csv', index_col=0, header=None)
-num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
-plot_time_vs_mutations(times, 
-                       num_muts, 
-                       plot_path="../../plots/paper/times.pdf", 
-                       show=False)
+# times = pd.read_csv(DATA + '/results/all_methods_times_norm.csv', index_col=0, header=None)
+# num_muts = [25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5]
+# plot_time_vs_mutations(times, 
+#                        num_muts, 
+#                        plot_path="../../plots/paper/times.pdf", 
+#                        show=False)
 
 sigsnames = list(pd.read_excel(DATA + "/data.xlsx").columns)[1:]
 
 
-final_plot_interval_metrics_vs_mutations(labels,
-                                         upper_bound,
-                                         lower_bound,
-                                         sigsnames,
-                                         plot_path="../../plots/paper/prop_out.pdf",
-                                         show=False)
+# final_plot_interval_metrics_vs_mutations(labels,
+#                                          upper_bound,
+#                                          lower_bound,
+#                                          sigsnames,
+#                                          plot_path="../../plots/paper/prop_out.pdf",
+#                                          show=False)
+finetuner_guess = finetuner_guess[labels[:,44]>0,:]
+labels = labels[labels[:,44]>0,:]
+finetuner_guess = torch.cat((finetuner_guess[:,:-1], (finetuner_guess[:,4] + finetuner_guess[:,44]).view(-1,1), 
+                              (finetuner_guess[:,4] + finetuner_guess[:,2]).view(-1,1), 
+                              (finetuner_guess[:,4] + finetuner_guess[:,2]+finetuner_guess[:,44]).view(-1,1), 
+                            finetuner_guess[:,-1].view(-1,1)),1)
+labels = torch.cat((labels[:,:-1], (labels[:,4] + labels[:,44]).view(-1,1),
+                            (labels[:,4] + labels[:,2]).view(-1,1), 
+                              (labels[:,4] + labels[:,2] + labels[:,44]).view(-1,1), 
+                            labels[:,-1].view(-1,1)),1)
+sigsnames = sigsnames + ['SBS5+SBS40', 'SBS3+SBS5', 'SBS3+SBS5+SBS40']
 final_plot_distance_vs_mutations(labels,
                                  finetuner_guess,
                                  sigsnames,
-                                 plot_path="../../plots/paper/guess_distance.pdf",
+                                 plot_path="../../plots/paper/guess_distance_5_40_restrict_labels.pdf",
                                  show=False)
 
-final_plot_intlen_metrics_vs_mutations(labels,
-                                       upper_bound,
-                                       lower_bound,
-                                       sigsnames,
-                                       plot_path="../../plots/paper/interval_length.pdf",
-                                       show=False)
+# final_plot_intlen_metrics_vs_mutations(labels,
+#                                        upper_bound,
+#                                        lower_bound,
+#                                        sigsnames,
+#                                        plot_path="../../plots/paper/interval_length.pdf",
+#                                        show=False)
+
+
+
+
+
+
