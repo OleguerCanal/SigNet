@@ -68,7 +68,7 @@ class NumMutTrainer:
                 model.eval()
                 with torch.no_grad():
                     one_hot_label = torch.nn.functional.one_hot(train_label, num_classes=train_prediction.shape[-1]).squeeze()
-                    accuracy_train = Accuracy()(preds=train_prediction,
+                    accuracy_train = Accuracy().to(self.device)(preds=train_prediction,
                                                 target=one_hot_label)
                     val_prediction = model(self.val_dataset.inputs)
                     val_loss = self.criterion(input=val_prediction,
@@ -79,7 +79,7 @@ class NumMutTrainer:
                 if plot and step % self.log_freq == 0:
                     one_hot_label = torch.nn.functional.one_hot(self.val_dataset.labels.squeeze(),
                                                                 num_classes=train_prediction.shape[-1]).squeeze()
-                    accuracy_val = Accuracy()(preds=val_prediction,
+                    accuracy_val = Accuracy().to(self.device)(preds=val_prediction,
                                               target=one_hot_label)
 
                     self.logger.log(train_loss=train_loss,
