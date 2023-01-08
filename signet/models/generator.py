@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from signet.utilities.data_generator import DataGenerator
+
 class Generator(nn.Module):
     
     def __init__(self,
@@ -78,11 +80,51 @@ class Generator(nn.Module):
         x = self.decode(z)
         return x, z_mu, z_var
 
-    def generate(self, batch_size:int, std = 1.0, cutoff = 0.01):
-         shape = tuple((batch_size, self.latent_dim))
-         z = self.Normal.sample(shape)*std
-         labels = self.decode(z)
-         if cutoff > 0:
-             labels[labels<cutoff] = 0
-             labels = labels/labels.sum(dim=1).reshape(-1,1)
-         return labels
+    def generate_weights(self, n_samples:int, std = 1.0, cutoff = 0.01):
+        shape = tuple((n_samples, self.latent_dim))
+        z = self.Normal.sample(shape)*std
+        labels = self.decode(z)
+        if cutoff > 0:
+            labels[labels<cutoff] = 0
+            labels = labels/labels.sum(dim=1).reshape(-1,1)
+        return labels
+
+    def generate_weights_and_samples(self,
+                                     n_samples,
+                                     signatures,
+                                     realistic_number_of_mutations=False,
+                                     nummutnet=None,
+                                     std = 1.0,
+                                     cutoff = 0.01):
+        """Generate a dataset of realistic signature weights and their sampled mutation vectors.
+
+        Args:
+            n_samples (int): Number of samples to generate.
+            signatures (torch.tensor): Signature matrix.
+            realistic_number_of_mutations (bool, optional): Wether to use the nummut model to generate
+                realistic number of mutations for each sample. Defaults to False.
+            nummutnet (NumMutNet, optional): Model to estimate the number of mutations for a given signature weight combination. Defaults to None.
+            std (float, optional): Standard deviation of latent variables. Defaults to 1.0.
+            cutoff (float, optional): Minimum weight assigned t signature. Defaults to 0.01.
+        
+        Returns:
+            inputs (mutational vector)
+            labels (including an appended column with the number of mutations used)
+        """
+        labels = self.generate_weights(n_samples, std, cutoff)
+        data_generator = DataGenerator(signatures)
+        
+        if realistic_number_of_mutations:
+            assert nummutnet is not None  # Must provide a mutnet model!
+            num_mutations = nummutnet.get_nummuts(labels)
+        else:
+            num_mutations = np.random.randint(1, 5e3, size=n_samples)
+
+        return data_generator.make_input(labels,
+                                        split=None,
+                                        large_low=None,
+                                        augmentation=1,
+                                        nummuts=num_mutations)
+    
+
+
