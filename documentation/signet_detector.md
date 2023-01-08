@@ -1,5 +1,8 @@
 # Signet Detector
 
+![image](https://user-images.githubusercontent.com/31748781/211214536-efd6b449-c314-4fb5-b415-a55d085656f2.png)
+
+
 The **SigNet Detector** artificial neural network (ANN) is in charge of distinguishing realistic-looking samples from unknown ones. Essentially, it is an Out-Of-Distribution detector to avoid running the [reffitter](https://github.com/OleguerCanal/SigNet/blob/main/documentation/signet_refitter.md) on  data too different than the one used to train it.
 Therefore, we perform a binary classification, flagging as 1 samples that look familiar, and 0 for those that do not look familiar using binnary cross-entropy loss.
 
