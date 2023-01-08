@@ -19,7 +19,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
+        '--input_data', action='store', nargs=1, type=str, required=False, default=[DATA + "/datasets/example_input.csv"],
         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
     )
 
@@ -29,12 +29,17 @@ def parse_args():
     )
     
     parser.add_argument(
+        '--cutoff', action='store', nargs=1, type=float, required=False, default=[0.01],
+        help=f'Cutoff to be applied to the final weights.'
+    )
+
+    parser.add_argument(
         '--output', action='store', nargs=1, type=str, required=False, default=["Output"],
         help=f'Path to folder where all the output files will be saved. Default: "Output".'
     )
 
     parser.add_argument(
-        '--plot_figs', action='store', nargs=1, type=bool, required=False, default=[False],
+        '--plot_figs', action='store', nargs=1, type=str, required=False, default=[False],
         help=f'Boolean. Whether to compute plots for the output. Default: "False".'
     )
     
@@ -46,18 +51,19 @@ if __name__ == "__main__":
     args = parse_args()
     
     # Read data
-    mutations = pd.read_csv(args.input_data, header=0, index_col=0)
+    mutations = pd.read_csv(args.input_data[0], header=0, index_col=0)
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
-    results = signet(mutation_dataset=mutations)
+    results = signet(mutation_dataset=mutations, cutoff=args.cutoff[0])
     print("Results obtained!")
 
     # Extract results
     w, u, l, c, _ = results.get_output()
 
     # Store results
-    results.save(path='Output', name=args.experiment_id)
+    results.save(path=args.output[0])
 
     # Plot figures
-    results.plot_results(save=True)
+    results.plot_results(compute=args.plot_figs[0], save=True, path=args.output[0]+'/plots')
+

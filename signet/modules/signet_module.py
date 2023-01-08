@@ -43,7 +43,8 @@ class SigNet:
     def __call__(self,
                  mutation_dataset,
                  numpy=True,
-                 nworkers=1):
+                 nworkers=1,
+                 cutoff = 0.01):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
@@ -80,7 +81,8 @@ class SigNet:
             num_mutations = torch.sum(mutation_vec, dim=1)
             signet_res = self.finetuner_errorfinder(mutation_dist=normalized_mutation_vec,
                                                     baseline_guess=self.baseline_guess,
-                                                    num_mut=num_mutations.reshape(-1, 1))
+                                                    num_mut=num_mutations.reshape(-1, 1),
+                                                    cutoff=cutoff)
             result = SigNetResult(mutation_dataset,
                                   weights=signet_res["finetuner_guess"],
                                   lower=signet_res["error_lower"],
@@ -162,6 +164,7 @@ class SigNetResult:
         logging.info("Writting results: %s... DONE"%path)
 
     def plot_results(self, 
+                     compute = 'True',
                      save = True,
                      path = 'Output/plots'):
         """ 
@@ -170,14 +173,15 @@ class SigNetResult:
             path (str): path to the directory where the plots will be saved.
             save (bool): whether to save the plot into a file or not.
         """
-        logging.info("Plotting results: %s..."%path)
-        pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-        samples = list(self.mutation_dataset.index)
-        for i in range(self.weights.shape[0]):
-            plot_weights(guessed_labels=self.weights[i,:72], 
-                         pred_upper=self.upper[i,:], 
-                         pred_lower=self.lower[i,:], 
-                         sigs_names=self.sig_names, 
-                         save=save, 
-                         plot_path=path + "/plot_%s.png"%samples[i])
-        logging.info("Plotting results: %s... DONE"%path)
+        if compute == 'True':
+            logging.info("Plotting results: %s..."%path)
+            pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+            samples = list(self.mutation_dataset.index)
+            for i in range(self.weights.shape[0]):
+                plot_weights(guessed_labels=self.weights[i,:72], 
+                            pred_upper=self.upper[i,:], 
+                            pred_lower=self.lower[i,:], 
+                            sigs_names=self.sig_names, 
+                            save=save, 
+                            plot_path=path + "/plot_%s.png"%samples[i])
+            logging.info("Plotting results: %s... DONE"%path)

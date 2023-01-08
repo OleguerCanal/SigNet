@@ -84,6 +84,15 @@
         }
 
         {
+            "name": "Python: Train nummut",
+            "type": "python",
+            "request": "launch",
+            "program": "train_nummutnet.py",
+            "cwd": "${workspaceFolder}/signet/",
+            "console": "integratedTerminal"
+        }
+
+        {
             "name": "Python: Test Yapsa-Inspired-Baseline",
             "type": "python",
             "request": "launch",

@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 
 
 class DataPartitions(Dataset):
-    def __init__(self, inputs=None, labels=None, prev_guess=None, num_mut=None):
+    def __init__(self, inputs=None, labels=None, prev_guess=None, num_mut=None, extract_nummut=True):
         """Encapsulates input, label and previous step guess of a dataset.
         
         Args:
@@ -18,7 +18,7 @@ class DataPartitions(Dataset):
         self.prev_guess = prev_guess
         self.classification = None
         self.num_mut = num_mut if num_mut is not None else None
-        if labels is not None and num_mut is None:
+        if extract_nummut and labels is not None and num_mut is None:
             self.num_mut = labels[:, -1].reshape(-1,1)
             self.labels = labels[:, :-1]
 
@@ -60,4 +60,3 @@ class DataPartitions(Dataset):
         num_mut_i = torch.empty(0) if self.num_mut is None else self.num_mut[i]
         classification_i = torch.empty(0) if self.classification is None else self.classification[i]
         return self.inputs[i], labels_i, prev_guess_i, num_mut_i, classification_i
-            
