@@ -1,14 +1,7 @@
-import json
 import os
-import sys
-
-import pandas as pd
-import torch
-from pprint import pprint
 
 from signet import DATA, TRAINED_MODELS
 from signet.utilities.io import read_model, read_signatures
-
 
 if __name__=="__main__":
     signatures = read_signatures(os.path.join(DATA, "data.xlsx"))
