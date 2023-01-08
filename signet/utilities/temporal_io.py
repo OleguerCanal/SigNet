@@ -2,6 +2,7 @@ import os
 import sys
 
 import torch
+import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from signet import DATA
@@ -26,6 +27,48 @@ def read_data_nummutnet(path, device):
                               labels=val_label,
                               extract_nummut=False)
     return train_data, val_data
+
+def generate_realistic_nummut_data(
+                                    n_samples,
+                                    data_id="real_data",
+                                    data_folder=DATA,
+                                    split="train",
+                                    large_or_low="large",
+                                    device="cuda",):
+    # Read real weight combinations
+    labels_filepath = os.path.join(data_folder, data_id, "PCAWG_sigProfiler_SBS_signatures_in_samples_v3.csv")
+    df = csv_to_pandas(labels_filepath, header=0, index_col=0)
+    weights = torch.from_numpy(df.iloc[:, 2:].values)
+    # Add zeros for last 7 missing signatures
+    weights = torch.cat([weights, torch.zeros(weights.size(0), 7).to(weights)], dim=1)
+    nummuts = torch.sum(weights, axis=1).to(torch.float32).unsqueeze(1)
+
+    # Create inputs associated to the labels:
+    signatures = read_signatures(
+        os.path.join(DATA, "data.xlsx"),
+        mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx"))
+    data_generator = DataGenerator(signatures=signatures,
+                                   seed=None,
+                                   normalize=True,
+                                   shuffle=True)
+    inputs, labels = data_generator.make_input(labels=weights,
+                                                split=split,
+                                                large_low=large_or_low,
+                                                nummuts=nummuts)
+    inputs = inputs[:n_samples]
+    labels = labels[:n_samples]
+
+    # Run Baseline
+    baseline = Baseline(signatures)
+    train_baseline = baseline.get_weights_batch(inputs, n_workers=4)
+    
+    # Split into train and validation
+    data = DataPartitions(inputs=inputs.float(),
+                          prev_guess=train_baseline.float(),
+                          labels=labels.float())
+    data.to(device)
+    return data
+
 
 def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="low"):
     '''

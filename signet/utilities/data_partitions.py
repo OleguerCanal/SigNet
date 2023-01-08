@@ -60,4 +60,3 @@ class DataPartitions(Dataset):
         num_mut_i = torch.empty(0) if self.num_mut is None else self.num_mut[i]
         classification_i = torch.empty(0) if self.classification is None else self.classification[i]
         return self.inputs[i], labels_i, prev_guess_i, num_mut_i, classification_i
-            

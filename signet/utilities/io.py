@@ -290,7 +290,7 @@ def read_model(directory, device="cpu"):
     Args:
         directory (String): Folder containing state_dict and init_args.json of the model
     """
-    from signet.models import Generator, Classifier, FineTunerLowNumMut, FineTunerLargeNumMut, ErrorFinder
+    from signet.models import Generator, Classifier, FineTunerLowNumMut, FineTunerLargeNumMut, ErrorFinder, NumMutNet
 
     # Load init_args
     init_args_file = os.path.join(directory, 'init_args.json')
@@ -300,7 +300,7 @@ def read_model(directory, device="cpu"):
     init_args.pop("model_type")
     # print("Reading model of type:", model_type)
     assert(model_type is not None)  # Model type not saved!
-    assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator"])
+    assert(model_type in ["Classifier", "FineTunerLowNumMut", "FineTunerLargeNumMut", "ErrorFinder", "Generator", "NumMutNet"])
     if "device" in init_args.keys():
         init_args["device"] = device
         
@@ -315,6 +315,8 @@ def read_model(directory, device="cpu"):
         model = FineTunerLargeNumMut(**init_args)
     elif model_type == "ErrorFinder":
         model = ErrorFinder(**init_args)
+    elif model_type == "NumMutNet":
+        model = NumMutNet(**init_args)
     
     # Load model weights
     state_dict_file = os.path.join(directory, "state_dict")
