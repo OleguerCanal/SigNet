@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # Read data
     mutation_vectors = csv_to_tensor(args.input_data[0], header=0, index_col=0)
     
-    # Get each mutation's number of mutations and normalize the vectors
+    # Get the number of mutations for each mutational vector and normalize the vector
     num_muts = torch.sum(mutation_vectors, dim=1).reshape(-1, 1)
     normalized_mutation_vectors = mutation_vectors / num_muts
 
