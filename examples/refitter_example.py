@@ -56,7 +56,6 @@ if __name__ == "__main__":
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
     results = signet(mutation_dataset=mutations, cutoff=args.cutoff[0])
-    print("Results obtained!")
 
     # Extract results
     w, u, l, c, _ = results.get_output()
@@ -67,3 +66,4 @@ if __name__ == "__main__":
     # Plot figures
     results.plot_results(compute=args.plot_figs[0], save=True, path=args.output[0]+'/plots')
 
+    print("Done! Check out your results in the folder: ", args.output[0], " :D")
