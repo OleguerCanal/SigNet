@@ -34,14 +34,19 @@ class NumMutNet(nn.Module):
     def get_nummuts(self, x):
         logits = self.forward(x)
         classes = torch.argmax(logits, dim=1)
-        classes[classes[0]] = 1.25
-        classes[classes[1]] = 1.75
-        classes[classes[2]] = 2.25
-        classes[classes[3]] = 2.75
-        classes[classes[4]] = 3.25
-        classes[classes[5]] = 3.75
-        classes[classes[6]] = 4.75
-        classes[classes[7]] = 5.
+        rand_ = torch.rand(classes.shape)
+        classes_copy = classes.clone()
+        classes = classes.to(torch.float)
+
+        classes[classes_copy == 0] = rand_[classes_copy == 0] * (1.5 - 1) + 1
+        classes[classes_copy == 1] = rand_[classes_copy == 1] * (2 - 1.5) + 1.5
+        classes[classes_copy == 2] = rand_[classes_copy == 2] * (2.5 - 2) + 2
+        classes[classes_copy == 3] = rand_[classes_copy == 3] * (3 - 2.5) + 2.5
+        classes[classes_copy == 4] = rand_[classes_copy == 4] * (3.5 - 3) + 3
+        classes[classes_copy == 5] = rand_[classes_copy == 5] * (4 - 3.5) + 3.5
+        classes[classes_copy == 6] = rand_[classes_copy == 6] * (4.5 - 4) + 4
+        classes[classes_copy == 7] = rand_[classes_copy == 7] * (5 - 4.5) + 4.5
+
         muts = torch.pow(10, classes).to(torch.float)
         return muts
 
