@@ -8,7 +8,7 @@ from signet import DATA, TRAINED_MODELS
 from signet.modules.signet_module import SigNet
 from signet.utilities.io import read_methods_guesses
 from signet.utilities.plotting import (final_plot_all_metrics_vs_mutations,
-                                       final_plot_interval_metrics_vs_mutations,
+                                       final_plot_interval_metrics_vs_mutations, plot_distance_vs_mutations_all_methods,
                                        plot_metric_vs_mutations_classifier,
                                        plot_time_vs_mutations,
                                        final_plot_distance_vs_mutations,
@@ -44,6 +44,7 @@ print("forwarded")
 finetuner_guess, lower_bound, upper_bound, classification, normalized_input = result.get_output(format="tensor")
 print("finetuner_guess", finetuner_guess, finetuner_guess.shape)
 
+
 # list_of_methods = ["decompTumor2Sig", "MutationalPatterns", "mutSignatures", "SignatureEstimationQP","YAPSA"]
 # list_of_guesses, label = read_methods_guesses('cpu', "exp_all", list_of_methods, data_folder="../../../data/")
 # list_of_methods += ['NNLS', 'Finetuner']
@@ -78,28 +79,49 @@ labels = torch.tensor(labels.values)
 sigsnames = list(pd.read_excel(DATA + "/data.xlsx").columns)[1:]
 
 
+# Select what signatures we should plot:
+sigs_inds = list(range(29)) + [30] + list(range(32,46)) + [47,48,49] + [55,56,57,58,60,62,64]
+sigs_names = [sigsnames[i] for i in sigs_inds]
+label = labels[:,sigs_inds+[-1]]
+list_of_guesses = [finetuner_guess]
+for i in range(len(list_of_guesses)):
+  list_of_guesses[i] = list_of_guesses[i][:,sigs_inds]
+
+plot_distance_vs_mutations_all_methods(label, list_of_guesses, ['SigNet'],
+                                        sigs_names, plot_path='../../plots/paper/signet_error.pdf', show=False, title=None)
+                                        # sigs_names, plot_path=None, show=True, title=None)
+
+
+
 # final_plot_interval_metrics_vs_mutations(labels,
 #                                          upper_bound,
 #                                          lower_bound,
 #                                          sigsnames,
 #                                          plot_path="../../plots/paper/prop_out.pdf",
 #                                          show=False)
-finetuner_guess = finetuner_guess[labels[:,44]>0,:]
-labels = labels[labels[:,44]>0,:]
-finetuner_guess = torch.cat((finetuner_guess[:,:-1], (finetuner_guess[:,4] + finetuner_guess[:,44]).view(-1,1), 
-                              (finetuner_guess[:,4] + finetuner_guess[:,2]).view(-1,1), 
-                              (finetuner_guess[:,4] + finetuner_guess[:,2]+finetuner_guess[:,44]).view(-1,1), 
-                            finetuner_guess[:,-1].view(-1,1)),1)
-labels = torch.cat((labels[:,:-1], (labels[:,4] + labels[:,44]).view(-1,1),
-                            (labels[:,4] + labels[:,2]).view(-1,1), 
-                              (labels[:,4] + labels[:,2] + labels[:,44]).view(-1,1), 
-                            labels[:,-1].view(-1,1)),1)
-sigsnames = sigsnames + ['SBS5+SBS40', 'SBS3+SBS5', 'SBS3+SBS5+SBS40']
-final_plot_distance_vs_mutations(labels,
-                                 finetuner_guess,
-                                 sigsnames,
-                                 plot_path="../../plots/paper/guess_distance_5_40_restrict_labels.pdf",
-                                 show=False)
+# labels2 = labels[labels[:,2]>0,:]
+# finetuner_guess2 = finetuner_guess[labels[:,2]>0,:]
+
+# finetuner_guess2 = finetuner_guess2[labels2[:,4]>0,:]
+# labels2 = labels2[labels2[:,4]>0,:]
+
+# finetuner_guess2 = finetuner_guess2[labels2[:,44]==0,:]
+# labels2 = labels2[labels2[:,44]==0,:]
+
+# finetuner_guess2 = torch.cat((finetuner_guess2[:,:-1], (finetuner_guess2[:,4] + finetuner_guess2[:,2]).view(-1,1), 
+#                               # (finetuner_guess2[:,4] + finetuner_guess2[:,2]).view(-1,1), 
+#                               # (finetuner_guess2[:,4] + finetuner_guess2[:,2]+finetuner_guess2[:,44]).view(-1,1), 
+#                             finetuner_guess2[:,-1].view(-1,1)),1)
+# labels2 = torch.cat((labels2[:,:-1], (labels2[:,4] + labels2[:,2]).view(-1,1),
+#                             # (labels2[:,4] + labels2[:,2]).view(-1,1), 
+#                             #   (labels2[:,4] + labels2[:,2] + labels2[:,44]).view(-1,1), 
+#                             labels2[:,-1].view(-1,1)),1)
+# sigsnames = sigsnames + ['SBS5+SBS40'] #, 'SBS3+SBS5', 'SBS3+SBS5+SBS40']
+# final_plot_distance_vs_mutations(labels2,
+#                                  finetuner_guess2,
+#                                  sigsnames,
+#                                  plot_path="../../plots/paper/guess_distance_5_40_restrict_labels.pdf",
+#                                  show=True)
 
 # final_plot_intlen_metrics_vs_mutations(labels,
 #                                        upper_bound,
@@ -107,9 +129,4 @@ final_plot_distance_vs_mutations(labels,
 #                                        sigsnames,
 #                                        plot_path="../../plots/paper/interval_length.pdf",
 #                                        show=False)
-
-
-
-
-
 
