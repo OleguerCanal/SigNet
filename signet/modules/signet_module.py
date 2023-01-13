@@ -43,6 +43,7 @@ class SigNet:
     def __call__(self,
                  mutation_dataset,
                  numpy=True,
+                 only_NNLS=False,
                  nworkers=1,
                  cutoff = 0.01):
         """Get weights of each signature in lexicographic wrt 1-mer
@@ -76,6 +77,14 @@ class SigNet:
                                                                   n_workers=nworkers)
             logging.info("Obtaining NNLS guesses... DONE")
 
+            if only_NNLS:
+                result = SigNetResult(mutation_dataset,
+                                  weights=self.baseline_guess,
+                                  lower=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                  upper=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                  classification=torch.full((mutation_dataset.shape[0],1), float('nan')),
+                                  normalized_input=normalized_mutation_vec)
+                return result
 
             # Finetune guess and aproximate errors
             num_mutations = torch.sum(mutation_vec, dim=1)
@@ -146,18 +155,23 @@ class SigNetResult:
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         weights, lower, upper, classification, _ = self.get_output(format="pandas")
 
-        weights.columns = self.sig_names + ['Unknown']
-        weights.index = self.mutation_dataset.index
-        weights.to_csv(path + "/weight_guesses.csv", header=True, index=True)
+        try:
+            weights.columns = self.sig_names + ['Unknown']
+            weights.index = self.mutation_dataset.index
+            weights.to_csv(path + "/weight_guesses.csv", header=True, index=True)
+        except:
+            weights.columns = self.sig_names
+            weights.index = self.mutation_dataset.index
+            weights.to_csv(path + "/weight_guesses.csv", header=True, index=True)
 
         lower.columns = self.sig_names
         lower.index = self.mutation_dataset.index
         lower.to_csv(path + "/lower_bound_guesses.csv", header=True, index=True)
-        
+    
         upper.columns = self.sig_names
         upper.index = self.mutation_dataset.index
         upper.to_csv(path + "/upper_bound_guesses.csv", header=True, index=True)
-        
+    
         classification.columns = ['Classification']
         classification.index = self.mutation_dataset.index
         classification.to_csv(path + "/classification_guesses.csv", header=True, index=True)
