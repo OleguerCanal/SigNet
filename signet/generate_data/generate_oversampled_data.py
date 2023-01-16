@@ -1,12 +1,15 @@
-from signet.utilities.io import read_data_generator, read_signatures
+from signet.utilities.io import read_data_generator, read_signatures, tensor_to_csv
 from signet.utilities.oversampler import CancerTypeOverSampler
 from signet.utilities.data_generator import DataGenerator
+from signet.utilities.data_partitions import DataPartitions
+from signet.models import Baseline
+from signet import DATA
 
 if __name__ == "__main__":
-    train_data, val_data = read_data_generator(device=dev,
-                                               data_id="real_data",
-                                               data_folder = "../data/",
-                                               cosmic_version = 'v3',
+    train_data, val_data = read_data_generator(device="cpu",
+                                               data_id="/real_data",
+                                               data_folder=DATA,
+                                               cosmic_version='v3',
                                                type='real',
                                                prop_train = 0.8)
     oversampler = CancerTypeOverSampler(train_data.inputs, train_data.cancer_types)
@@ -14,16 +17,16 @@ if __name__ == "__main__":
     val_label = val_data.inputs
 
     # Create inputs associated to the labels
-    signatures = read_signatures("../data/data.xlsx", mutation_type_order="../data/mutation_type_order.xlsx")
+    signatures = read_signatures(DATA + "/data.xlsx", mutation_type_order=DATA + "/mutation_type_order.xlsx")
     data_generator = DataGenerator(signatures=signatures,
                                    seed=0,
                                    shuffle=True)
     train_input, train_label = data_generator.make_input(labels=train_label,
                                                          split="train",
-                                                         large_low=config["network_type"])
+                                                         large_low="superlow")
     val_input, val_label = data_generator.make_input(labels=val_label,
-                                                     split="val",
-                                                     large_low=config["network_type"])
+                                                     split="valid",
+                                                     large_low="superlow")
     
     # Run Baseline
     sf = Baseline(signatures)
@@ -38,11 +41,11 @@ if __name__ == "__main__":
                                 prev_guess=val_baseline,
                                 labels=val_label)
 
-    tensor_to_csv(train_data.inputs, "../data/exp_oversample/train_%s_input.csv"%config["network_type"])
-    tensor_to_csv(train_label, "../data/exp_oversample/train_%s_label.csv"%config["network_type"])
-    tensor_to_csv(train_data.prev_guess, "../data/exp_oversample/train_%s_baseline.csv"%config["network_type"])
+    tensor_to_csv(train_data.inputs, "../data/exp_superlow_nummut/refitter/train_%s_input.csv"%"superlow")
+    tensor_to_csv(train_label, "../data/exp_superlow_nummut/refitter/train_%s_label.csv"%"superlow")
+    tensor_to_csv(train_data.prev_guess, "../data/exp_superlow_nummut/refitter/train_%s_baseline.csv"%"superlow")
 
-    tensor_to_csv(val_data.inputs, "../data/exp_oversample/val_%s_input.csv"%config["network_type"])
-    tensor_to_csv(val_label, "../data/exp_oversample/val_%s_label.csv"%config["network_type"])
-    tensor_to_csv(val_data.prev_guess, "../data/exp_oversample/val_%s_baseline.csv"%config["network_type"])
+    tensor_to_csv(val_data.inputs, "../data/exp_superlow_nummut/refitter/val_%s_input.csv"%"superlow")
+    tensor_to_csv(val_label, "../data/exp_superlow_nummut/refitter/val_%s_label.csv"%"superlow")
+    tensor_to_csv(val_data.prev_guess, "../data/exp_superlow_nummut/refitter/val_%s_baseline.csv"%"superlow")
         

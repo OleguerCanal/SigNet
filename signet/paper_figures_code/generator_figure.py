@@ -22,16 +22,16 @@ zero_indexes = []
 
 def get_real_correlation_matrix():
     real_data_tensor = csv_to_tensor(real_data_path, device, header=0, index_col=0)
-    return plot_correlation_matrix(real_data_tensor, sig_names=real_data_pd.columns[1:])
+    return plot_correlation_matrix(real_data_tensor, sig_names=real_data_pd.columns[1:], name="real")
 
 def get_generator_correlation_matrix():
     generator_path = os.path.join(TRAINED_MODELS, "generator")
     generator = read_model(generator_path, device)
 
-    synt_labels = generator.generate(1000, std=1.0)
+    synt_labels = generator.generate(10000, std=1.0, cutoff=0.001)
     for i in zero_indexes:
         synt_labels[:, i] = 0
-    return plot_correlation_matrix(synt_labels[:, :65], sig_names=real_data_pd.columns[1:])
+    return plot_correlation_matrix(synt_labels[:, :65], sig_names=real_data_pd.columns[1:], name="generator")
 
 def get_synsiggen_data():
     data_file = "SynSigGen_labels.csv"
@@ -44,8 +44,8 @@ def get_synsiggen_data():
             df.insert(indx, col, 0)
             zero_cols.append(col)
             zero_indexes.append(indx)
-
-    return plot_correlation_matrix(torch.tensor(df.values), sig_names=real_data_pd.columns[1:])
+    print(real_data_pd.columns[1:])
+    return plot_correlation_matrix(torch.tensor(df.values), sig_names=real_data_pd.columns[1:], name="synsiggen")
 
 
 def get_metrics(real, guess):
@@ -71,11 +71,11 @@ if __name__ == "__main__":
     # for col in zero_cols:
     #     signetgen[col].values[:] = 0
 
-    signetgen_metrics = get_metrics(real, signetgen)
-    synsiggen_metrics = get_metrics(real, synsiggen)
+    # signetgen_metrics = get_metrics(real, signetgen)
+    # synsiggen_metrics = get_metrics(real, synsiggen)
 
-    plt.matshow(signetgen_metrics)
-    plt.show()
+    # plt.matshow(signetgen_metrics)
+    # plt.show()
 
     plt.matshow(synsiggen_metrics)
     plt.show()
@@ -120,3 +120,4 @@ if __name__ == "__main__":
     fig.colorbar(ax[2].collections[0], cax=ax[3])
     fig.tight_layout()
     plt.savefig('generator_correlations.pdf')
+

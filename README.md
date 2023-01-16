@@ -31,6 +31,7 @@ You can install the python package running:
 ```BASH
 pip install signet
 ```
+**NOTE:** *The package hasn't yet been published to [pypi](https://pypi.org/). Please refer to [Source Code](#source-code)* to use it for now.*
 
 Once installed, you can run Signet Refitter like so:
 
@@ -55,11 +56,12 @@ results.save(path='Output', name="this_experiment_filename")
 results.plot_results(save=True)
 ```
 
-For a more complete example, check out [refitter_example.py](examples/refitter_example.py) for a usage example.
+For a more usage examples: Check out the [examples folder](examples/):
+   - [refitter_example.py](examples/refitter_example.py) for a usage example.
+   - [generator_example.py](examples/generator_example.py) for a usage example.
+   - [detector_example.py](examples/detector_example.py) for a usage example.
 
 **NOTE**: _It is recommended that you work on a [custom python virtualenvironment](https://virtualenv.pypa.io/en/latest/) to avoid package version mismatches._
-
-**NOTE**: _Custom model training is relatively limited if installing SigNet as a python package, please consider downloading the source code._
 
 
 ## Command Line Interface
