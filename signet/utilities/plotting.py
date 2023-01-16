@@ -1,3 +1,4 @@
+from audioop import mul
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
@@ -548,6 +549,7 @@ def plot_metric_vs_sigs(list_of_metrics, list_of_methods, list_of_guesses, label
         # create_dir(plot_path)
         fig.savefig(plot_path)
 
+
 def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
     create_dir(plot_path)
     reconstruction = torch.einsum("ij,bj->bi", (signatures, torch.tensor(weight_guess)))
@@ -559,6 +561,52 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
         # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
+def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+
+    num_classes=len(sigs_names)
+    max_val = -1
+
+    fig,ax = plt.subplots(len(list_of_methods), 1, figsize=(12,3))
+    for i,method in enumerate(list_of_methods):
+        guess = guess_list[i]
+        values = []
+        for n_mut in num_muts[:-1]:
+            indexes = label[:, -1] == n_mut
+            num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
+            num_error = num_error/torch.sum(indexes,dim=0)
+            values.append((n_mut, num_error.detach().numpy()))
+            # values.append((n_mut, np.log10(num_error.detach().numpy())))
+   
+        for j, (n_mut, array) in enumerate(values):
+            max_val = max(max_val, np.max(array))
+            ax.scatter(range(num_classes),
+                    array,
+                    color=colors[j],
+                    label="%s"%str(int(n_mut)),
+                    s=7.0*(j+1),
+                    alpha=0.3)
+
+        stylize_axes(ax, '', '', title)
+        xt = range(num_classes)
+        xl = sigs_names
+
+        ax.set_xticks(xt)
+        ax.set_xticklabels('')
+        ax.set_ylabel(method + ' error')
+        ax.set_ylim([-0.03, 0.40])
+
+    ax.set_xticklabels(xl, rotation=80)
+
+    plt.tight_layout()
+    # plt.legend()
+    plt.title(title)
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
 
 # ERRORLEARNER PLOTS:
 def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show=False):
@@ -581,7 +629,6 @@ def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show
     ax.set_xticks(xt)
     ax.set_xticklabels(xl, rotation=80)
     ax.set_ylim([0, 1.05*max_val])
-
     plt.tight_layout()
     plt.legend()
 
@@ -608,14 +655,18 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
 
 def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, show=False):
     num_muts = np.unique(label[:,-1].detach().numpy())
-
     values = []
-    for n_mut in num_muts:
+    errors = np.zeros((4,10))
+    for i,n_mut in enumerate(num_muts):
         indexes = label[:, -1] == n_mut
         num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
         num_error = num_error / torch.sum(indexes, dim=0)
         values.append((n_mut, num_error.detach().numpy()))
-    
+        errors[0,i] = num_error[2]
+        errors[1,i] = num_error[4]
+        errors[2,i] = num_error[44]
+        errors[3,i] = num_error[-1]
+    print(errors)
     plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE", plot_path=plot_path, show=show)
 
 def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
