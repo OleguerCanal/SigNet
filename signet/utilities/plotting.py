@@ -1,4 +1,3 @@
-from audioop import mul
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
@@ -436,14 +435,67 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
         # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
-def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+def plot_violins_error(label, guess, sigs_names, plot_path=None, show=False, title=None):
     num_muts = np.unique(label[:,-1].detach().numpy())
-    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
 
     num_classes=len(sigs_names)
     max_val = -1
 
-    fig,ax = plt.subplots(len(list_of_methods), 1, figsize=(12,3))
+    fig,ax = plt.subplots(len(num_muts), 1, figsize=(16,12))
+    for i,n_mut in enumerate(num_muts):
+        xt = range(num_classes)
+        xl = sigs_names
+
+        indexes = label[:, -1] == n_mut
+        num_error = label[indexes, :-1] - guess[indexes, :]
+        ax[i].violinplot(num_error.detach().numpy())
+        ax[i].axhline(y=0, color='r', linestyle='--')
+
+        mean_error = torch.sum(num_error, dim=0)
+        mean_error = mean_error/torch.sum(indexes,dim=0)
+
+        ax[i].scatter(np.array(xt)+1, mean_error, color='black', s=10)
+
+        stylize_axes(ax[i], '', '', title)
+        ax[i].set_xticks(np.array(xt)+1)
+        ax[i].set_xticklabels('')
+        ax[i].set_ylabel('N=' + str(int(n_mut)))
+        ylim = max(-torch.min(num_error), torch.max(num_error))
+        ax[i].set_ylim([-ylim, ylim])
+
+    ax[-1].set_xticklabels(xl, rotation=80)
+
+    plt.tight_layout()
+    # plt.legend()
+    plt.title(title)
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path[0])
+
+    plt.close()
+    error = label[:, :-1] - guess[:, :]
+    mean_error = torch.mean(error, dim=0)
+    fig, ax = plt.subplots(1, 1, figsize=(16,8))
+    plt.violinplot(error.detach().numpy())
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.scatter(np.array(xt)+1, mean_error, color='black', s=10)
+    plt.xticks(np.array(xt)+1,xl, rotation=80)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path[1])
+
+def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+
+    sigs_names = sigs_names + ['SBS5+SBS40']
+    num_classes=len(sigs_names)
+    max_val = -1
+
+    fig,ax = plt.subplots(len(list_of_methods), 1, figsize=(12,4))
     for i,method in enumerate(list_of_methods):
         guess = guess_list[i]
         values = []
@@ -451,6 +503,19 @@ def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, s
             indexes = label[:, -1] == n_mut
             num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
             num_error = num_error/torch.sum(indexes,dim=0)
+
+            guess2 = guess[indexes, :]
+            label2 = label[indexes, :-1]
+            label2 = label2[guess2[:,4]>0,:]
+            guess2 = guess2[guess2[:,4]>0,:]
+            label2 = label2[guess2[:,42]>0,:]
+            guess2 = guess2[guess2[:,42]>0,:]
+
+            error_new = torch.sum(torch.abs((label2[:,4]+label2[:,42])-(guess2[:,4]+guess2[:,42])))
+            error_new = error_new/torch.sum(indexes,dim=0)
+
+            num_error = torch.cat((num_error, error_new.reshape(1)))
+
             values.append((n_mut, num_error.detach().numpy()))
             # values.append((n_mut, np.log10(num_error.detach().numpy())))
    
@@ -469,13 +534,13 @@ def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, s
 
         ax.set_xticks(xt)
         ax.set_xticklabels('')
-        ax.set_ylabel(method + ' error')
-        ax.set_ylim([-0.03, 0.40])
+        # ax.set_ylabel(method + ' error')
+        ax.set_ylim([0.0, 0.22])
 
     ax.set_xticklabels(xl, rotation=80)
 
     plt.tight_layout()
-    # plt.legend()
+    plt.legend()
     plt.title(title)
 
     if show:
@@ -520,7 +585,7 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
     upper = pred_upper - label_batch
 
     values = []
-    for n_mut in num_muts:
+    for n_mut in num_muts[:-1]:
         indexes = label[:, -1] == n_mut
         num_error = torch.sum(lower[indexes] < 0, dim=0) + torch.sum(upper[indexes] < 0, dim=0)
         num_error = num_error / torch.sum(indexes, dim=0)

@@ -12,7 +12,7 @@ from signet.utilities.plotting import (final_plot_all_metrics_vs_mutations,
                                        plot_metric_vs_mutations_classifier,
                                        plot_time_vs_mutations,
                                        final_plot_distance_vs_mutations,
-                                       final_plot_intlen_metrics_vs_mutations)
+                                       final_plot_intlen_metrics_vs_mutations, plot_violins_error)
 
 # Load data NOTE! I'M NOT SURE IF THIS IS THE REAL DATA!!!!
 data_path = DATA + "/datasets/"
@@ -78,27 +78,31 @@ labels = torch.tensor(labels.values)
 
 sigsnames = list(pd.read_excel(DATA + "/data.xlsx").columns)[1:]
 
+# Violin plots of the error for all signatures to put in the supplement.
+# plot_violins_error(labels, finetuner_guess[:,:-1], sigsnames, plot_path=['../../plots/paper/violin_error_nummut.pdf', '../../plots/paper/violin_error_all.pdf'], show=False, title=None)
 
 # Select what signatures we should plot:
 sigs_inds = list(range(29)) + [30] + list(range(32,46)) + [47,48,49] + [55,56,57,58,60,62,64]
 sigs_names = [sigsnames[i] for i in sigs_inds]
 label = labels[:,sigs_inds+[-1]]
+
 list_of_guesses = [finetuner_guess]
 for i in range(len(list_of_guesses)):
   list_of_guesses[i] = list_of_guesses[i][:,sigs_inds]
 
 plot_distance_vs_mutations_all_methods(label, list_of_guesses, ['SigNet'],
-                                        sigs_names, plot_path='../../plots/paper/signet_error.pdf', show=False, title=None)
+                                        sigs_names, plot_path='../../plots/paper/signet_error_sigs_present.pdf', show=False, title=None)
                                         # sigs_names, plot_path=None, show=True, title=None)
 
 
-
-# final_plot_interval_metrics_vs_mutations(labels,
-#                                          upper_bound,
-#                                          lower_bound,
-#                                          sigsnames,
-#                                          plot_path="../../plots/paper/prop_out.pdf",
-#                                          show=False)
+upper_bound = upper_bound[:,sigs_inds]
+lower_bound = lower_bound[:,sigs_inds]
+final_plot_interval_metrics_vs_mutations(label,
+                                         upper_bound,
+                                         lower_bound,
+                                         sigs_names,
+                                         plot_path="../../plots/paper/prop_out_sigs_present.pdf",
+                                         show=False)
 # labels2 = labels[labels[:,2]>0,:]
 # finetuner_guess2 = finetuner_guess[labels[:,2]>0,:]
 
