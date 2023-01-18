@@ -37,11 +37,18 @@ class DataGenerator:
 
     def _get_nummuts(self, split, large_or_low, size):
         assert split in ["train", "valid", "test"]
-        assert large_or_low in ["large", "low"]
+        assert large_or_low in ["large", "low", "superlow"]
 
         # For train and validation we sample from ranges
         if split == "train" or split == "valid":
-            if large_or_low == 'low':
+            if large_or_low == "superlow": 
+                range_muts = [1, 5, 10, 15, 20, 25]
+                n_ranges = len(range_muts) - 1
+                num_samples = int(size/n_ranges)
+                ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
+                    [3]*num_samples + [4]*(num_samples + size%n_ranges)
+
+            elif large_or_low == 'low':
                 range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
                 n_ranges = len(range_muts) - 1
                 num_samples = int(size/n_ranges)
@@ -85,15 +92,20 @@ class DataGenerator:
         return sample
 
 
-    def make_input(self, labels, split, large_low):
+    def make_input(self, labels, split, large_low, augmentation=1, nummuts=None):
         """Create a labelled dataset of mutation vectors
            from a tensor of labels.
            Returns:
             inputs (mutational vector)
             labels (including an appended column with the number of mutations used)
         """
-        labels = torch.cat([labels]*10, dim = 0)
-        nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
+        labels = torch.cat([labels]*augmentation, dim = 0).to(torch.float32)
+        if nummuts is None:
+            nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
+        else:
+            nummut_means = torch.cat([nummuts]*augmentation, dim=0)
+            nummut_stds = nummut_means/10.0
+            nummuts = torch.clip(torch.distributions.normal.Normal(nummut_means, nummut_stds).sample().type(torch.int64), 10, 1e5)
 
         input_batch = torch.empty((labels.shape[0], 96))
         labels_batch = torch.empty((labels.shape[0], self.total_signatures + 1))
