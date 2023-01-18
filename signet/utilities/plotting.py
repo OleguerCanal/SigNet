@@ -459,9 +459,11 @@ def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show
 
     plt.tight_layout()
     plt.legend()
+    plt.title(title)
 
     if show:
         plt.show()
+        plt.close()
     if plot_path is not None:
         plt.savefig(plot_path)
 
@@ -481,17 +483,70 @@ def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs
 
     plot_values_by_sig(values, sigs_names, num_muts, "Label % outside interval", plot_path=plot_path, show=show)
 
-def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, show=False):
+def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, show=False, other_methods=False, title=None):
     num_muts = np.unique(label[:,-1].detach().numpy())
 
     values = []
-    for n_mut in num_muts:
+    for n_mut in num_muts[:-1]:
         indexes = label[:, -1] == n_mut
-        num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
+        if other_methods == True:
+            num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
+        else:
+            num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
         num_error = num_error / torch.sum(indexes, dim=0)
         values.append((n_mut, num_error.detach().numpy()))
     
-    plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE", plot_path=plot_path, show=show)
+    p1 = plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE " + title, plot_path=plot_path, show=show)
+    return p1
+
+def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+    num_classes =len(sigs_names)
+    max_val = -1
+
+    # fig, ax = plt.subplots(int(len(list_of_methods)/2), 2)
+    fig, ax = plt.subplots(len(list_of_methods), 1, figsize=(12,9))
+    for i,method in enumerate(list_of_methods):
+        guess = guess_list[i]
+        values = []
+        for n_mut in num_muts[:-1]:
+            indexes = label[:, -1] == n_mut
+            num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
+            num_error = num_error / torch.sum(indexes, dim=0)
+            # values.append((n_mut, num_error.detach().numpy()))
+            values.append((n_mut, np.log10(num_error.detach().numpy())))
+    
+        for j, (n_mut, array) in enumerate(values):
+            max_val = max(max_val, np.max(array))
+            # r = int(i/2)
+            # c = i - r*2
+            ax[i].scatter(range(num_classes),
+                    array,
+                    color=colors[j],
+                    label="%s"%str(int(n_mut)),
+                    s=7.0*(j+1),
+                    alpha=0.3)
+        stylize_axes(ax[i], '', '', title)
+        xt = range(num_classes)
+        xl = sigs_names
+        ax[i].set_xticks(xt)
+        ax[i].set_xticklabels('')
+        ax[i].set_ylabel(method + ' error')
+        # ax[i].set_ylim([0, 1.05*max_val])
+
+    ax[-1].set_xticklabels(xl, rotation=80)
+
+    plt.tight_layout()
+    # plt.legend()
+    plt.title(title)
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        # create_dir(plot_path)
+        fig.savefig(plot_path)
 
 def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
     num_muts = np.unique(label[:,-1].detach().numpy())
@@ -687,7 +742,7 @@ def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
     fig.subplots_adjust(hspace=0.1)
     ax1.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
     ax2.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
-    ax1.set_ylim(1.8, 80)  # outliers only
+    ax1.set_ylim(1.8, 15)  # outliers only
     ax2.set_ylim(0, 0.055)  # most of the data
     ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 

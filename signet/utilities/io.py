@@ -254,16 +254,26 @@ def read_methods_guesses(device, experiment_id, methods, data_folder=DATA):
         method (list): List of string with the methods to be analyzed
         data_folder (str, optional): Relative path of data folder. Defaults to DATA.
     """
-    path = os.path.join(data_folder, experiment_id)
+    if experiment_id is not None:
+        path = os.path.join(data_folder, experiment_id)
 
-    methods_guesses = []
-    for method in methods:
-        methods_guesses.append(csv_to_tensor(
-            path + "/other_methods/all_results/%s_guess.csv" % (method), device))
+        methods_guesses = []
+        for method in methods:
+            methods_guesses.append(csv_to_tensor(
+                path + "/other_methods/all_results/%s_guess.csv" % (method), device))
 
-    label = csv_to_tensor(path + "/test_label.csv", device)
+        label = csv_to_tensor(path + "/test_label.csv", device)
 
-    return methods_guesses, label
+        return methods_guesses, label
+    else:
+        methods_guesses = []
+        for method in methods:
+            methods_guesses.append(csv_to_tensor(
+                data_folder + "/%s_guess.csv" % (method), device))
+
+        label = csv_to_tensor(DATA + "/datasets/test_label.csv", device)
+
+        return methods_guesses, label
 
 
 def read_test_data(device, experiment_id, test_id, data_folder=DATA):
