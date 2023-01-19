@@ -29,6 +29,11 @@ def parse_args():
     )
     
     parser.add_argument(
+        '--only_nnls', action='store', nargs=1, type=str, required=False, default=[False],
+        help=f'Boolean. Whether to use nnls mode only. Default: "False".'
+    )
+
+    parser.add_argument(
         '--cutoff', action='store', nargs=1, type=float, required=False, default=[0.01],
         help=f'Cutoff to be applied to the final weights.'
     )
@@ -55,7 +60,7 @@ if __name__ == "__main__":
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
-    results = signet(mutation_dataset=mutations, cutoff=args.cutoff[0])
+    results = signet(mutation_dataset=mutations, cutoff=args.cutoff[0], only_NNLS=args.only_nnls[0])
 
     # Extract results
     w, u, l, c, _ = results.get_output()
