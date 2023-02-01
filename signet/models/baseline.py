@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 import copy
 import sys
 
+import numpy as np
 import pandas as pd
 import scipy
 from scipy.optimize import minimize
@@ -11,19 +12,43 @@ import torch
 from tqdm import tqdm
 
 from signet import DATA
-from signet.utilities.metrics import get_jensen_shannon
+from signet.utilities.metrics import get_jensen_shannon, get_MSE
 from signet.utilities.io import create_dir, read_signatures
 
 
 class Baseline:
 
-    def __init__(self, signatures):
+    def __init__(self, signatures, approximate_solution=True):
+        """
+        Args:
+            signatures (pd.DataFrame): Signature catalog.
+            approximate_solution (bool): Whether to use the approximate solution (less accurate but significantly faster)
+        """
         self.signatures = signatures.cpu().detach().numpy()
+        self.approximate_solution = approximate_solution
+        self.lagrange_mult = 0.1
         self.__weight_len = self.signatures.shape[1]
+        self.__bounds = [(0, 1)]*self.__weight_len
 
-    def get_weights(self, normalized_mutations):
-        h, rnorm = nnls(self.signatures, normalized_mutations,
-                        maxiter=5*self.__weight_len)
+    def __precise_objective(self, w, normalized_mutations):
+        with torch.no_grad():
+            guess = np.dot(self.signatures, w)
+            guess_tensor = torch.from_numpy(guess).unsqueeze(0)
+            error = get_MSE(guess_tensor, normalized_mutations)
+        return error.numpy() + self.lagrange_mult*(np.sum(w) - 1)**2
+
+    def get_weights(self, normalized_mutationss):
+        if self.approximate_solution:
+            h, rnorm = nnls(self.signatures, normalized_mutations,
+                            maxiter=5*self.__weight_len)
+            torch.from_numpy(h).float()
+        else:
+            w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
+            normalized_mutations = torch.from_numpy(np.array(normalized_mutations)).unsqueeze(0)
+            res = minimize(fun=self.__precise_objective,
+                            x0=w,
+                            args=(normalized_mutations,),
+                            bounds=self.__bounds)
         return torch.from_numpy(h).float()
 
     def get_weights_batch(self, input_batch, n_workers=8):
