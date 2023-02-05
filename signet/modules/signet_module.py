@@ -45,7 +45,7 @@ class SigNet:
                  numpy=True,
                  only_NNLS=False,
                  nworkers=1,
-                 cutoff = 0.01):
+                 cutoff=0.01):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
