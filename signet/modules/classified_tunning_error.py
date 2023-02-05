@@ -19,7 +19,6 @@ class ClassifiedFinetunerErrorfinder:
             classification_cutoff (float, optional): Cuttoff at which we decide something is realistic. Defaults to 0.5.
             device (str, optional): Device to use (cuda or cpu). Defaults to "cpu".
         """
-
         self.classification_cutoff = classification_cutoff
         self.device = device
 

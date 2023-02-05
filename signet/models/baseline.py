@@ -37,19 +37,19 @@ class Baseline:
             error = get_MSE(guess_tensor, normalized_mutations)
         return error.numpy() + self.lagrange_mult*(np.sum(w) - 1)**2
 
-    def get_weights(self, normalized_mutationss):
+    def get_weights(self, normalized_mutations):
         if self.approximate_solution:
             h, rnorm = nnls(self.signatures, normalized_mutations,
                             maxiter=5*self.__weight_len)
-            torch.from_numpy(h).float()
-        else:
-            w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
-            normalized_mutations = torch.from_numpy(np.array(normalized_mutations)).unsqueeze(0)
-            res = minimize(fun=self.__precise_objective,
-                            x0=w,
-                            args=(normalized_mutations,),
-                            bounds=self.__bounds)
-        return torch.from_numpy(h).float()
+            return torch.from_numpy(h).float()
+
+        w = np.random.uniform(low=0, high=1, size=(self.__weight_len,))
+        normalized_mutations = torch.from_numpy(np.array(normalized_mutations)).unsqueeze(0)
+        res = minimize(fun=self.__precise_objective,
+                        x0=w,
+                        args=(normalized_mutations,),
+                        bounds=self.__bounds)
+        return torch.from_numpy(res.x).float()
 
     def get_weights_batch(self, input_batch, n_workers=8):
         result = []

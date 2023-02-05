@@ -26,7 +26,8 @@ class SigNet:
         signatures = read_signatures(file=signatures_path,
                                      mutation_type_order=mutation_type_order)
         self.signatures = signatures # TODO(oleguer): Remove, this is only for debugging
-        self.baseline = Baseline(signatures)
+        self.exact_baseline = Baseline(signatures, approximate_solution=False)
+        self.approx_baseline = Baseline(signatures, approximate_solution=True)
         finetuner = CombinedFinetuner(low_mum_mut_dir=finetuner_realistic_low,
                                       large_mum_mut_dir=finetuner_realistic_large)
 
@@ -71,22 +72,26 @@ class SigNet:
             sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
             normalized_mutation_vec = mutation_vec / sums
   
-            # Run NNLS
-            logging.info("Obtaining NNLS guesses...")
-            self.baseline_guess = self.baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
-                                                                  n_workers=nworkers)
-            logging.info("Obtaining NNLS guesses... DONE")
-
             if only_NNLS:
+                logging.info("Obtaining NNLS guesses...")
+                self.baseline_guess = self.exact_baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
+                                                                  n_workers=nworkers)
+                logging.info("Obtaining NNLS guesses... DONE")
+            
                 result = SigNetResult(mutation_dataset,
-                                  weights=self.baseline_guess,
-                                  lower=torch.full((mutation_dataset.shape[0],72), float('nan')),
-                                  upper=torch.full((mutation_dataset.shape[0],72), float('nan')),
-                                  classification=torch.full((mutation_dataset.shape[0],1), float('nan')),
-                                  normalized_input=normalized_mutation_vec)
+                                      weights=self.baseline_guess,
+                                      lower=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                      upper=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                      classification=torch.full((mutation_dataset.shape[0],1), float('nan')),
+                                      normalized_input=normalized_mutation_vec)
                 return result
 
             # Finetune guess and aproximate errors
+            logging.info("Obtaining NNLS guesses...")
+            self.baseline_guess = self.approx_baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
+                                                                         n_workers=nworkers)
+            logging.info("Obtaining NNLS guesses... DONE")
+            
             num_mutations = torch.sum(mutation_vec, dim=1)
             signet_res = self.finetuner_errorfinder(mutation_dist=normalized_mutation_vec,
                                                     baseline_guess=self.baseline_guess,
