@@ -481,6 +481,58 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
     # plt.savefig(folder_path + '/benchmark.pdf')
     plt.close()
 
+def plot_violins_error(label, guess, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())[:-1]
+
+    num_classes=len(sigs_names)
+    max_val = -1
+
+    fig,ax = plt.subplots(len(num_muts), 1, figsize=(16,12))
+    for i,n_mut in enumerate(num_muts):
+        xt = range(num_classes)
+        xl = sigs_names
+
+        indexes = label[:, -1] == n_mut
+        num_error = label[indexes, :-1] - guess[indexes, :]
+        ax[i].violinplot(num_error.detach().numpy())
+        ax[i].axhline(y=0, color='r', linestyle='--')
+
+        mean_error = torch.sum(num_error, dim=0)
+        mean_error = mean_error/torch.sum(indexes,dim=0)
+
+        ax[i].scatter(np.array(xt)+1, mean_error, color='black', s=10)
+
+        stylize_axes(ax[i], '', '', title)
+        ax[i].set_xticks(np.array(xt)+1)
+        ax[i].set_xticklabels('')
+        ax[i].set_ylabel('N=' + str(int(n_mut)) + '\n' + 'Error' )
+        ylim = 1
+        ax[i].set_ylim([-ylim, ylim])
+
+    ax[-1].set_xticklabels(xl, rotation=80)
+
+    plt.tight_layout()
+    # plt.legend()
+    plt.title(title)
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path[0])
+
+    plt.close()
+    error = label[:, :-1] - guess[:, :]
+    mean_error = torch.mean(error, dim=0)
+    fig, ax = plt.subplots(1, 1, figsize=(16,8))
+    plt.violinplot(error.detach().numpy())
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.scatter(np.array(xt)+1, mean_error, color='black', s=10)
+    plt.xticks(np.array(xt)+1,xl, rotation=80)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path[1])
+
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False, signatures=None, mutation_distributions=None):
     fig, axs = plt.subplots(len(list_of_metrics), figsize=(8,6))
     fig.suptitle("Metrics vs Number of Mutations")
