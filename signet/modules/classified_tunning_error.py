@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-import torch 
+import torch
 
 class ClassifiedFinetunerErrorfinder:
 
@@ -8,6 +8,7 @@ class ClassifiedFinetunerErrorfinder:
                  classifier,
                  finetuner,
                  errorfinder,
+                 baseline=None,
                  classification_cutoff=0.5,
                  device="cpu"):
         """Instantiate a ClassifiedFinetuner
@@ -19,12 +20,17 @@ class ClassifiedFinetunerErrorfinder:
             classification_cutoff (float, optional): Cuttoff at which we decide something is realistic. Defaults to 0.5.
             device (str, optional): Device to use (cuda or cpu). Defaults to "cpu".
         """
+
         self.classification_cutoff = classification_cutoff
         self.device = device
 
         self.classifier = classifier
         self.finetuner = finetuner
         self.errorfinder = errorfinder
+
+        if baseline is None:
+            logging.warning("No baseline provided in the ClassifiedFinetunerErrorfinder module, you won't be able to run accurate_NNLS_on_unfamiliar.")
+        self.accurate_baseline = baseline
 
     def __separate_classification(self, classification, mutation_dist, baseline_guess, num_mut):
         ind = torch.tensor(range(classification.size()[0]))
@@ -60,7 +66,8 @@ class ClassifiedFinetunerErrorfinder:
                  mutation_dist,
                  baseline_guess,
                  num_mut,
-                 cutoff):
+                 cutoff,
+                 accurate_NNLS_on_unfamiliar=True):
 
         logging.info("Detecting out-of-train-distribution points...")
         classification = self.classifier(mutation_dist=mutation_dist,
@@ -71,10 +78,12 @@ class ClassifiedFinetunerErrorfinder:
 
         logging.info("Finetuning NNLS guesses...")
         finetuner_guess_realistic = self.finetuner(mutation_dist=mutation_dist_realistic,
-                                         baseline_guess = baseline_guess_realistic,
-                                         num_mut=num_mut_realistic,
-                                         cutoff_0=cutoff)
-
+                                                   baseline_guess=baseline_guess_realistic,
+                                                   num_mut=num_mut_realistic,
+                                                   cutoff_0=cutoff)
+        if accurate_NNLS_on_unfamiliar:
+            assert self.accurate_baseline is not None, "Accurate baseline model is not provided in the constructor."
+            baseline_guess_random = self.accurate_baseline.get_weights_batch(mutation_dist_random)
         baseline_guess_random = self._apply_cutoff(baseline_guess_random, cutoff)
 
         finetuner_guess = self.__join_and_sort(finetuner_guess_realistic, baseline_guess_random, ind_order)

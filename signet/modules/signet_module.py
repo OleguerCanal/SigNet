@@ -36,7 +36,8 @@ class SigNet:
 
         self.finetuner_errorfinder = ClassifiedFinetunerErrorfinder(classifier=classifier,
                                                                     finetuner=finetuner,
-                                                                    errorfinder=errorfinder)
+                                                                    errorfinder=errorfinder,
+                                                                    baseline=self.exact_baseline)
         self.opportunities_name_or_path = opportunities_name_or_path\
             if opportunities_name_or_path != 'None' else None
         logging.info("SigNet loaded!")
