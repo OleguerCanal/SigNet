@@ -1,6 +1,7 @@
 import os
 import sys
 
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -20,60 +21,61 @@ def generate_and_guess(labels):
 
     # Guess
     signet = SigNet()
-    col_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
-    inputs_df = pd.DataFrame(inputs.numpy(), index=col_names)
-    results = signet(mutation_dataset=inputs_df, nworkers=-1, numpy=False)
+    results = signet(mutation_dataset=inputs, nworkers=8, numpy=False)
 
     return results.weights, results.classification
 
 
 if __name__ == "__main__":
     col_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
-    print(col_names)
-    print(len(col_names))
     inputs = torch.rand(10, 96)
-    inputs_df = pd.DataFrame(inputs.numpy(), columns=col_names)
+    # inputs_df = pd.DataFrame(inputs.numpy(), columns=col_names)
 
 
-    # real_data = csv_to_tensor(DATA + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
-    # labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
+    real_data = csv_to_tensor(DATA + "/real_data/sigprofiler_not_norm_PCAWG.csv", header=0, index_col=0)
+    labels = torch.cat([real_data, torch.zeros(real_data.size(0), 7).to(real_data)], dim=1)
 
-    # # SUbset for debugging TODO: remove
+    # Subset for debugging TODO: remove
     # labels = labels[:10, :]
 
-    # """torch.sum(labels, dim=0)):  (this is to see which ones are zero)
-    #    [3.1198e+03, 6.4312e+02, 1.6833e+03, 5.0126e+02, 1.0887e+04, 3.4905e+01,
-    #     5.6165e+02, 1.6601e+02, 2.6946e+01, 3.0822e+01, 1.0344e+02, 2.7881e+02,
-    #     4.0360e+01, 1.5465e+01, 1.0614e+01, 4.2280e+02, 6.1960e+02, 6.7205e+00,
-    #     1.6920e+01, 4.3577e+01, 1.7241e+02, 3.6390e+02, 8.6510e+02, 2.5683e+01,
-    #     5.0930e+00, 5.6150e+00, 6.3954e+01, 9.9882e+00, 7.3592e+00, 0.0000e+00,
-    #     4.0384e+01, 0.0000e+00, 3.3613e+01, 1.6921e+02, 5.2818e+01, 1.2013e+01,
-    #     5.6520e+00, 4.8003e+00, 1.1589e+01, 2.3450e+01, 7.8677e+01, 6.0066e+01,
-    #     1.8791e+01, 4.8162e+01, 6.2619e+03, 7.2469e+01, 0.0000e+00, 2.1053e+00,
-    #     9.4051e+01, 4.2647e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
-    #     0.0000e+00, 1.8211e+01, 6.5693e+00, 3.3525e+00, 1.1205e+00, 0.0000e+00,
-    #     1.2480e+01, 0.0000e+00, 1.9151e+01, 0.0000e+00, 1.2872e+01, 0.0000e+00,
-    #     0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
-    #     4.6405e+08]
-    # """
+    """torch.sum(labels, dim=0)):  (this is to see which ones are zero)
+        3.1198e+02, 6.4312e+01, 1.6833e+02, 5.0126e+01, 1.0887e+03, 3.4905e+00,
+        5.6165e+01, 1.6601e+01, 2.6946e+00, 3.0822e+00, 1.0344e+01, 2.7881e+01,
+        4.0360e+00, 1.5465e+00, 1.0614e+00, 4.2280e+01, 6.1960e+01, 6.7205e-01,
+        1.6920e+00, 4.3577e+00, 1.7241e+01, 3.6390e+01, 8.6510e+01, 2.5683e+00,
+        5.0930e-01, 5.6150e-01, 6.3954e+00, 9.9882e-01, 7.3592e-01, 0.0000e+00,
+        4.0384e+00, 0.0000e+00, 3.3613e+00, 1.6921e+01, 5.2818e+00, 1.2013e+00,
+        5.6520e-01, 4.8003e-01, 1.1589e+00, 2.3450e+00, 7.8677e+00, 6.0066e+00,
+        1.8791e+00, 4.8162e+00, 6.2619e+02, 7.2469e+00, 0.0000e+00, 2.1053e-01,
+        9.4051e+00, 4.2647e-01, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
+        0.0000e+00, 1.8211e+00, 6.5693e-01, 3.3525e-01, 1.1205e-01, 0.0000e+00,
+        1.2480e+00, 0.0000e+00, 1.9151e+00, 0.0000e+00, 1.2872e+00, 0.0000e+00,
+        0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00])
+    """
 
-    # signature_to_test = -2
-    # set_weight, guessed_weight, unfamiliar_prop = [], [], []
-    # for fake_weight in np.linspace(0, 1, 10):
-    #     labels[:, signature_to_test] = fake_weight
-    #     # normalize:
-    #     labels = labels / torch.sum(labels, dim=1, keepdim=True)
+    signature_to_test = 31
+    set_weights, guessed_weights, unfamiliar_props = [], [], []
+    for fake_weight in np.linspace(0, 1, 10):
+        print("fake_weight", fake_weight)
+        labels[:, signature_to_test] = fake_weight
+        # normalize:
+        labels = labels / torch.sum(labels, dim=1, keepdim=True)
 
-    #     print(labels.shape)
-    #     guesses, labels = generate_and_guess(labels)
+        guesses, classification = generate_and_guess(labels)
         
-    #     guessed_weight, unfamiliar_prop = torch.mean(guesses[:, signature_to_test])
+        guessed_weight = torch.mean(guesses[:, signature_to_test])
+        unfamiliar_prop = torch.mean((classification < 0.5).to(torch.float))
 
-    #     set_weight.append(fake_weight)
-    #     guessed_weight.append(guessed_weight)
-    #     unfamiliar_prop.append(unfamiliar_prop)
+        set_weights.append(fake_weight)
+        guessed_weights.append(guessed_weight)
+        unfamiliar_props.append(unfamiliar_prop)
 
-    # # TODO: Plot this
-    # print(set_weight)
-    # print(guessed_weight)
-    # print(unfamiliar_prop)
+    # TODO: Plot this
+    print(set_weights)
+    print(guessed_weights)
+    print(unfamiliar_props)
+
+    plt.plot(set_weights, guessed_weights, label="guessed weights")
+    plt.plot(set_weights, unfamiliar_props, label="unfamiliar proportion")
+    plt.legend()
+    plt.show()
