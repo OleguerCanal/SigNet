@@ -112,6 +112,8 @@ class DataGenerator:
 
         logging.info("Sampling from labels...")
         for i, num_mut in tqdm(enumerate(nummuts)):
+            if i >= labels.shape[0]:
+                break
             # Compute resulting signature
             signature = torch.einsum("ij,j->i", (self.signatures, labels[i]))
 

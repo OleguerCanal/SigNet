@@ -40,12 +40,13 @@ class SigNet:
             if opportunities_name_or_path != 'None' else None
         logging.info("SigNet loaded!")
 
+    @torch.no_grad()
     def __call__(self,
                  mutation_dataset,
                  numpy=True,
                  only_NNLS=False,
                  nworkers=1,
-                 cutoff = 0.01):
+                 cutoff=0.01):
         """Get weights of each signature in lexicographic wrt 1-mer
 
         Args:
@@ -56,50 +57,53 @@ class SigNet:
         Returns:
             results (dict)
         """
-        with torch.no_grad():
-            # Sort input data columns
-            mutation_order = pd.read_excel(os.path.join(DATA, "mutation_type_order.xlsx"))
+        # Sort input data columns
+        mutation_order = pd.read_excel(os.path.join(DATA, "mutation_type_order.xlsx"))
+
+        if type(mutation_dataset) == pd.DataFrame:
             mutation_dataset = mutation_dataset[list(mutation_order['Type'])]
             sample_names = mutation_dataset.index
-
             mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float, device='cpu')
+        elif type(mutation_dataset) == torch.Tensor:
+            mutation_vec = mutation_dataset
+            sample_names = None
+        
+        # Normalize input data
+        if self.opportunities_name_or_path is not None:
+            mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
 
-            # Normalize input data
-            if self.opportunities_name_or_path is not None:
-                mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
+        sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
+        normalized_mutation_vec = mutation_vec / sums
 
-            sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
-            normalized_mutation_vec = mutation_vec / sums
-  
-            # Run NNLS
-            logging.info("Obtaining NNLS guesses...")
-            self.baseline_guess = self.baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
-                                                                  n_workers=nworkers)
-            logging.info("Obtaining NNLS guesses... DONE")
+        # Run NNLS
+        logging.info("Obtaining NNLS guesses...")
+        self.baseline_guess = self.baseline.get_weights_batch(input_batch=normalized_mutation_vec, 
+                                                                n_workers=nworkers)
+        logging.info("Obtaining NNLS guesses... DONE")
 
-            if only_NNLS:
-                result = SigNetResult(mutation_dataset,
-                                  weights=self.baseline_guess,
-                                  lower=torch.full((mutation_dataset.shape[0],72), float('nan')),
-                                  upper=torch.full((mutation_dataset.shape[0],72), float('nan')),
-                                  classification=torch.full((mutation_dataset.shape[0],1), float('nan')),
-                                  normalized_input=normalized_mutation_vec)
-                return result
-
-            # Finetune guess and aproximate errors
-            num_mutations = torch.sum(mutation_vec, dim=1)
-            signet_res = self.finetuner_errorfinder(mutation_dist=normalized_mutation_vec,
-                                                    baseline_guess=self.baseline_guess,
-                                                    num_mut=num_mutations.reshape(-1, 1),
-                                                    cutoff=cutoff)
+        if only_NNLS:
             result = SigNetResult(mutation_dataset,
-                                  weights=signet_res["finetuner_guess"],
-                                  lower=signet_res["error_lower"],
-                                  upper=signet_res["error_upper"],
-                                  classification=signet_res["classification"],
-                                  normalized_input=normalized_mutation_vec)
-            
-            logging.info("Success: SigNet result obtained!")
+                                weights=self.baseline_guess,
+                                lower=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                upper=torch.full((mutation_dataset.shape[0],72), float('nan')),
+                                classification=torch.full((mutation_dataset.shape[0],1), float('nan')),
+                                normalized_input=normalized_mutation_vec)
+            return result
+
+        # Finetune guess and aproximate errors
+        num_mutations = torch.sum(mutation_vec, dim=1)
+        signet_res = self.finetuner_errorfinder(mutation_dist=normalized_mutation_vec,
+                                                baseline_guess=self.baseline_guess,
+                                                num_mut=num_mutations.reshape(-1, 1),
+                                                cutoff=cutoff)
+        result = SigNetResult(mutation_dataset,
+                                weights=signet_res["finetuner_guess"],
+                                lower=signet_res["error_lower"],
+                                upper=signet_res["error_upper"],
+                                classification=signet_res["classification"],
+                                normalized_input=normalized_mutation_vec)
+        
+        logging.info("Success: SigNet result obtained!")
         return result
 
 class SigNetResult:
