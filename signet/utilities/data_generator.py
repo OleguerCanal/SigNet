@@ -102,10 +102,10 @@ class DataGenerator:
         labels = torch.cat([labels]*augmentation, dim = 0).to(torch.float32)
         if nummuts is None:
             nummuts = self._get_nummuts(split, large_low, size=labels.shape[0])
-        else:
-            nummut_means = torch.cat([nummuts]*augmentation, dim=0)
-            nummut_stds = nummut_means/10.0
-            nummuts = torch.clip(torch.distributions.normal.Normal(nummut_means, nummut_stds).sample().type(torch.int64), 10, 1e5)
+        # else:
+            # nummut_means = torch.cat([nummuts]*augmentation, dim=0)
+            # nummut_stds = nummut_means/10.0
+            # nummuts = torch.clip(torch.distributions.normal.Normal(nummut_means, nummut_stds).sample().type(torch.int64), 10, 1e5)
 
         input_batch = torch.empty((labels.shape[0], 96))
         labels_batch = torch.empty((labels.shape[0], self.total_signatures + 1))

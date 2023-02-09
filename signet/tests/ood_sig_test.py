@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import copy
 
 from signet import DATA
 from signet.modules.signet_module import SigNet
@@ -17,7 +18,15 @@ def generate_and_guess(labels):
                                  mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx"))
 
     data_generator = DataGenerator(signatures=signatures, normalize=False)
-    inputs, labels = data_generator.make_input(labels=labels, split="train", large_low="large")
+    
+    all_num_muts = True
+    if all_num_muts == False:
+        # For a given number of mutations:
+        muts = [10000]*10000
+        inputs, labels = data_generator.make_input(labels=labels, split="train", large_low="low", nummuts=muts)
+    else:
+        # For the training set:
+        inputs, labels = data_generator.make_input(labels=labels, split="train", large_low="low", nummuts=None)
 
     # Guess
     signet = SigNet()
@@ -28,7 +37,7 @@ def generate_and_guess(labels):
 
 if __name__ == "__main__":
     col_names = list(pd.read_excel(os.path.join(DATA, "data.xlsx")).columns)[1:]
-    inputs = torch.rand(10, 96)
+    # inputs = torch.rand(10, 96)
     # inputs_df = pd.DataFrame(inputs.numpy(), columns=col_names)
 
 
@@ -53,29 +62,42 @@ if __name__ == "__main__":
         0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00])
     """
 
-    signature_to_test = 31
-    set_weights, guessed_weights, unfamiliar_props = [], [], []
-    for fake_weight in np.linspace(0, 1, 10):
-        print("fake_weight", fake_weight)
-        labels[:, signature_to_test] = fake_weight
-        # normalize:
-        labels = labels / torch.sum(labels, dim=1, keepdim=True)
+    list_signatures_to_test = [29, 31, 46, 50, 51, 52, 53, 54, 59,61, 63, 65, 66, 67, 68, 69, 70, 71]
+    fig,ax = plt.subplots(6,3, figsize=(80, 60))
+    for i, signature_to_test in enumerate(list_signatures_to_test):
+        set_weights, guessed_weights, unfamiliar_props = [], [], []
+        for fake_weight in np.linspace(0, 1, 11):
+            # print("fake_weight", fake_weight)
+            labels_new = copy.deepcopy(labels)
+            labels_new[:, signature_to_test] = fake_weight
+            # normalize:
+            labels_new = labels_new / torch.sum(labels_new, dim=1, keepdim=True)
 
-        guesses, classification = generate_and_guess(labels)
-        
-        guessed_weight = torch.mean(guesses[:, signature_to_test])
-        unfamiliar_prop = torch.mean((classification < 0.5).to(torch.float))
+            guesses, classification = generate_and_guess(labels_new)
+            
+            guessed_weight = torch.mean(guesses[:, signature_to_test])
+            # if guessed_weight>0:
+            #     print('Weight>0!!!!!')
+            #     print(guessed_weight)
+            unfamiliar_prop = torch.mean((classification < 0.5).to(torch.float))
 
-        set_weights.append(fake_weight)
-        guessed_weights.append(guessed_weight)
-        unfamiliar_props.append(unfamiliar_prop)
+            set_weights.append(fake_weight)
+            guessed_weights.append(guessed_weight)
+            unfamiliar_props.append(unfamiliar_prop)
 
-    # TODO: Plot this
-    print(set_weights)
-    print(guessed_weights)
-    print(unfamiliar_props)
+        # TODO: Plot this
+        # print(set_weights)
+        # print(guessed_weights)
+        # print(unfamiliar_props)
 
-    plt.plot(set_weights, guessed_weights, label="guessed weights")
-    plt.plot(set_weights, unfamiliar_props, label="unfamiliar proportion")
+        c = i%3
+        r = i//3
+        ax[r,c].plot(set_weights, guessed_weights, '-o', label="guessed weights")
+        ax[r,c].plot(set_weights, unfamiliar_props, '-o', label="unfamiliar proportion" )
+        ax[r,c].plot([0,1], [0,1], '-r')
+        ax[r,c].set_xlabel('Weight of signature %s'%col_names[signature_to_test])
+        ax[r,c].set_title(col_names[signature_to_test])
+        ax[r,c].set_ylim([0,1])
+    # fig.tight_layout()
     plt.legend()
     plt.show()
