@@ -28,6 +28,8 @@ def get_musical_guess(inputs, signatures):
     musical_input.index = musical_signatures.index
 
     musical_guess, _ = musical.refit.refit(musical_input, musical_signatures, method='likelihood_bidirectional', thresh=0.001)
+    musical_guess.transpose().to_csv("musical_guess.csv")
+
     musical_guess = torch.from_numpy(musical_guess.transpose().values).to(torch.float)
     return musical_guess
 
@@ -37,7 +39,7 @@ data_path = DATA + "/datasets/"
 inputs = pd.read_csv(data_path + "test_input.csv", header=None, index_col=None)
 labels = pd.read_csv(data_path + "test_label.csv", header=None, index_col=None)
 
-inputs, labels = subsample(1000, inputs, labels)
+# inputs, labels = subsample(1000, inputs, labels)
 
 num_mut = labels[72]
 print("data loaded")
