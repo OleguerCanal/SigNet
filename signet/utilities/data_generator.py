@@ -110,8 +110,11 @@ class DataGenerator:
         input_batch = torch.empty((labels.shape[0], 96))
         labels_batch = torch.empty((labels.shape[0], self.total_signatures + 1))
 
+        print(len(nummuts))
+        print(len(labels))
+
         logging.info("Sampling from labels...")
-        for i, num_mut in tqdm(enumerate(nummuts)):
+        for i, num_mut in tqdm(enumerate(nummuts[:len(labels)])):
             # Compute resulting signature
             signature = torch.einsum("ij,j->i", (self.signatures, labels[i]))
 

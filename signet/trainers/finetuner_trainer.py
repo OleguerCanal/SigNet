@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import wandb
 
+from signet import DATA
 from signet.loggers.finetuner_logger import FinetunerLogger
 from signet.models import FineTunerLowNumMut, FineTunerLargeNumMut
 from signet.utilities.metrics import get_fp_fn_soft, get_classification_metrics, get_kl_divergence
@@ -82,6 +83,7 @@ class FinetunerTrainer:
         l_vals = collections.deque(maxlen=50)
         max_found = -np.inf
         step = 0
+        bias = None
         for _ in range(self.iterations):
             for train_input, train_label, train_baseline, num_mut, _ in tqdm(dataloader):
                 model.train()  # NOTE: Very important! Otherwise we zero the gradient
@@ -98,6 +100,9 @@ class FinetunerTrainer:
                                          label=train_label,
                                          FP=train_FP,
                                          FN=train_FN)
+                
+                if bias is not None:
+                    train_loss += torch.mean(torch.abs(torch.mean(train_prediction - train_label, 0) - bias))
 
                 train_loss.backward()
                 optimizer.step()
@@ -110,9 +115,12 @@ class FinetunerTrainer:
                         val_prediction = model(self.val_dataset.inputs, self.val_dataset.prev_guess, self.val_dataset.num_mut)
                     else:
                         val_prediction = model(self.val_dataset.inputs, self.val_dataset.num_mut)
-                    # val_FP, val_FN = None, None
+                    
+                    val_prediction = val_prediction[:, :self.num_classes]  # remove unknown class
+
+                    bias = torch.mean(val_prediction - self.val_dataset.labels, 0)
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
-                                                    prediction_batch=val_prediction)
+                                                    prediction_batch=val_prediction)                    
                     val_loss = self.__loss(prediction=val_prediction,
                                            label=self.val_dataset.labels,
                                            FP=val_FP,
@@ -140,7 +148,7 @@ class FinetunerTrainer:
         return max_found
 
 
-def train_finetuner(config, data_folder="../data", name=None, train_data=None, val_data=None) -> float:
+def train_finetuner(config, data_folder=DATA, name=None, train_data=None, val_data=None) -> float:
     import os
     # Select training device
     dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
@@ -165,10 +173,10 @@ def train_finetuner(config, data_folder="../data", name=None, train_data=None, v
         #                                 data_folder=data_folder,
         #                                 device=dev)
 
-        train_data, val_data = read_data_final_finetuner(device = dev,
-                                                         data_id = config["data_id"],
-                                                         data_folder = "../data/", 
-                                                         network_type = config["network_type"])
+        train_data, val_data = read_data_final_finetuner(device=dev,
+                                                         data_id=config["data_id"],
+                                                         data_folder=DATA, 
+                                                         network_type=config["network_type"])
     
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,

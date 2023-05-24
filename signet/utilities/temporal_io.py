@@ -93,7 +93,11 @@ def read_data_final_finetuner(device, data_id, data_folder=DATA, network_type="l
                                    seed=None,
                                    shuffle=True)
 
-    train_input, train_label = data_generator.make_input(oversampled_weights, "train", network_type, normalize=True)
+    train_input, train_label = data_generator.make_input(
+        labels=oversampled_weights,
+        split="train",
+        large_low=network_type,
+    )
     
     # Run Baseline
     sf = Baseline(signatures)

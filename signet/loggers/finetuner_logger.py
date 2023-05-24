@@ -1,5 +1,8 @@
 import os
 
+import numpy as np
+from matplotlib import pyplot as plt
+import torch
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 
@@ -36,6 +39,13 @@ class FinetunerLogger:
 
         wandb.log({"train_loss": train_loss})
         wandb.log({"val_loss": val_loss})
+        
+        plt.close("all")
+        bias_figure = plt.figure()
+        bias = torch.mean(val_prediction - val_label, 0).detach().cpu().numpy()
+        plt.bar(list(range(bias.shape[-1])), bias)
+        wandb.log({"val_bias_vector": wandb.Image(bias_figure)})
+        wandb.log({"val_bias": np.sum(np.abs(bias))})
 
         for metric_name in self.metrics.keys():
             metric = self.metrics[metric_name]
