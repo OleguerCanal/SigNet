@@ -1,4 +1,5 @@
 from audioop import mul
+from turtle import color
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
@@ -81,32 +82,38 @@ def plot_metric_vs_mutations_classifier(guess, label, num_muts_list, plot_path =
     # fig.savefig(plot_path+'detector.pdf')
 
 def plot_metric_vs_mutations_classifier_superlow(guess, label, num_muts_list, plot_path = None):
-    fig, axs = plt.subplots(3, figsize=(8,4))
-    fig.suptitle("Detector Performance")
+    fig, axs = plt.subplots(4, figsize=(8,8))
+    fig.suptitle("Detector performance for very low mutation counts")
     
-    num_muts = np.unique(num_muts_list.detach().numpy())
+    num_muts = np.unique(num_muts_list)
     
     marker_size = 3
     line_width = 0.5
-    values = np.zeros((3, len(num_muts)))
+    values = np.zeros((4, len(num_muts)))
     for i, num_mut in enumerate(num_muts):
         indexes = num_muts_list == num_mut
         values[0,i] = accuracy(label=label[indexes], prediction=guess[indexes])
         values[1,i] = false_realistic(label=label[indexes], prediction=guess[indexes])
         values[2,i] = false_random(label=label[indexes], prediction=guess[indexes])
+        label_i = label[indexes]
+        guess_i = guess[indexes]
+        TP = label_i[guess_i == 1] == 1
+        FP = label_i[guess_i == 1] == 0
+        values[3,i] = torch.true_divide(torch.sum(TP), torch.sum(TP)+torch.sum(FP))*100
         
     axs[0].plot(num_muts, values[0,:], marker='o',linewidth=line_width, markersize=marker_size)
     axs[1].plot(num_muts, values[1,:], marker='o',linewidth=line_width, markersize=marker_size)
     axs[2].plot(num_muts, values[2,:], marker='o',linewidth=line_width, markersize=marker_size)
+    axs[3].plot(num_muts, values[3,:], marker='o',linewidth=line_width, markersize=marker_size)
 
     print(values)
-    y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)"]
+    y_labels = ["Accuracy (%)", "False Realistic (%)", "False Random (%)", "Positive Predictive Value (%)"]
     for i, axes in enumerate(axs.flat):
-        stylize_axes(axes, '', 'log(N)', y_labels[i])
+        stylize_axes(axes, '', 'N', y_labels[i])
 
     fig.tight_layout()
-    plt.show()
-    # fig.savefig(plot_path+'detector.pdf')
+    # plt.show()
+    fig.savefig(plot_path+'signet_supp_detector_superlow.pdf')
     
 # FINETUNER PLOTS:
 def plot_crossval(values, num_muts):
@@ -428,10 +435,12 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
     Sensitivity         Specificity
     ReconstructionMSE   Legend
     '''
-    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(8,10))
+    fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(16,4))
+    # fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(8,10))
 
     num_muts = np.unique(label[:,-1].detach().numpy())
-    list_of_metrics = ["MAE", "KL", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %", "reconstruction_error"]
+    # list_of_metrics = ["MAE", "KL", "accuracy %", "precision %", "sens: tp/p %", "spec: tn/n %", "reconstruction_error"]
+    list_of_metrics = ["accuracy %", "sens: tp/p %", "KL"]
 
     values = np.zeros((len(list_of_methods), len(num_muts), len(list_of_metrics)))
     for method_index in range(len(list_of_methods)):
@@ -452,13 +461,20 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
 
     marker_size = 3
     line_width = 0.5
-    p1 = axs[0,0].plot(np.log10(num_muts), np.transpose(values[:,:,0]), marker='o',linewidth=line_width, markersize=marker_size)
-    p2 = axs[0,1].plot(np.log10(num_muts), np.transpose(values[:,:,1]), marker='o',linewidth=line_width, markersize=marker_size)
-    p3 = axs[1,0].plot(np.log10(num_muts), np.transpose(values[:,:,2]), marker='o',linewidth=line_width, markersize=marker_size)
-    p4 = axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
-    p5 = axs[2,0].plot(np.log10(num_muts), np.transpose(values[:,:,4]), marker='o',linewidth=line_width, markersize=marker_size)
-    p6 = axs[2,1].plot(np.log10(num_muts), np.transpose(values[:,:,5]), marker='o',linewidth=line_width, markersize=marker_size)
-    p7 = axs[3,0].plot(np.log10(num_muts), np.transpose(values[:,:,6]), marker='o',linewidth=line_width, markersize=marker_size)
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#fad6a5', '#36454f', '#bcbd22', '#17becf']
+    p1 = axs[0].plot(np.log10(num_muts), np.transpose(values[:,:,0]), marker='o',linewidth=line_width, markersize=marker_size)
+    p2 = axs[1].plot(np.log10(num_muts), np.transpose(values[:,:,1]), marker='o',linewidth=line_width, markersize=marker_size)
+    p3 = axs[2].plot(np.log10(num_muts), np.transpose(values[:,:,2]), marker='o',linewidth=line_width, markersize=marker_size)
+    for idx, color in enumerate(colors):
+        p1[idx].set_color(color)
+        p2[idx].set_color(color)
+        p3[idx].set_color(color)
+    # p4 = axs[1,1].plot(np.log10(num_muts), np.transpose(values[:,:,3]), marker='o',linewidth=line_width, markersize=marker_size)
+    # p5 = axs[2,0].plot(np.log10(num_muts), np.transpose(values[:,:,4]), marker='o',linewidth=line_width, markersize=marker_size)
+    # p6 = axs[2,1].plot(np.log10(num_muts), np.transpose(values[:,:,5]), marker='o',linewidth=line_width, markersize=marker_size)
+    # p7 = axs[3,0].plot(np.log10(num_muts), np.transpose(values[:,:,6]), marker='o',linewidth=line_width, markersize=marker_size)
     
     # lines_labels = [ax.get_legend_handles_labels() for ax in axs.flat]
     # lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -466,7 +482,7 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
     # print(labels)
 
     xlabel = 'log(N)'
-    ylabel = ["MAE", "KL divergence", "Accuracy (%)", "Precision (%)", "Sensitivity (%)", "Specificity (%)", "Reconstruction MSE"]
+    ylabel = ["Accuracy (%)", "Sensitivity (%)", "KL divergence"]
 
     for i, axes in enumerate(axs.flat):
         if i<len(axs.flat)-1:
@@ -475,10 +491,10 @@ def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label,
                 stylize_axes(axes, '', xlabel, ylabel[i])
         else:
             axes.set_axis_off()
-            axes.legend(p7, list_of_methods, loc='center left')#, prop={'size': 28})
+            axes.legend(p3, list_of_methods, loc='center left')#, prop={'size': 28})
     fig.tight_layout()
-    plt.show()
-    # plt.savefig(folder_path + '/benchmark.pdf')
+    # plt.show()
+    plt.savefig(folder_path + '/benchmark_MuSiCal.pdf')
     plt.close()
 
 def plot_metric_vs_mutations(list_of_metrics, list_of_methods, list_of_guesses, label, plot_path=None, show=False, signatures=None, mutation_distributions=None):
@@ -568,7 +584,14 @@ def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, s
     num_classes=len(sigs_names)
     max_val = -1
 
-    fig,ax = plt.subplots(len(list_of_methods), 1, figsize=(12,3))
+    fig_width_cm = 21                                # A4 page
+    fig_height_cm = 29.7
+    inches_per_cm = 1 / 2.54                         # Convert cm to inches
+    fig_width = fig_width_cm * inches_per_cm         # width in inches
+    fig_height = fig_height_cm * inches_per_cm       # height in inches
+    fig_size = [fig_width, fig_height]
+
+    fig,ax = plt.subplots(len(list_of_methods), 1, figsize=fig_size)
     for i,method in enumerate(list_of_methods):
         guess = guess_list[i]
         values = []
@@ -581,27 +604,171 @@ def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, s
    
         for j, (n_mut, array) in enumerate(values):
             max_val = max(max_val, np.max(array))
-            ax.scatter(range(num_classes),
+            ax[i].scatter(range(num_classes),
                     array,
                     color=colors[j],
                     label="%s"%str(int(n_mut)),
-                    s=7.0*(j+1),
+                    s=3.0*(j+1),
                     alpha=0.3)
 
-        stylize_axes(ax, '', '', title)
+        stylize_axes(ax[i], '', '', title)
         xt = range(num_classes)
         xl = sigs_names
 
-        ax.set_xticks(xt)
-        ax.set_xticklabels('')
-        ax.set_ylabel(method + ' error')
-        ax.set_ylim([-0.03, 0.40])
+        ax[i].set_xticks(xt)
+        ax[i].set_xticklabels('')
+        ax[i].set_ylabel(method + "\n" + 'MAE', fontsize=9)
+        ax[i].set_yticks([0,0.2,0.4])
+        ax[i].set_ylim([-0.03, 0.4])
 
-    ax.set_xticklabels(xl, rotation=80)
+    ax[-1].set_xticklabels(xl, rotation=80)
 
     plt.tight_layout()
-    # plt.legend()
+    ax[0].legend(loc=1, fontsize='xx-small')
     plt.title(title)
+
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
+
+def plot_percentage_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+
+    num_classes=len(sigs_names)
+    max_val = -1
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#fad6a5', '#36454f', '#bcbd22', '#17becf']
+    fig_width_cm = 21                                # A4 page
+    fig_height_cm = 29.7
+    inches_per_cm = 1 / 2.54                         # Convert cm to inches
+    fig_width = fig_width_cm * inches_per_cm         # width in inches
+    fig_height = fig_height_cm * inches_per_cm       # height in inches
+    fig_size = [fig_width, fig_height]
+
+    fig,ax = plt.subplots(9, 1, figsize=fig_size)
+    for n,n_mut in enumerate(num_muts[:-1]):
+        values = np.zeros((num_classes, len(list_of_methods)))
+        label_values = np.zeros((num_classes))
+        indexes = label[:, -1] == n_mut
+        for i,method in enumerate(list_of_methods):
+            guess = guess_list[i]
+            guess_i = guess[indexes]
+            label_i = label[indexes, :-1]
+            for j in range(num_classes):
+                values[j,i] = (torch.sum(guess_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+                label_values[j] = (torch.sum(label_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+   
+            label_values_i =np.sort(label_values)
+            sorted_ind = np.argsort(label_values)
+            values_i = np.array(values)[sorted_ind,i]
+            ax[n].plot(list(label_values_i),
+                        values_i,
+                        c=colors[i],
+                        marker='o',
+                        alpha=0.6,
+                        markersize = 3,
+                        linewidth = 0.5)#,
+                        #s=20)
+        signames_plot_val = np.sort(label_values)[61:]
+        signames_plot_val = np.concatenate((signames_plot_val,np.array([100])),axis=0)
+        signames_plot = np.argsort(label_values)[61:]
+        if n==4:
+            stylize_axes(ax[n], int(n_mut), '', 'percentage samples guessed')
+        else:
+            stylize_axes(ax[n], int(n_mut), '', '')
+        ax[n].plot(range(100), range(100), '--', c='red', linewidth = 1)
+        ax[n].set_xticks(signames_plot_val)
+        ax[n].set_xticklabels('')
+
+        # ax[n].set_xticklabels('')
+    #     xt = range(num_classes)
+    #     xl = sigs_names
+
+    #     ax[i].set_xticks(xt)
+    #     ax[i].set_xticklabels('')
+    #     ax[i].set_ylabel(method + "\n" + 'MAE', fontsize=9)
+    #     ax[i].set_yticks([0,0.2,0.4])
+    #     ax[i].set_ylim([-0.03, 0.4])
+
+
+    plt.tight_layout(rect=[0.02, 0.08, 0.8, 1])
+    ax[-1].set_xticks(signames_plot_val)
+    ax[-1].set_xticklabels(np.concatenate((np.array(sigs_names)[signames_plot],np.array(['100'])),axis=0), rotation=80)
+    stylize_axes(ax[-1], int(n_mut), 'percentage samples present', '')
+    ax[4].legend(list_of_methods+['True line'], loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
+    # ax[0].legend(['True line']+list_of_methods,
+    #        scatterpoints=1,
+    #        loc='upper left',
+    #        fontsize=8)
+    # ax[0].legend(loc=1, fontsize='xx-small')
+    # plt.title(title)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
+
+def plot_percentage_all_methods_fig1(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+
+    num_classes=len(sigs_names)
+    max_val = -1
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#fad6a5', '#36454f', '#bcbd22', '#17becf']
+
+    fig,ax = plt.subplots(2, 1, figsize=(12,12))
+    for n,n_mut in enumerate(num_muts[[2,5]]):
+        values = np.zeros((num_classes, len(list_of_methods)))
+        label_values = np.zeros((num_classes))
+        indexes = label[:, -1] == n_mut
+        for i,method in enumerate(list_of_methods):
+            guess = guess_list[i]
+            guess_i = guess[indexes]
+            label_i = label[indexes, :-1]
+            for j in range(num_classes):
+                values[j,i] = (torch.sum(guess_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+                label_values[j] = (torch.sum(label_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+   
+            label_values_i =np.sort(label_values)
+            sorted_ind = np.argsort(label_values)
+            values_i = np.array(values)[sorted_ind,i]
+            if method == 'SigNet':
+                ax[n].plot(list(label_values_i),
+                            values_i,
+                            c=colors[i],
+                            marker='o',
+                            alpha=0.6,
+                            markersize = 3,
+                            linewidth = 1.5)#,
+                            #s=20)
+            else:
+                ax[n].plot(list(label_values_i),
+                        values_i,
+                        c=colors[i],
+                        marker='o',
+                        alpha=0.6,
+                        markersize = 3,
+                        linewidth = 0.5)#,
+                        #s=20)
+            
+        signames_plot_val = np.sort(label_values)[61:]
+        signames_plot_val = np.concatenate((signames_plot_val,np.array([100])),axis=0)
+        signames_plot = np.argsort(label_values)[61:]
+        stylize_axes(ax[n], 'N=' + str(int(n_mut)), '', '')
+        ax[n].plot(range(100), range(100), '--', c='red', linewidth = 1)
+        ax[n].set_xticks(signames_plot_val)
+        ax[n].set_xticklabels('')
+
+    plt.tight_layout(rect=[0.02, 0.08, 0.8, 1])
+    fig.text(0.04, 0.5, 'Percentage samples guessed', va='center', rotation='vertical')
+    ax[-1].set_xticks(signames_plot_val)
+    ax[-1].set_xticklabels(np.concatenate((np.array(sigs_names)[signames_plot],np.array(['100'])),axis=0), rotation=80)
+    stylize_axes(ax[-1], 'N=' + str(int(n_mut)), 'Percentage samples present', '')
+    ax[1].legend(list_of_methods+['True line'], loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
 
     if show:
         plt.show()
@@ -618,7 +785,7 @@ def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show
     for i, (n_mut, array) in enumerate(values):
         max_val = max(max_val, np.max(array))
         ax.scatter(range(num_classes),
-                   array,
+                   array, '-.',
                    color=colors[i],
                    label="%s"%str(int(n_mut)),
                    s=7.0*(i+1),
@@ -676,54 +843,54 @@ def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, s
     p1 = plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE " + title, plot_path=plot_path, show=show)
     return p1
 
-def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
-    num_muts = np.unique(label[:,-1].detach().numpy())
+# def plot_distance_vs_mutations_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+#     num_muts = np.unique(label[:,-1].detach().numpy())
 
-    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
-    num_classes =len(sigs_names)
-    max_val = -1
+#     colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+#     num_classes =len(sigs_names)
+#     max_val = -1
 
-    # fig, ax = plt.subplots(int(len(list_of_methods)/2), 2)
-    fig, ax = plt.subplots(len(list_of_methods), 1, figsize=(12,9))
-    for i,method in enumerate(list_of_methods):
-        guess = guess_list[i]
-        values = []
-        for n_mut in num_muts[:-1]:
-            indexes = label[:, -1] == n_mut
-            num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
-            num_error = num_error / torch.sum(indexes, dim=0)
-            # values.append((n_mut, num_error.detach().numpy()))
-            values.append((n_mut, np.log10(num_error.detach().numpy())))
+#     # fig, ax = plt.subplots(int(len(list_of_methods)/2), 2)
+#     fig, ax = plt.subplots(len(list_of_methods), 1, figsize=(12,9))
+#     for i,method in enumerate(list_of_methods):
+#         guess = guess_list[i]
+#         values = []
+#         for n_mut in num_muts[:-1]:
+#             indexes = label[:, -1] == n_mut
+#             num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :]), dim=0)
+#             num_error = num_error / torch.sum(indexes, dim=0)
+#             # values.append((n_mut, num_error.detach().numpy()))
+#             values.append((n_mut, np.log10(num_error.detach().numpy())))
     
-        for j, (n_mut, array) in enumerate(values):
-            max_val = max(max_val, np.max(array))
-            # r = int(i/2)
-            # c = i - r*2
-            ax[i].scatter(range(num_classes),
-                    array,
-                    color=colors[j],
-                    label="%s"%str(int(n_mut)),
-                    s=7.0*(j+1),
-                    alpha=0.3)
-        stylize_axes(ax[i], '', '', title)
-        xt = range(num_classes)
-        xl = sigs_names
-        ax[i].set_xticks(xt)
-        ax[i].set_xticklabels('')
-        ax[i].set_ylabel(method + ' error')
-        # ax[i].set_ylim([0, 1.05*max_val])
+#         for j, (n_mut, array) in enumerate(values):
+#             max_val = max(max_val, np.max(array))
+#             # r = int(i/2)
+#             # c = i - r*2
+#             ax[i].scatter(range(num_classes),
+#                     array,
+#                     color=colors[j],
+#                     label="%s"%str(int(n_mut)),
+#                     s=7.0*(j+1),
+#                     alpha=0.3)
+#         stylize_axes(ax[i], '', '', title)
+#         xt = range(num_classes)
+#         xl = sigs_names
+#         ax[i].set_xticks(xt)
+#         ax[i].set_xticklabels('')
+#         ax[i].set_ylabel(method + ' error')
+#         # ax[i].set_ylim([0, 1.05*max_val])
 
-    ax[-1].set_xticklabels(xl, rotation=80)
+#     ax[-1].set_xticklabels(xl, rotation=80)
 
-    plt.tight_layout()
-    # plt.legend()
-    plt.title(title)
+#     plt.tight_layout()
+#     # plt.legend()
+#     plt.title(title)
 
-    if show:
-        plt.show()
-    if plot_path is not None:
-        # create_dir(plot_path)
-        fig.savefig(plot_path)
+#     if show:
+#         plt.show()
+#     if plot_path is not None:
+#         # create_dir(plot_path)
+#         fig.savefig(plot_path)
 
 def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
     num_muts = np.unique(label[:,-1].detach().numpy())
@@ -915,19 +1082,26 @@ def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
     from matplotlib.ticker import MaxNLocator
     marker_size = 3
     line_width = 0.5
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+    fig, (ax1, ax3, ax2) = plt.subplots(3, 1, sharex=True)
     fig.subplots_adjust(hspace=0.1)
-    ax1.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
-    ax2.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    p1 = ax1.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    p3 = ax3.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
+    p2 = ax2.plot(np.log10(num_muts), np.transpose(values), marker='o',linewidth=line_width, markersize=marker_size)
     ax1.set_ylim(1.8, 15)  # outliers only
     ax2.set_ylim(0, 0.055)  # most of the data
+    ax3.set_ylim(0.33, 0.67)  # most of the data
     ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 
     stylize_axes(ax1, '', "", "")
     # stylize_axes(ax2, '', "log(N)", "Time (min)")
     stylize_axes(ax2, '', "", "")
+    stylize_axes(ax3, '', "", "")
     ax1.spines['bottom'].set_visible(False)
     ax2.spines['top'].set_visible(False)
+    ax3.spines['top'].set_visible(False)
+    ax3.spines['bottom'].set_visible(False)
+    ax3.tick_params(bottom=False)  # don't put tick marks at the top plot
+    ax3.tick_params(labelbottom=False)  # don't put tick labels at the top plot
     ax1.tick_params(bottom=False)  # don't put tick marks at the top plot
     ax1.tick_params(labelbottom=False)  # don't put tick labels at the top plot
     ax2.xaxis.tick_bottom()
@@ -937,6 +1111,16 @@ def plot_time_vs_mutations(values, num_muts, plot_path=None, show=False):
                 linestyle="none", color='k', mec='k', mew=1, clip_on=False)
     ax1.plot([0], [0], transform=ax1.transAxes, **kwargs)
     ax2.plot([0], [1], transform=ax2.transAxes, **kwargs)
+    ax3.plot([0], [1], transform=ax3.transAxes, **kwargs)
+    ax3.plot([0], [0], transform=ax3.transAxes, **kwargs)
+
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#fad6a5', '#36454f', '#bcbd22', '#17becf']
+    for idx, color in enumerate(colors):
+        p1[idx].set_color(color)
+        p2[idx].set_color(color)
+        p3[idx].set_color(color)
 
     if show:
         plt.show()
