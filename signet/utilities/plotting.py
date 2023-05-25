@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
 import seaborn as sn
 from sklearn.metrics import confusion_matrix
 import torch
 
-from utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics, get_reconstruction_error
-from utilities.io import create_dir
+from signet.utilities.metrics import accuracy, false_random, false_realistic, get_classification_metrics, get_pi_metrics, get_reconstruction_error
+from signet.utilities.io import create_dir
 
 # from utilities.metrics import get_classification_metrics, get_pi_metrics
 
@@ -294,7 +295,70 @@ def plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folde
     # # plt.savefig(folder_path + '/metrics_mean.png')
     # plt.close()
 
+def plot_percentage_all_methods(label, guess_list, list_of_methods, sigs_names, plot_path=None, show=False, title=None):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
 
+    num_classes=len(sigs_names)
+    max_val = -1
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#fad6a5', '#36454f', '#bcbd22', '#17becf']
+    fig_width_cm = 21                                # A4 page
+    fig_height_cm = 29.7
+    inches_per_cm = 1 / 2.54                         # Convert cm to inches
+    fig_width = fig_width_cm * inches_per_cm         # width in inches
+    fig_height = fig_height_cm * inches_per_cm       # height in inches
+    fig_size = [fig_width, fig_height]
+
+    fig,ax = plt.subplots(9, 1, figsize=fig_size)
+    for n,n_mut in enumerate(num_muts[:-1]):
+        values = np.zeros((num_classes, len(list_of_methods)))
+        label_values = np.zeros((num_classes))
+        indexes = label[:, -1] == n_mut
+        for i,method in enumerate(list_of_methods):
+            guess = guess_list[i]
+            guess_i = guess[indexes]
+            label_i = label[indexes, :-1]
+            for j in range(num_classes):
+                values[j,i] = (torch.sum(guess_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+                label_values[j] = (torch.sum(label_i[:,j]>0.01)/torch.sum(indexes,dim=0)*100).detach().numpy()
+   
+            ax[n].scatter(list(label_values),
+                        values[:,i],
+                        c=colors[i],
+                        alpha=0.6,
+                        s=20)
+        stylize_axes(ax[n], int(n_mut), '', '')
+        ax[n].plot(range(100), range(100), c='red')
+        # ax[n].set_xticklabels('')
+    #     xt = range(num_classes)
+    #     xl = sigs_names
+
+    #     ax[i].set_xticks(xt)
+    #     ax[i].set_xticklabels('')
+    #     ax[i].set_ylabel(method + "\n" + 'MAE', fontsize=9)
+    #     ax[i].set_yticks([0,0.2,0.4])
+    #     ax[i].set_ylim([-0.03, 0.4])
+
+
+    plt.tight_layout()
+    signames_plot_val = np.sort(label_values)[62:]
+    signames_plot = np.argsort(label_values)[62:]
+    ax[-1].set_xticks(signames_plot_val)
+    ax[-1].set_xticklabels(np.array(sigs_names)[signames_plot], rotation=80)
+    stylize_axes(ax[-1], n_mut, 'percentage samples present', 'percentage samples guessed')
+    ax[0].legend(['True line']+list_of_methods,
+           scatterpoints=1,
+           loc='upper left',
+           fontsize=8)
+    # ax[0].legend(loc=1, fontsize='xx-small')
+    # plt.title(title)
+    if show:
+        plt.show()
+    if plot_path is not None:
+        fig.savefig(plot_path)
+        
 def final_plot_all_metrics_vs_mutations(list_of_methods, list_of_guesses, label, folder_path=None, signatures=None, mutation_distributions=None):
     '''
     Plot:
@@ -435,8 +499,55 @@ def plot_reconstruction(input, weight_guess, signatures, ind_list, plot_path):
         # plt.savefig(plot_path + "_%s.png"%i)
         plt.close()
 
+def final_plot_distance_vs_mutations(label, guess, sigs_names, plot_path=None, show=False):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    values = []
+    for n_mut in num_muts:
+        indexes = label[:, -1] == n_mut
+        num_error = torch.sum(torch.abs(label[indexes, :-1] - guess[indexes, :-1]), dim=0)
+        num_error = num_error / torch.sum(indexes, dim=0)
+        values.append((n_mut, num_error.detach().numpy()))
+    
+    plot_values_by_sig(values, sigs_names, num_muts, "Guess MAE", plot_path=plot_path, show=show)
+
 
 # ERRORLEARNER PLOTS:
+def plot_values_by_sig(values, sigs_names, num_muts, title, plot_path=None, show=False):
+    plt.figure(figsize=(12,4))
+    ax = plt.axes()
+    colors = cm.rainbow(np.linspace(1, 0, num_muts.shape[0]))
+    num_classes =len(sigs_names)
+    max_val = -1
+    for i, (n_mut, array) in enumerate(values):
+        max_val = max(max_val, np.max(array))
+        ax.scatter(range(num_classes),
+                   array,
+                   color=colors[i],
+                   label="%s"%str(int(n_mut)),
+                   s=7.0*(i+1),
+                   alpha=0.3)
+    stylize_axes(ax, '', '', title)
+
+def final_plot_intlen_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
+    num_muts = np.unique(label[:,-1].detach().numpy())
+
+    label_batch = label[:,:-1]
+    lower = label_batch - pred_lower
+    upper = pred_upper - label_batch
+    int_len = upper - lower
+
+    values = []
+    for n_mut in num_muts:
+        indexes = label[:, -1] == n_mut
+        print(torch.abs(int_len[indexes]))
+        num_error = torch.nansum(torch.abs(int_len[indexes]), dim=0)
+        print("num_error", num_error, num_error.shape)
+        num_error = num_error / torch.sum(indexes, dim=0)
+        values.append((n_mut, num_error.detach().numpy()))
+
+    plot_values_by_sig(values, sigs_names, num_muts, "Interval length", plot_path=plot_path, show=show)
+
 def final_plot_interval_metrics_vs_mutations(label, pred_upper, pred_lower, sigs_names, plot_path=None, show=False):
     plt.figure(figsize=(8,6))
 

@@ -8,68 +8,80 @@ import pandas as pd
 from signet import DATA
 from signet.modules.signet_module import SigNet
 
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
-                    level=logging.INFO,
-                    datefmt='%Y-%m-%d %H:%M:%S')
+# logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+#                     level=logging.INFO,
+#                     datefmt='%Y-%m-%d %H:%M:%S')
 
-def parse_args():
-    parser = ArgumentParser()
-    parser.add_argument(
-        '--experiment_id', action='store', nargs=1, type=str, required=False, default="test_0",
-        help=f"Name of this inference's results"
-    )
+# def parse_args():
+#     parser = ArgumentParser()
+#     parser.add_argument(
+#         '--experiment_id', action='store', nargs=1, type=str, required=False, default="test_0",
+#         help=f"Name of this inference's results"
+#     )
 
-    parser.add_argument(
-        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
-        help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
-    )
+#     parser.add_argument(
+#         '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
+#         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
+#     )
 
-    parser.add_argument(
-        '--normalization', action='store', nargs=1, type=str, required=False, default=[None],
-        help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome" or a path to a file with the oppportunities.'
-    )
+#     parser.add_argument(
+#         '--normalization', action='store', nargs=1, type=str, required=False, default=[None],
+#         help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome" or a path to a file with the oppportunities.'
+#     )
     
-    parser.add_argument(
-        '--output', action='store', nargs=1, type=str, required=False, default=["Output"],
-        help=f'Path to folder where all the output files will be saved. Default: "Output".'
-    )
+#     parser.add_argument(
+#         '--output', action='store', nargs=1, type=str, required=False, default=["Output"],
+#         help=f'Path to folder where all the output files will be saved. Default: "Output".'
+#     )
 
-    parser.add_argument(
-        '--plot_figs', action='store', nargs=1, type=bool, required=False, default=[False],
-        help=f'Boolean. Whether to compute plots for the output. Default: "False".'
-    )
+#     parser.add_argument(
+#         '--plot_figs', action='store', nargs=1, type=bool, required=False, default=[False],
+#         help=f'Boolean. Whether to compute plots for the output. Default: "False".'
+#     )
     
-    args = parser.parse_args()
-    return args
+#     args = parser.parse_args()
+#     return args
 
 if __name__ == "__main__":
     # Parse command-line arguments
-    args = parse_args()
+    # args = parse_args()
 
     unique_abundances = True
 
+    import sys
+    cell = str(sys.argv[1])
+
+    ######## TEMPORARY ###############
+    input_file_path = "data/histones/results/%s/normalized_input/all_input_down_low.csv"%cell
+    opportunities = "genome"
+    output_path = "data/histones/results/%s/SigNet"%cell
+    experiment_id = "down_low"
+    plot_figs = False
+    # Read data
+    input_file = pd.read_csv(input_file_path, header=0, index_col=0, sep=',')
+    # Load & Run signet
+    signet = SigNet(opportunities_name_or_path=opportunities)
+    results = signet(mutation_dataset=input_file)
+    # Extract results
+    w, u, l, c, _ = results.get_output()
+    # Store results
+    results.save(path=output_path, name=experiment_id)
+
     if unique_abundances == True:
         # input_file_path = "data/analysis_MC3/MC3_mut_counts.csv"
-        # input_file_path = "data/histones/results/only_genes/all_mut_counts_down_2.bed"
-        # input_file_path = "data/case_study/PCAWG_downsampled/all_mut_counts_down.bed"
-        # input_file_path = "data/test_normalization/test_input.csv"
-        input_file_path = "data/analysis_PCAWG/clonal_subclonal/subclonal_filtered_input_ctype.csv"
+        # input_file_path = "data/analysis_PCAWG/PCAWG_input.csv"
+        # input_file_path = "data/analysis_PCAWG/ChIP-seq/no_ChIP_seq_ctype_down_mut_counts.csv"
         # input_file_path = "data/case_study_Moore/mut_counts_by_sample.csv"
+        input_file_path = "data/histones/results/%s/normalized_input/all_input_down_large.csv"%cell
         # opportunities = "data/case_study_GTeX/abundances/abundances_all_tissues.csv"
         opportunities = "genome"
-        # opportunities = "data/histones/results/only_genes/abundances_genes.txt"
-        # output_path = "data/analysis_PCAWG/new_SigNet_exons_nummuts"
-        output_path = "data/analysis_PCAWG/clonal_subclonal/SigNet"
-        experiment_id = "subclonal_ctype"
+        output_path = "data/histones/results/%s/SigNet"%cell
+        experiment_id = "down_large"
         # output_path = "data/analysis_MC3/new_SigNet/"
         plot_figs = False
 
         # Read data
         input_file = pd.read_csv(input_file_path, header=0, index_col=0, sep=',')
-        print(input_file)
-        import torch
-        print('Initial number of mutations')
-        print(torch.sum(torch.tensor(input_file.values, dtype=torch.float, device='cpu'), dim=1))
 
         # Load & Run signet
         signet = SigNet(opportunities_name_or_path=opportunities)
