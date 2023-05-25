@@ -13,7 +13,8 @@ from signet.utilities.plotting import (final_plot_all_metrics_vs_mutations,
                                        plot_metric_vs_mutations_classifier, plot_percentage_all_methods, plot_percentage_all_methods_fig1,
                                        plot_time_vs_mutations,
                                        final_plot_distance_vs_mutations,
-                                       final_plot_intlen_metrics_vs_mutations)
+                                       final_plot_intlen_metrics_vs_mutations,
+                                       plot_violins_error)
 
 # Load data NOTE! I'M NOT SURE IF THIS IS THE REAL DATA!!!!
 data_path = DATA + "/datasets/"
@@ -103,6 +104,20 @@ for i in range(len(list_of_guesses)):
 plot_distance_vs_mutations_all_methods(label, list_of_guesses, list_of_methods,
                                         sigs_names, plot_path='../../plots/paper/error_all.pdf', show=False, title=None)
                                         # sigs_names, plot_path=None, show=True, title=None)
+# Violins plots of the error
+plot_violins_error(labels, finetuner_guess[:,:-1], sigsnames, plot_path=['violin.pdf','mean_violin.pdf'], show=False, title=None)
+
+# Select what signatures we should plot:
+# sigs_inds = list(range(29)) + [30] + list(range(32,46)) + [47,48,49] + [55,56,57,58,60,62,64]
+# sigs_names = [sigsnames[i] for i in sigs_inds]
+# label = labels[:,sigs_inds+[-1]]
+# list_of_guesses = [finetuner_guess]
+# for i in range(len(list_of_guesses)):
+#   list_of_guesses[i] = list_of_guesses[i][:,sigs_inds]
+
+# plot_distance_vs_mutations_all_methods(label, list_of_guesses, ['SigNet'],
+#                                         sigs_names, plot_path='../../plots/paper/signet_error.pdf', show=False, title=None)
+#                                         # sigs_names, plot_path=None, show=True, title=None)
 
 plot_distance_vs_mutations_all_methods(label, list_of_guesses[5:], list_of_methods[5:],
                                         sigs_names, plot_path='../../plots/paper/error2.pdf', show=False, title=None)
