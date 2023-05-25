@@ -61,11 +61,11 @@ class SigNet:
             sample_names = mutation_dataset.index
 
             mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float, device='cpu')
+            num_mutations = torch.sum(mutation_vec, dim=1)
 
             # Normalize input data
             if self.opportunities_name_or_path is not None:
                 mutation_vec = normalize_data(mutation_vec, self.opportunities_name_or_path)
-
             sums = torch.sum(mutation_vec, dim=1).reshape(-1, 1)
             normalized_mutation_vec = mutation_vec / sums
   
@@ -77,7 +77,6 @@ class SigNet:
 
 
             # Finetune guess and aproximate errors
-            num_mutations = torch.sum(mutation_vec, dim=1)
             signet_res = self.finetuner_errorfinder(mutation_dist=normalized_mutation_vec,
                                                     baseline_guess=self.baseline_guess,
                                                     num_mut=num_mutations.reshape(-1, 1))

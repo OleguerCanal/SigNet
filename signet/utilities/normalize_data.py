@@ -35,7 +35,10 @@ def create_opportunities(abundances_path):
     opp_file_lines = opp_file.readlines()
     opp_dic = {}
     for line in opp_file_lines:
-        opp_dic[line.split("\t")[0]] = float(line.strip("\n").split("\t")[1])
+        try:
+            opp_dic[line.split("\t")[0]] = float(line.strip("\n").split("\t")[1])
+        except:
+            opp_dic[line.split(" ")[0]] = float(line.strip("\n").split(" ")[1])
     opp = np.zeros(96)
     for i in range(len(order)):
         tri = order[i]
