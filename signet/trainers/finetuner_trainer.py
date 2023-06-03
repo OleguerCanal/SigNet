@@ -14,7 +14,7 @@ from signet.loggers.finetuner_logger import FinetunerLogger
 from signet.models import FineTunerLowNumMut, FineTunerLargeNumMut
 from signet.utilities.metrics import get_fp_fn_soft, get_classification_metrics, get_kl_divergence
 from signet.utilities.io import save_model
-from signet.utilities.temporal_io import read_data_final_finetuner
+from signet.utilities.temporal_io import read_finetuner_data
 
 class FinetunerTrainer:
     def __init__(self,
@@ -151,8 +151,7 @@ class FinetunerTrainer:
 def train_finetuner(config, data_folder=DATA, name=None, train_data=None, val_data=None) -> float:
     import os
     # Select training device
-    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available(
-    ) else "cpu"
+    dev = "cuda" if config["device"] == "cuda" and torch.cuda.is_available() else "cpu"
     device = torch.device(dev)
     print("Using device:", device)
 
@@ -173,10 +172,11 @@ def train_finetuner(config, data_folder=DATA, name=None, train_data=None, val_da
         #                                 data_folder=data_folder,
         #                                 device=dev)
 
-        train_data, val_data = read_data_final_finetuner(device=dev,
-                                                         data_id=config["data_id"],
-                                                         data_folder=DATA, 
-                                                         network_type=config["network_type"])
+        train_data, val_data = read_finetuner_data(
+            device=dev,
+            data_id=config["data_id"],
+            network_type=config["network_type"]
+        )
     
     trainer = FinetunerTrainer(iterations=config["iterations"],  # Passes through all dataset
                                train_data=train_data,
