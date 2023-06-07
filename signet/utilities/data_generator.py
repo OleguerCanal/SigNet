@@ -49,7 +49,7 @@ class DataGenerator:
                     [3]*num_samples + [4]*(num_samples + size%n_ranges)
 
             elif large_or_low == 'low':
-                range_muts = [15, 50, 100, 250, 500, 1000, 5000, 1e4, 1e5]
+                range_muts = [25, 50, 100, 250, 500, 1000, 5000, 1e4]
                 n_ranges = len(range_muts) - 1
                 num_samples = int(size/n_ranges)
                 ind_range_muts = [0]*num_samples + [1]*num_samples + [2]*num_samples + \
@@ -57,7 +57,7 @@ class DataGenerator:
                     [7]*(num_samples + size%n_ranges)
             
             elif large_or_low == 'large':
-                range_muts = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5]
+                range_muts = [1000, 1500, 2500, 5e3, 1e4, 5e4, 1e5]
                 n_ranges = len(range_muts) - 1
                 num_samples = int(size/n_ranges)
                 ind_range_muts = [0]*num_samples + [1]*num_samples + \
@@ -79,7 +79,7 @@ class DataGenerator:
 
     def _sample_from_sig(self, signature, num_mut):
         sample = signature
-        if num_mut > 0 and num_mut < 1e5:  # only do sampling for num_mut < 1e5
+        if num_mut > 0 and num_mut < 1e6:  # only do sampling for num_mut < 1e6
             c = torch.distributions.categorical.Categorical(probs=signature)
             sample_shape = torch.Size([num_mut, ])
             samples = c.sample(sample_shape=sample_shape).type(torch.float32)
