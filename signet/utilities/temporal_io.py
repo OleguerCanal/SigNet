@@ -127,14 +127,14 @@ def _convert_to_input(data_weights, network_type, split, device):
     
     inputs, labels = data_generator.make_input(
         labels=data_weights,
-        split="train",
+        split=split,
         large_low=network_type,
     )
     
     # Compute baselines
     sf = Baseline(signatures)
-    baselines = sf.get_weights_batch(inputs, n_workers=10)
-    
+    baselines = sf.get_weights_batch(inputs, n_workers=6)
+
     data = DataPartitions(
         inputs=inputs,
         prev_guess=baselines,
@@ -184,4 +184,12 @@ def read_finetuner_data(data_id, network_type, device):
         device=device,
     )
     return train_data, val_data
+    
+if __name__=="__main__":
+
+    train_data, val_data = read_finetuner_data(
+            device="cpu",
+            data_id="real_data",
+            network_type="large"
+        )
     
