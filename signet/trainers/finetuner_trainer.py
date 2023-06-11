@@ -41,12 +41,8 @@ class FinetunerTrainer:
         self.logger = FinetunerLogger()
 
     def __loss(self, prediction, label, FP, FN):
-        # if self.network_type == 'low':
-        #     l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        # if self.network_type == 'large':
-        # l = get_jensen_shannon(predicted_label=prediction, true_label=label)
         l = get_kl_divergence(predicted_label=prediction, true_label=label)
-        l += FP / prediction.shape[0]
+        l = l + (FP / prediction.shape[0])
         return l
 
     def objective(self,
@@ -56,7 +52,7 @@ class FinetunerTrainer:
                   num_units,
                   plot=False):
 
-        print(batch_size, lr, num_hidden_layers, num_units)
+        print("Training params:", batch_size, lr, num_hidden_layers, num_units)
 
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=int(batch_size),
@@ -101,8 +97,8 @@ class FinetunerTrainer:
                                          FP=train_FP,
                                          FN=train_FN)
                 
-                if bias is not None:
-                    train_loss += torch.mean(torch.abs(torch.mean(train_prediction - train_label, 0) - bias))
+                bias = (train_prediction - train_label).mean(0)
+                train_loss = train_loss + 0.1 * bias.norm(p=4)  # could also be max/p=4
 
                 train_loss.backward()
                 optimizer.step()
@@ -118,7 +114,6 @@ class FinetunerTrainer:
                     
                     val_prediction = val_prediction[:, :self.num_classes]  # remove unknown class
 
-                    bias = torch.mean(val_prediction - self.val_dataset.labels, 0)
                     val_FP, val_FN = get_fp_fn_soft(label_batch=self.val_dataset.labels,
                                                     prediction_batch=val_prediction)                    
                     val_loss = self.__loss(prediction=val_prediction,
