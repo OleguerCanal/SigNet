@@ -3,6 +3,7 @@ import logging
 import pathlib
 
 import pandas as pd
+import numpy as np
 import torch
 
 from signet import DATA, TRAINED_MODELS
@@ -62,7 +63,7 @@ class SigNet:
             mutation_dataset = mutation_dataset[list(mutation_order['Type'])]
             sample_names = mutation_dataset.index
 
-            mutation_vec = torch.tensor(mutation_dataset.values, dtype=torch.float, device='cpu')
+            mutation_vec = torch.tensor(mutation_dataset.values.astype(np.float), dtype=torch.float, device='cpu')
             num_mutations = torch.sum(mutation_vec, dim=1)
 
             # Normalize input data
@@ -175,6 +176,8 @@ class SigNetResult:
         classification.columns = ['Classification']
         classification.index = self.mutation_dataset.index
         classification.to_csv(path + "/classification_guesses.csv", header=True, index=True)
+
+        self.mutation_dataset.to_csv(path + "/mutation_counts_input.csv", header=True, index=True)
         logging.info("Writting results: %s... DONE"%path)
 
     def plot_results(self, 
