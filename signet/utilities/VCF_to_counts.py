@@ -7,14 +7,15 @@ from collections import Counter
 from signet import DATA
 
 # https://www.biostars.org/p/334253/
-def VCF_to_counts(vcf_path, reference_genome='hg19'):
+def VCF_to_counts(vcf_path, reference_genome_path):
     # open vcf file
     vcf = pysam.VariantFile(vcf_path)
     # open fasta file
-    if reference_genome == 'hg19':
-        genome = pysam.FastaFile(DATA + "/../../data/ref_genomes/hg19.fa")
+    if reference_genome_path == None:
+        print("ERROR: You should provide a path to the reference genome of your data!")
+        exit()
     else:
-        genome = pysam.FastaFile(reference_genome)
+        genome = pysam.FastaFile(reference_genome_path)
     # define by how many bases the variant should be flanked
     flank = 1
     # iterate over each variant
@@ -55,14 +56,15 @@ def VCF_to_counts(vcf_path, reference_genome='hg19'):
     final_df = pd.DataFrame(final_dict, index = ['Sample'])
     return final_df
 
-def bed_to_counts(bed_path, reference_genome='hg19'):
+def bed_to_counts(bed_path, reference_genome_path):
     # open vcf file
     bed = pd.read_csv(bed_path, header=0, sep='\t', index_col=False)
     # open fasta file
-    if reference_genome == 'hg19':
-        genome = pysam.FastaFile(DATA + "/../../data/ref_genomes/hg19.fa")
+    if reference_genome_path == None:
+        print("ERROR: You should provide a path to the reference genome of your data!")
+        exit()
     else:
-        genome = pysam.FastaFile(reference_genome)
+        genome = pysam.FastaFile(reference_genome_path)
     # define by how many bases the variant should be flanked
     flank = 1
     mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")

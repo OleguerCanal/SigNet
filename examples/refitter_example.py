@@ -29,6 +29,11 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--reference_genome', action='store', nargs=1, type=str, required=False, default=[None],
+        help=f'Path to the reference genome. Needed when input_format is bed or vcf.'
+    )
+
+    parser.add_argument(
         '--normalization', action='store', nargs=1, type=str, required=False, default=[None],
         help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome" or a path to a file with the oppportunities.'
     )

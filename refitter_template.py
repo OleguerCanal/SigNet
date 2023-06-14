@@ -31,6 +31,11 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--reference_genome', action='store', nargs=1, type=str, required=False, default=[None],
+        help=f'Path to the reference genome. Needed when input_format is bed or vcf.'
+    )
+
+    parser.add_argument(
         '--normalization', action='store', nargs=1, type=str, required=False, default=[None],
         help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome" or a path to a file with the oppportunities.'
     )
@@ -66,9 +71,9 @@ if __name__ == "__main__":
     if args.input_format[0] == 'counts':
         mutations = pd.read_csv(args.input_data[0], header=0, index_col=0)
     elif args.input_format[0] == 'vcf':
-        mutations = VCF_to_counts(args.input_data[0])
+        mutations = VCF_to_counts(args.input_data[0],args.reference_genome[0])
     elif args.input_format[0] == 'bed':
-        mutations = bed_to_counts(args.input_data[0])
+        mutations = bed_to_counts(args.input_data[0],args.reference_genome[0])
 
     # Load & Run signet
     signet = SigNet(opportunities_name_or_path=args.normalization[0])
