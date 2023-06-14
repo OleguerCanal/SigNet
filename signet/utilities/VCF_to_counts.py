@@ -1,21 +1,28 @@
 import os
-from tkinter.messagebox import NO
 import pandas as pd
 import pysam
 from collections import Counter
+import genomepy
 
 from signet import DATA
 
 # https://www.biostars.org/p/334253/
-def VCF_to_counts(vcf_path, reference_genome_path):
+def VCF_to_counts(vcf_path, reference_genome):
     # open vcf file
     vcf = pysam.VariantFile(vcf_path)
     # open fasta file
-    if reference_genome_path == None:
-        print("ERROR: You should provide a path to the reference genome of your data!")
+    if reference_genome == None:
+        print("ERROR: You should provide a name or path to the reference genome of your data!")
         exit()
     else:
-        genome = pysam.FastaFile(reference_genome_path)
+        try:
+            genome = pysam.FastaFile(reference_genome)
+        except:
+            try:
+                genome = pysam.FastaFile(DATA+'/genomes/'+reference_genome+'/'+reference_genome+'.fa')
+            except:
+                genomepy.install_genome(reference_genome,provider='UCSC',genomes_dir=DATA+'/genomes')
+                genome = pysam.FastaFile(DATA+'/genomes/'+reference_genome+'/'+reference_genome+'.fa')
     # define by how many bases the variant should be flanked
     flank = 1
     # iterate over each variant

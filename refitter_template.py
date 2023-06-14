@@ -32,7 +32,7 @@ def parse_args():
 
     parser.add_argument(
         '--reference_genome', action='store', nargs=1, type=str, required=False, default=[None],
-        help=f'Path to the reference genome. Needed when input_format is bed or vcf.'
+        help=f'Name or path to the reference genome. Needed when input_format is bed or vcf.'
     )
 
     parser.add_argument(
