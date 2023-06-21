@@ -19,8 +19,18 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--input_format', action='store', nargs=1, type=str, required=False, default="counts",
+        help=f'Format input. Must be one of: counts, bed, vcf'
+    )
+
+    parser.add_argument(
         '--input_data', action='store', nargs=1, type=str, required=False, default=[DATA + "/datasets/example_input.csv"],
         help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
+    )
+
+    parser.add_argument(
+        '--reference_genome', action='store', nargs=1, type=str, required=False, default=[None],
+        help=f'Name or path to the reference genome. Needed when input_format is bed or vcf.'
     )
 
     parser.add_argument(

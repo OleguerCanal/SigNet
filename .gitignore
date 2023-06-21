@@ -154,6 +154,7 @@ wandb
 
 nohup.out
 
+genomes/
 tmp/
 */hyperparam_optimizers/search_results/
 */hyperparam_optimizers/*.csv
