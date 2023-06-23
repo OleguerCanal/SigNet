@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from pathlib import Path
 import pysam
 from collections import Counter
 import genomepy
@@ -8,8 +9,14 @@ from signet import DATA
 
 # https://www.biostars.org/p/334253/
 def VCF_to_counts(vcf_path, reference_genome):
-    # open vcf file
-    vcf = pysam.VariantFile(vcf_path)
+
+    isFile = os.path.isfile(vcf_path)
+
+    if isFile == True:
+        list_of_files = [vcf_path]
+    else:
+        list_of_files = os.listdir(vcf_path)
+        list_of_files = [vcf_path + '/' + file for file in list_of_files]
     # open fasta file
     if reference_genome == None:
         print("ERROR: You should provide a name or path to the reference genome of your data!")
@@ -23,44 +30,50 @@ def VCF_to_counts(vcf_path, reference_genome):
             except:
                 genomepy.install_genome(reference_genome,provider='UCSC',genomes_dir=DATA+'/genomes')
                 genome = pysam.FastaFile(DATA+'/genomes/'+reference_genome+'/'+reference_genome+'.fa')
-    # define by how many bases the variant should be flanked
-    flank = 1
-    # iterate over each variant
-    list_of_mutations = []
-    for record in vcf:
-        # extract sequence
-        #
-        # The start position is calculated by subtract the number of bases
-        # given by 'flank' from the variant position. The position in the vcf file
-        # is 1-based. pysam's fetch() expected 0-base coordinate. That's why we
-        # need to subtract on more base.
-        #
-        # The end position is calculated by adding the number of bases
-        # given by 'flank' to the variant position. We also need to add the length
-        # of the REF value and subtract again 1 due to the 0-based/1-based thing.
-        # 
-        # We need to check that 'chr' is contained in the chromosome, otherwise it doesn't work.
-        if 'chr' not in record.chrom:
-            chr = 'chr' + record.chrom
-        else:
-            chr = record.chrom
-        # Now we have the complete sequence like this:
-        # [number of bases given by flank]+REF+[number of bases given by flank]
-        seq = genome.fetch(chr, record.pos-1-flank, record.pos-1+len(record.ref)+flank)
-        # print out tab seperated columns:
-        # CRHOM, POS, REF, ALT, flanking sequencing with variant given in the format '[REF/ALT]'
-        mutation = '{}[{}>{}]{}'.format(seq[:flank].upper(), record.ref.upper(), record.alts[0].upper(), seq[flank+len(record.ref):].upper())
-        list_of_mutations.append(mutation)
-    # Now we count the number of times each mutation type is present in the list
-    counts = Counter(list_of_mutations)
-    # Filter and sort based on the mutation categories. 
     mutation_type_order=os.path.join(DATA, "mutation_type_order.xlsx")
     mutation_order = pd.read_excel(mutation_type_order)
-    muts_sorted = []
-    for mutation_type in mutation_order['Type']:
-        muts_sorted.append(counts[mutation_type])
-    final_dict = {mutation_order.loc[i, 'Type']: [muts_sorted[i]] for i in range(len(mutation_order))}
-    final_df = pd.DataFrame(final_dict, index = ['Sample'])
+    final_df = pd.DataFrame(columns=mutation_order['Type'])
+    for file in list_of_files:
+        # open vcf file
+        vcf = pysam.VariantFile(file)
+        file_name = Path(file).stem
+        # define by how many bases the variant should be flanked
+        flank = 1
+        # iterate over each variant
+        list_of_mutations = []
+        for record in vcf:
+            # extract sequence
+            #
+            # The start position is calculated by subtract the number of bases
+            # given by 'flank' from the variant position. The position in the vcf file
+            # is 1-based. pysam's fetch() expected 0-base coordinate. That's why we
+            # need to subtract on more base.
+            #
+            # The end position is calculated by adding the number of bases
+            # given by 'flank' to the variant position. We also need to add the length
+            # of the REF value and subtract again 1 due to the 0-based/1-based thing.
+            # 
+            # We need to check that 'chr' is contained in the chromosome, otherwise it doesn't work.
+            if 'chr' not in record.chrom:
+                chr = 'chr' + record.chrom
+            else:
+                chr = record.chrom
+            # Now we have the complete sequence like this:
+            # [number of bases given by flank]+REF+[number of bases given by flank]
+            seq = genome.fetch(chr, record.pos-1-flank, record.pos-1+len(record.ref)+flank)
+            # print out tab seperated columns:
+            # CRHOM, POS, REF, ALT, flanking sequencing with variant given in the format '[REF/ALT]'
+            mutation = '{}[{}>{}]{}'.format(seq[:flank].upper(), record.ref.upper(), record.alts[0].upper(), seq[flank+len(record.ref):].upper())
+            list_of_mutations.append(mutation)
+        # Now we count the number of times each mutation type is present in the list
+        counts = Counter(list_of_mutations)
+        # Filter and sort based on the mutation categories. 
+        muts_sorted = []
+        for mutation_type in mutation_order['Type']:
+            muts_sorted.append(counts[mutation_type])
+        file_dict = {mutation_order.loc[i, 'Type']: [muts_sorted[i]] for i in range(len(mutation_order))}
+        file_df = pd.DataFrame(file_dict, index = [file_name])
+        final_df = pd.concat((final_df, file_df))
     return final_df
 
 def bed_to_counts(bed_path, reference_genome_path):

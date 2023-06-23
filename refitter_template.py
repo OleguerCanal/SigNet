@@ -27,7 +27,7 @@ def parse_args():
 
     parser.add_argument(
         '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
-        help=f'Path to the input data to be analyzed. By default it will use PCAWG dataset'
+        help=f'Path to the input data to be analyzed. If multiple VCFs, specify a folder that only contains them. By default it will use PCAWG dataset'
     )
 
     parser.add_argument(
@@ -37,7 +37,7 @@ def parse_args():
 
     parser.add_argument(
         '--normalization', action='store', nargs=1, type=str, required=False, default=[None],
-        help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome" or a path to a file with the oppportunities.'
+        help=f'The kind of normalization to be applied to the data. Should be either "None" (default), "exome", "genome", "genome_hg38" or a path to a file with the opportunities.'
     )
     
     parser.add_argument(

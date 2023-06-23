@@ -13,6 +13,8 @@ def normalize_data(input_file, opportunities_name_or_path):
 
         if opportunities_name_or_path == 'exome':
             abundances = create_opportunities(DATA + '/real_data/abundances_trinucleotides.txt')
+        elif opportunities_name_or_path == 'genome_hg38':
+            abundances = create_opportunities(DATA + '/real_data/3mer_WG_hg38.txt')
         else:
             abundances = create_opportunities(opportunities_name_or_path)
 
