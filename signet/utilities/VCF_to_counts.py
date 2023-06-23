@@ -35,7 +35,9 @@ def VCF_to_counts(vcf_path, reference_genome):
     final_df = pd.DataFrame(columns=mutation_order['Type'])
     for file in list_of_files:
         # open vcf file
+        save = pysam.set_verbosity(0)
         vcf = pysam.VariantFile(file)
+        pysam.set_verbosity(save)
         file_name = Path(file).stem
         # define by how many bases the variant should be flanked
         flank = 1
