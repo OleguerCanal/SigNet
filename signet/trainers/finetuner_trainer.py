@@ -97,8 +97,8 @@ class FinetunerTrainer:
                                          FP=train_FP,
                                          FN=train_FN)
                 
-                bias = (train_prediction - train_label).mean(0)
-                train_loss = train_loss + 0.1 * bias.norm(p=4)  # could also be max/p=4
+                # bias = (train_prediction - train_label).mean(0)
+                # train_loss = train_loss + 0.1 * bias.norm(p=4)  # could also be max/p=4
 
                 train_loss.backward()
                 optimizer.step()
