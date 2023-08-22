@@ -6,8 +6,7 @@ import pandas as pd
 
 from signet import DATA
 from signet.modules.signet_module import SigNet
-from signet.utilities.VCF_to_counts import VCF_to_counts
-from utilities.VCF_to_counts import bed_to_counts
+from signet.utilities.VCF_to_counts import VCF_to_counts, bed_to_counts
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,
@@ -16,17 +15,17 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
-        '--experiment_id', action='store', nargs=1, type=str, required=False, default="test_0",
+        '--experiment_id', action='store', nargs=1, type=str, required=False, default=["test_0"],
         help=f"Name of this inference's results"
     )
 
     parser.add_argument(
-        '--input_format', action='store', nargs=1, type=str, required=False, default="counts",
+        '--input_format', action='store', nargs=1, type=str, required=False, default=["counts"],
         help=f'Format input. Must be one of: counts, bed, vcf'
     )
 
     parser.add_argument(
-        '--input_data', action='store', nargs=1, type=str, required=False, default=DATA + "/datasets/example_input.csv",
+        '--input_data', action='store', nargs=1, type=str, required=False, default=[DATA + "/datasets/example_input.csv"],
         help=f'Path to the input data to be analyzed. If multiple VCFs, specify a folder that only contains them. By default it will use PCAWG dataset'
     )
 
