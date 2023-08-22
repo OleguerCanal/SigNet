@@ -29,15 +29,15 @@ class ClassifiedFinetunerErrorfinder:
 
     def __separate_classification(self, classification, mutation_dist, baseline_guess, num_mut):
         ind = torch.tensor(range(classification.size()[0]))
-        ind_order = torch.tensor(np.concatenate((ind[classification <= self.classification_cutoff], ind[classification > self.classification_cutoff]))).reshape(-1, 1).to(torch.float).to(self.device)
+        ind_order = torch.tensor(np.concatenate((ind[torch.flatten((classification <= self.classification_cutoff) | (torch.transpose(num_mut > 5e5,0,1)))], ind[torch.flatten((classification > self.classification_cutoff) & (torch.transpose(num_mut < 5e5,0,1)))]))).reshape(-1, 1).to(torch.float).to(self.device)
         
-        input_batch_random = mutation_dist[classification <= self.classification_cutoff, ]
-        input_batch_realistic = mutation_dist[classification > self.classification_cutoff, ]
-        num_mut_realistic = num_mut[classification > self.classification_cutoff, ]
-        classification_realistic = classification[classification > self.classification_cutoff, ]
+        input_batch_random = mutation_dist[torch.flatten((classification <= self.classification_cutoff) | (torch.transpose(num_mut > 5e5,0,1))), ]  # Random + samples with large num mut (we will only do NNLS for them)
+        input_batch_realistic = mutation_dist[torch.flatten((classification > self.classification_cutoff) & (torch.transpose(num_mut < 5e5,0,1))), ]
+        num_mut_realistic = num_mut[torch.flatten((classification > self.classification_cutoff) & (torch.transpose(num_mut < 5e5,0,1))), ]
+        classification_realistic = classification[torch.flatten((classification > self.classification_cutoff) & (torch.transpose(num_mut < 5e5,0,1))), ]
 
-        baseline_guess_random = baseline_guess[classification <= self.classification_cutoff, ]
-        baseline_guess_realistic = baseline_guess[classification > self.classification_cutoff, ]
+        baseline_guess_random = baseline_guess[torch.flatten((classification <= self.classification_cutoff) | (torch.transpose(num_mut > 5e5,0,1))), ]
+        baseline_guess_realistic = baseline_guess[torch.flatten((classification > self.classification_cutoff) & (torch.transpose(num_mut < 5e5,0,1))), ]
 
         baseline_guess_random = baseline_guess_random/torch.sum(baseline_guess_random, dim=1).reshape(-1,1)
         
