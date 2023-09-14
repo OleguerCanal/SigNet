@@ -6,10 +6,10 @@ We have developed a method that uses Deep Neural Networks to do signature refitt
 
 ### What is signature refitting?
 
-Given a set of known mutational signatures, signature refitting methods aim to find a linear combination of these signatures that can reconstruct the mutational profile of a given sample. The mutational signatures have been identified using the conventional 96 mutation type classification, considering not only the mutated base (six substitution subtypes: C>A, C>G, C>T, T>A, T>C, and T>G), but also the bases immediately 5’ and 3’. The currently most used set of mutational signatures is the one provided by COSMIC, [[1]](#1). A schematic of the signature refitting process is the following:
+Given a set of known mutational signatures, signature refitting methods aim to find a linear combination of these signatures that can reconstruct the mutational profile of a given sample. The mutational signatures have been identified using the conventional 96 mutation type classification, considering not only the mutated base (six substitution subtypes: C>A, C>G, C>T, T>A, T>C, and T>G), but also the bases immediately 5’ and 3’. The currently most used set of mutational signatures is the one provided by COSMIC, [[1]](#1). SigNet uses COSMIC v3.1, which contains 72 signatures. 
 
 ## References
 <a id="1">[1]</a> 
-COSMIC. Mutational Signatures (v3.2 - March 2021).
-Accessed on 10th November 2021.
+COSMIC. Mutational Signatures (v3.3 - June 2022).
+Accessed on 14th September 2023.
 https://cancer.sanger.ac.uk/signatures/sbs/
