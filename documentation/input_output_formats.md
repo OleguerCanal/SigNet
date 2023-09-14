@@ -33,6 +33,7 @@ File containing the abundances in two columns. The first one should be the trinu
 
 An example of the abundances file look like this:
 
+| | |
 | --- | --- |
 | AAA | 698329 |
 | AAC | 436449 |
