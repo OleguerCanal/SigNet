@@ -2,7 +2,7 @@
 
 ![image](https://user-images.githubusercontent.com/31748781/192327635-d5001335-1780-4b74-8e01-8b6fb3c95228.png)
 
-The SigNet Refitter module gets as an input a set of mutational vectors and as an outputit predicts a guess on the weight presence of each mutational signature with an associated error interval. It is composed by 4 main modules: [SigNet Detector](documentation/signet_detector), Non-negative least-squares, Finetuner and Error Estimator.
+The SigNet Refitter module gets as an input a set of mutational vectors and as an output it predicts a guess on the weight presence of each mutational signature with an associated error interval. It is composed by 4 main modules: [SigNet Detector](signet_detector.md), Non-negative least-squares, Finetuner and Error Estimator.
 
 ## Non-negative least-squares (NNLS)
 

@@ -80,13 +80,21 @@ The following example shows how to use [SigNet Refitter](documentation/signet_re
 
 ```BASH
 cd <wherever/you/downloaded/the/executable/>
-./signet refitter  [--input_data INPUTFILE]
+./signet refitter  [--input_format {counts, bed, vcf}]
+                   [--input_data INPUTFILE]
+                   [--reference_genome REFGENOME]
                    [--normalization {None, exome, genome, PATH_TO_ABUNDANCES}] 
+                   [--only_nnls ONLYNNLS]
+                   [--cutoff CUTOFF]
                    [--output OUTPUT]
-                   [--figure False]
+                   [--plot_figs False]
 ```
 
-- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
+- `--input_format`: Name of the format of the input. The default is 'counts'. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details.
+
+- `--input_data`: Path to the file containing the mutational counts. Please refer to [Mutations Input](documentation/input_output_formats.md##Mutations-Input) for further details.
+
+- `--reference_genome`: Name or path to the reference genome. Needed when input_format is bed or vcf.
 
 - `--normalization`: As the INPUTFILE contain counts, we need to normalize them according to the abundances of each trinucleotide on the genome region we are counting the mutations.
   - Choose `None` (default): If you don't want any normalization.
@@ -94,9 +102,13 @@ cd <wherever/you/downloaded/the/executable/>
   - Choose `genome`: If the data comes from Whole Genome Sequencing.
   - Set a `PATH_TO_ABUNDANCES` to use a custom normalization file. Please refer to [Normalization Input](documentation/input_output_formats.md##Mutations-Input) for further details on the input format.
 
-- `--output` Path to the folder where all the output files (weights guesses and figures) will be stored. By default, this folder will be called "OUTPUT" and will be created in the current directory. Please refer to [SigNet Refitter Output](documentation/input_output_formats.md##Signet-Refitter-Output) for further details on the output format.
+- `--only_nnls`: Whether to use NNLS mode only (the finetuner is not run). Default: `False`.
 
-- `--figure` Whether to generate output plots or not. Possible options are `true` or `false`.
+- `--cutoff`: Cutoff to be applied to the final weights. Default: 0.01.
+
+- `--output` Path to the folder where all the output files (weights guesses and figures) will be stored. By default, this folder will be called "Output" and will be created in the current directory. Please refer to [SigNet Refitter Output](documentation/input_output_formats.md##Signet-Refitter-Output) for further details on the output format.
+
+- `--plot_figs` Whether to generate output plots or not. Possible options are `True` or `False`.
 
 
 __Detector:__

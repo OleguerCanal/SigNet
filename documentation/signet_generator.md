@@ -12,7 +12,7 @@ Therefore, we obtain a mapping between the original data distribution and a stan
 This allows us to generate realistic-looking mutational vectors, simply by sampling from a Gaussian and serving those samples as inputs to the decoder.
 Effectively, this network is learning the underlying correlations between signatures, being capable of generating previously unseen but plausible examples.
 In our case, both the encoder and the decoder are modeled by feed-forward ANNs, composed of standard linear layers with leaky ReLU activation. It was trained using [PCAWG dataset](https://www.biorxiv.org/content/10.1101/162784v1.full) as input/labels.
-Furthermore, we use the re-parametrization trick for variance reduction: while training, given an input $x_i$ from the dataset $\mathcal{D} = \left{ x_i \right}_{i=1:N}$, where $N$ denotes the training dataset size, the encoder returns two values: $\mu_i$ and $\sigma_i$. These values are then used to sample the input from the decoder $z_i \sim \mathcal{N}(\mu_i, \sigma_i)$, where $\mathcal{N}(\mu,\sigma)$ denotes the normal distribution with mean $\mu$ and standard deviation $\sigma$. Finally, the decoder takes this sample $z_i$ and returns a reconstruction $\hat x_i$. 
+Furthermore, we use the re-parametrization trick for variance reduction: while training, given an input $x_i$ from the dataset $\mathcal{D} = \{ x_i \}_{i=1:N}$, where $N$ denotes the training dataset size, the encoder returns two values: $\mu_i$ and $\sigma_i$. These values are then used to sample the input from the decoder $z_i \sim \mathcal{N}(\mu_i, \sigma_i)$, where $\mathcal{N}(\mu,\sigma)$ denotes the normal distribution with mean $\mu$ and standard deviation $\sigma$. Finally, the decoder takes this sample $z_i$ and returns a reconstruction $\hat x_i$. 
 
 Feeding values from a standardized normal, i.e. $z_i \sim \mathcal{N} (0, 1)$, to the decoder returns realistic-looking signature combinations $\hat x_i$. The generator sampler part of \textit{Signet Generator} then simulates a mutational vector obtained from this combination of signatures with a given number of mutations.
 
@@ -26,4 +26,4 @@ Its main advantage being that it encodes the main mutation correlations existent
 [SynSigGen](https://github.com/steverozen/SynSigGen) instead, independently attributes weight to signatures depending on their frequencies, thus ignoring those correlations.
 It is important to notice, however, that spurious correlations are created by our method.
 Further work should be done on a model level to address them.
-Check out the paper for further analysis.
+Check out the manuscript for further analysis.
