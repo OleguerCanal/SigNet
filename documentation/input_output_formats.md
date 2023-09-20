@@ -19,6 +19,8 @@ The different mutation types should follows the conventional 96 mutation type cl
 
 ### Bed
 
+
+
 However, there are other formats that are also accepted. Specifying --input_format bed, the user can provide a bed file that, in each row, contains a mutation of the sample  or the samples. In this case, the columns expected in this file are: sample, chr, start, ref, alt.
 
 It is important to specify the reference genome, otherwise the trinucleotide context mapping cannot be done.
@@ -29,76 +31,91 @@ Finally, specifying --input_format vcf, the user can provide a VCF file or a lis
 
 ## Normalization Input
 
+
+
 File containing the abundances in two columns. The first one should be the trinucleotide, and the second one should be the abundance of that trinucleotide. The default option for normalization is None which means that no specific normalization will be applied and the data will just be normally normalized by the total number of mutations in each sample.
 
 An example of the abundances file look like this:
 
-| | |
-| --- | --- |
-| AAA | 698329 |
-| AAC | 436449 |
-| AAG | 737530 |
-| AAT | 416568 |
-| CAA | 600982 |
-| CAC | 519841 |
-| CAG | 909499 |
-| CAT | 490253 |
-| GAA | 747391 |
-| GAC | 481873 |
-| GAG | 738007 |
-| GAT | 453174 |
-| TAA | 243098 |
-| TAC | 307855 |
-| TAG | 174900 |
-| TAT | 285445 |
-| ACA | 570372 |
-| ACC | 530099 |
-| ACG | 216770 |
-| ACT | 425910 |
-| CCA | 761018 |
-| CCC | 664368 |
-| CCG | 338357 |
-| CCT | 686587 |
-| GCA | 612890 |
-| GCC | 698452 |
-| GCG | 289058 |
-| GCT | 617328 |
-| TCA | 567719 |
-| TCC | 557411 |
-| TCG | 190380 |
-| TCT | 495949 |
-| AGA | 797782 |
-| AGC | 680942 |
-| AGG | 648844 |
-| AGT | 427683 |
-| CGA | 231066 |
-| CGC | 289095 |
-| CGG | 336285 |
-| CGT | 178119 |
-| GGA | 759821 |
-| GGC | 640772 |
-| GGG | 540477 |
-| GGT | 359468 |
-| TGA | 627645 |
-| TGC | 608043 |
-| TGG | 776144 |
-| TGT | 469233 |
-| ATA | 258515 |
-| ATC | 419516 |
-| ATG | 586183 |
-| ATT | 378712 |
-| CTA | 287063 |
-| CTC | 557813 |
-| CTG | 895650 |
-| CTT | 485231 |
-| GTA | 208254 |
-| GTC | 346293 |
-| GTG | 572729 |
-| GTT | 306524 |
-| TTA | 256116 |
-| TTC | 487837 |
-| TTG | 426503 |
-| TTT | 438956 |
+<div style="height: 100px; overflow-y: auto; border: 1px solid #ccc;">
+
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>AAA</td><td>698329</td></tr>
+        <tr><td>AAC</td><td>436449</td></tr>
+        <tr><td>AAG</td><td>737530</td></tr>
+        <tr><td>AAT</td><td>416568</td></tr>
+        <tr><td>CAA</td><td>600982</td></tr>
+        <tr><td>CAC</td><td>519841</td></tr>
+        <tr><td>CAG</td><td>909499</td></tr>
+        <tr><td>CAT</td><td>490253</td></tr>
+        <tr><td>GAA</td><td>747391</td></tr>
+        <tr><td>GAC</td><td>481873</td></tr>
+        <tr><td>GAG</td><td>738007</td></tr>
+        <tr><td>GAT</td><td>453174</td></tr>
+        <tr><td>TAA</td><td>243098</td></tr>
+        <tr><td>TAC</td><td>307855</td></tr>
+        <tr><td>TAG</td><td>174900</td></tr>
+        <tr><td>TAT</td><td>285445</td></tr>
+        <tr><td>ACA</td><td>570372</td></tr>
+        <tr><td>ACC</td><td>530099</td></tr>
+        <tr><td>ACG</td><td>216770</td></tr>
+        <tr><td>ACT</td><td>425910</td></tr>
+        <tr><td>CCA</td><td>761018</td></tr>
+        <tr><td>CCC</td><td>664368</td></tr>
+        <tr><td>CCG</td><td>338357</td></tr>
+        <tr><td>CCT</td><td>686587</td></tr>
+        <tr><td>GCA</td><td>612890</td></tr>
+        <tr><td>GCC</td><td>698452</td></tr>
+        <tr><td>GCG</td><td>289058</td></tr>
+        <tr><td>GCT</td><td>617328</td></tr>
+        <tr><td>TCA</td><td>567719</td></tr>
+        <tr><td>TCC</td><td>557411</td></tr>
+        <tr><td>TCG</td><td>190380</td></tr>
+        <tr><td>TCT</td><td>495949</td></tr>
+        <tr><td>AGA</td><td>797782</td></tr>
+        <tr><td>AGC</td><td>680942</td></tr>
+        <tr><td>AGG</td><td>648844</td></tr>
+        <tr><td>AGT</td><td>427683</td></tr>
+        <tr><td>CGA</td><td>231066</td></tr>
+        <tr><td>CGC</td><td>289095</td></tr>
+        <tr><td>CGG</td><td>336285</td></tr>
+        <tr><td>CGT</td><td>178119</td></tr>
+        <tr><td>GGA</td><td>759821</td></tr>
+        <tr><td>GGC</td><td>640772</td></tr>
+        <tr><td>GGG</td><td>540477</td></tr>
+        <tr><td>GGT</td><td>359468</td></tr>
+        <tr><td>TGA</td><td>627645</td></tr>
+        <tr><td>TGC</td><td>608043</td></tr>
+        <tr><td>TGG</td><td>776144</td></tr>
+        <tr><td>TGT</td><td>469233</td></tr>
+        <tr><td>ATA</td><td>258515</td></tr>
+        <tr><td>ATC</td><td>419516</td></tr>
+        <tr><td>ATG</td><td>586183</td></tr>
+        <tr><td>ATT</td><td>378712</td></tr>
+        <tr><td>CTA</td><td>287063</td></tr>
+        <tr><td>CTC</td><td>557813</td></tr>
+        <tr><td>CTG</td><td>895650</td></tr>
+        <tr><td>CTT</td><td>485231</td></tr>
+        <tr><td>GTA</td><td>208254</td></tr>
+        <tr><td>GTC</td><td>346293</td></tr>
+        <tr><td>GTG</td><td>572729</td></tr>
+        <tr><td>GTT</td><td>306524</td></tr>
+        <tr><td>TTA</td><td>256116</td></tr>
+        <tr><td>TTC</td><td>487837</td></tr>
+        <tr><td>TTG</td><td>426503</td></tr>
+        <tr><td>TTT</td><td>438956</td></tr>
+    </tbody>
+</table>
+
+</div>
+
 
 ### Signet Refitter Output
 
