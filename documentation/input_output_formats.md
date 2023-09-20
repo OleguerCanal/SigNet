@@ -37,7 +37,7 @@ File containing the abundances in two columns. The first one should be the trinu
 
 An example of the abundances file look like this:
 
-<div style="height: 100px; overflow-y: auto; border: 1px solid #ccc;">
+<div style="height: 50px; overflow-y: auto !important; border: 1px solid #ccc;">
 
 <table>
     <thead>
