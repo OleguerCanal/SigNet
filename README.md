@@ -1,3 +1,8 @@
+> [!CAUTION]
+> Ownership of this code has been transferred to [weghornlab](https://github.com/weghornlab/SigNet). For a mantained, more up-to-date version please refer there.
+
+
+
 # SigNet
 
 SigNet is a package to study genetic mutational processes.
